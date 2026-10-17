@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import { AppShell } from "@/components/shell/AppShell";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-grotesk",
-});
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-jetbrains",
 });
 
@@ -28,12 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      className={`${inter.variable} ${grotesk.variable} ${jetbrains.variable}`}
-      lang="en"
-    >
-      <body className="antialiased">
-        <AppShell>{children}</AppShell>
+    <html className={`${inter.variable} ${jetbrains.variable}`} lang="en">
+      <body>
+        <AuthProvider>
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          <Toaster position="bottom-right" richColors={false} />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -21,6 +21,24 @@ export const TOOLS = [
 ] as const;
 export type ToolName = (typeof TOOLS)[number];
 
+export interface AuthTokenDTO {
+  token: string;
+  expiresAt?: string;
+  userId: string;
+  tenantId: string;
+  role: Role;
+}
+
+export interface AuthMeDTO {
+  userId: string;
+  email: string;
+  displayName?: string | null;
+  tenantId: string;
+  tenantName?: string | null;
+  role: Role;
+  memberships: Array<{ tenantId: string; tenantName: string; role: Role }>;
+}
+
 export interface SessionDTO {
   sessionId: string;
   tenantId: string;

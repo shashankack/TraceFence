@@ -1,183 +1,160 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 /*
-  TraceFence visual system — "command center"
-  Deep navy canvas, glass panels with hairline borders, neon-blue accent.
-  Decision colours carry meaning only: green ALLOW, red DENY, amber REQUIRE_APPROVAL.
+  TraceFence — light, technical, restrained.
+  White surfaces, electric-blue primary, violet secondary.
+  Green / red / amber appear only on gateway decisions.
 */
-@theme {
+:root {
+  --radius: 0.75rem;
+
+  --background: #f7f8fc;
+  --foreground: #0e1225;
+  --card: #ffffff;
+  --card-foreground: #0e1225;
+  --popover: #ffffff;
+  --popover-foreground: #0e1225;
+
+  --primary: #3651f5;
+  --primary-foreground: #ffffff;
+  --secondary: #f1efff;
+  --secondary-foreground: #4a2fc4;
+  --muted: #f2f4fa;
+  --muted-foreground: #5d6480;
+  --accent: #eef1ff;
+  --accent-foreground: #2a3fd1;
+  --destructive: #e0384f;
+  --border: #e3e6f0;
+  --input: #dde1ee;
+  --ring: #3651f5;
+
+  --violet: #7c4dff;
+  --violet-soft: #f3efff;
+  --allow: #0f9f6e;
+  --allow-soft: #e7f8f1;
+  --deny: #e0384f;
+  --deny-soft: #fdecef;
+  --approval: #c47a0a;
+  --approval-soft: #fff5e3;
+  --inject: #fff1a8;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0e1225;
+  --sidebar-border: #e3e6f0;
+}
+
+@theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  /* Text */
-  --color-ink: #e8eef8;
-  --color-muted: #94a3bb;
-  --color-faint: #5f6f88;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
-  /* Structure */
-  --color-canvas: #050913;
-  --color-surface: #0b1222;
-  --color-surface-soft: #101a2e;
-  --color-surface-raised: #142039;
-  --color-line: rgba(126, 162, 222, 0.12);
-  --color-line-strong: rgba(126, 162, 222, 0.22);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Accent — neon blue */
-  --color-neon: #4cc2ff;
-  --color-neon-strong: #1fa2f0;
-  --color-neon-soft: rgba(76, 194, 255, 0.12);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-allow: var(--allow);
+  --color-allow-soft: var(--allow-soft);
+  --color-deny: var(--deny);
+  --color-deny-soft: var(--deny-soft);
+  --color-approval: var(--approval);
+  --color-approval-soft: var(--approval-soft);
+  --color-inject: var(--inject);
 
-  /* Kept for older class names: brand aliases point at the accent */
-  --color-navy: #0b1222;
-  --color-teal: #4cc2ff;
-  --color-teal-strong: #1fa2f0;
-  --color-teal-soft: rgba(76, 194, 255, 0.12);
-
-  /* Decisions */
-  --color-allow: #2ee59d;
-  --color-allow-soft: rgba(46, 229, 157, 0.12);
-  --color-deny: #ff5468;
-  --color-deny-soft: rgba(255, 84, 104, 0.13);
-  --color-approval: #ffb547;
-  --color-approval-soft: rgba(255, 181, 71, 0.13);
-
-  /* Injection highlight */
-  --color-inject: #ffd84d;
-  --color-inject-soft: rgba(255, 216, 77, 0.2);
-
-  /* Classification */
-  --color-internal: #8fb4ff;
-  --color-internal-soft: rgba(143, 180, 255, 0.13);
-
-  /* Trace rail */
-  --color-rail: #070d1a;
-  --color-rail-elevated: #0e1729;
-  --color-rail-line: rgba(126, 162, 222, 0.12);
-  --color-rail-text: #e8eef8;
-  --color-rail-muted: #94a3bb;
-  --color-rail-faint: #5f6f88;
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
 }
 
-html,
-body {
-  min-height: 100%;
-}
-
-html {
-  color-scheme: dark;
-}
-
-body {
-  margin: 0;
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  background-color: var(--color-canvas);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 15% -10%, rgba(31, 162, 240, 0.16), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(46, 229, 157, 0.05), transparent 55%),
-    radial-gradient(ellipse 80% 60% at 50% 120%, rgba(31, 90, 200, 0.12), transparent 60%),
-    linear-gradient(rgba(126, 162, 222, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(126, 162, 222, 0.035) 1px, transparent 1px);
-  background-size: auto, auto, auto, 40px 40px, 40px 40px;
-  background-attachment: fixed;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-neon);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: rgba(76, 194, 255, 0.3);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @layer components {
-  /* Glass panel: translucent navy with a hairline border and a faint top highlight. */
-  .glass {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
-      rgba(11, 18, 34, 0.72);
-    border: 1px solid var(--color-line);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 18px 50px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(14px);
+  /* Faint engineering grid — used behind the login hero and page headers, never behind content. */
+  .tech-grid {
+    background-image:
+      linear-gradient(to right, rgba(54, 81, 245, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(54, 81, 245, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
 
-  .glass-soft {
-    background: rgba(16, 26, 46, 0.6);
-    border: 1px solid var(--color-line);
+  .brand-gradient {
+    background-image: linear-gradient(135deg, #3651f5 0%, #7c4dff 100%);
   }
 
-  .eyebrow {
+  .brand-text {
+    background-image: linear-gradient(135deg, #3651f5 0%, #7c4dff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Small monospace label for technical metadata. */
+  .kicker {
     font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--color-neon);
-  }
-
-  .glow-allow {
-    box-shadow: 0 0 0 1px rgba(46, 229, 157, 0.3), 0 0 18px rgba(46, 229, 157, 0.22);
-  }
-  .glow-deny {
-    box-shadow: 0 0 0 1px rgba(255, 84, 104, 0.35), 0 0 22px rgba(255, 84, 104, 0.25);
-  }
-  .glow-approval {
-    box-shadow: 0 0 0 1px rgba(255, 181, 71, 0.32), 0 0 18px rgba(255, 181, 71, 0.2);
-  }
-  .glow-neon {
-    box-shadow: 0 0 0 1px rgba(76, 194, 255, 0.35), 0 0 22px rgba(76, 194, 255, 0.25);
-  }
-
-  .field {
-    height: 2.25rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-line-strong);
-    background: rgba(5, 9, 19, 0.6);
-    padding: 0 0.625rem;
-    font-size: 0.875rem;
-    color: var(--color-ink);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .field::placeholder {
-    color: var(--color-faint);
-  }
-  .field:focus {
-    border-color: rgba(76, 194, 255, 0.55);
-    box-shadow: 0 0 0 3px rgba(76, 194, 255, 0.14);
-  }
-  .field:disabled {
-    opacity: 0.55;
+    color: var(--muted-foreground);
   }
 
   .mark-inject {
-    background: var(--color-inject-soft);
-    color: var(--color-inject);
-    border-bottom: 1px solid rgba(255, 216, 77, 0.7);
-    border-radius: 3px;
-    padding: 0 2px;
+    background: var(--inject);
+    color: #6b4a00;
+    box-shadow: inset 0 -1.5px 0 #e2b100;
+    border-radius: 2px;
+    padding: 0 1px;
   }
 }
 
-.scroll-thin,
-.scroll-rail {
+.scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(126, 162, 222, 0.22) transparent;
+  scrollbar-color: #d5d9e6 transparent;
 }
 
-select.field option {
-  background: #0b1222;
-  color: #e8eef8;
+@keyframes tf-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
