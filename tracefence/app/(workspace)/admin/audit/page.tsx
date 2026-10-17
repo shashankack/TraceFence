@@ -450,7 +450,7 @@ function CaseRow({
           {outcome}
         </span>
       ),
-      sub: e.outcome ?? "—",
+      sub: e.outcome ?? " ",
     },
   ];
 

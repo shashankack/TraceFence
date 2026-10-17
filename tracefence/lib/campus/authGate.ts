@@ -54,17 +54,27 @@ export function looksLikePromptInjection(message: string): boolean {
     /pretend (you|your).{0,40}(hacked|disabled|no (rules|security))/.test(m) ||
     /as part of the game rules/.test(m);
 
+  // Avoid FPs on normal engineering prose ("system prompt", "new policy is").
+  // Require override / takeover intent, not mere mention of those words.
   const classicInjection =
     /ignore (all )?(previous|prior|above) instructions?/.test(m) ||
     /disregard (your|all|the) (rules?|instructions?|policies|guidelines)/.test(
       m,
     ) ||
-    /system (update|prompt|override|message)/.test(m) ||
-    /new (rule|policy|protocol) is/.test(m) ||
-    /grant (me |full )?access/.test(m) ||
+    /\bsystem\s+(update|override)\b/.test(m) ||
+    /\bsystem\s+prompt\s+(override|update|is\s+now|replaced)\b/.test(m) ||
+    /\bnew (rule|policy|protocol) is\b.{0,40}\b(ignore|bypass|override|admin)\b/.test(
+      m,
+    ) ||
+    /\bgrant (me |full )?access\b/.test(m) ||
     /log( me)? in as (an? )?(admin|administrator|root)/.test(m) ||
     /print ['"]?access granted['"]?/.test(m) ||
-    /\b(jailbreak|dan mode|developer mode)\b/.test(m) ||
+    // Mere mention of "jailbreak" in a security write-up is fine; require an enable/enter ask.
+    /\b(do|try|attempt|enable|enter|activate)\s+(a\s+)?jailbreak\b/.test(m) ||
+    /\bjailbreak\s+(this|me|mode|now)\b/.test(m) ||
+    /\bdan mode\b/.test(m) ||
+    /\benable\s+developer\s+mode\b/.test(m) ||
+    /\byou\s+are\s+in\s+developer\s+mode\b/.test(m) ||
     /you are now (an? )?(unrestricted|admin|administrator)/.test(m) ||
     /open admin dashboard/.test(m) ||
     /command:\s*(open admin|show admin|grant)/.test(m);

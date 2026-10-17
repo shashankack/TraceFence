@@ -79,7 +79,7 @@ export async function executeCampusTool(
         status: result.status,
         flags: result.flags,
         content: result.content,
-        note: "Sanitized upload only — raw file never enters model context",
+        note: "Sanitized upload only   raw file never enters model context",
       };
     }
     case "post_announcement":

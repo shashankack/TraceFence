@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Bot, Loader2, MessagesSquare, RotateCcw, ShieldX, User } from "lucide-react";
+import { ArrowUp, Bot, Loader2, MessagesSquare, Paperclip, RotateCcw, ShieldX, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { docTitle } from "@/components/domain/catalog";
 import { cn } from "@/components/lib/utils";
@@ -152,9 +152,27 @@ function Message({ message }: { message: ChatMessage }) {
             : "rounded-tr-sm bg-primary text-primary-foreground",
         )}
       >
-        <p className="m-0 whitespace-pre-line">
-          <InlineMarkdown text={message.text} />
-        </p>
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {message.attachments.map((f) => (
+              <span
+                className={cn(
+                  "inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]",
+                  assistant ? "border-border bg-muted text-muted-foreground" : "border-white/25 bg-white/15",
+                )}
+                key={f.id}
+              >
+                <Paperclip className="size-3 shrink-0" />
+                <span className="truncate">{f.filename}</span>
+              </span>
+            ))}
+          </div>
+        )}
+        {message.text.trim() ? (
+          <p className="m-0 whitespace-pre-line">
+            <InlineMarkdown text={message.text} />
+          </p>
+        ) : null}
         {message.citations && message.citations.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border/70 pt-2">
             {message.citations.map((c, i) => (

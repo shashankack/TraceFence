@@ -1,4 +1,4 @@
-# TraceFence — Codebase map
+# TraceFence   Codebase map
 
 Deep guide for teammates who need to navigate the repo, wire demos, or debug.  
 Product rules: [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md). Presentation prep: [`TEAMMATE_PRESENTATION_BRIEF.md`](./TEAMMATE_PRESENTATION_BRIEF.md).
@@ -68,7 +68,7 @@ Layouts: `(auth)/`, `(workspace)/` + `AppShell` nav by role.
 | Org | `org/documents`, `org/policy`, `org/profile`, `org/members`, `org/roles`, `org/notifications` | Admin corpus + policy |
 | Audit | `audit`, `audit/evidence` | Aggregates + session evidence |
 | Sources | `sources/inspect`, `sources/[id]` | Allowlisted page inspect (demo) |
-| Tasks | `tasks/*` | Legacy invoice path — not campus hero |
+| Tasks | `tasks/*` | Legacy invoice path   not campus hero |
 
 Handlers call `lib/**` only; they do not re-implement policy in the route file.
 
@@ -140,7 +140,7 @@ Handlers call `lib/**` only; they do not re-implement policy in the route file.
 |---|---|
 | `investigate/inspectPage.ts` | Playwright-ish inspect limited by `SOURCE_ALLOWLIST_PREFIXES` |
 
-Legacy invoice tools under `tools/readInvoice.ts`, `sendMockEmail.ts`, etc. remain for older task APIs — **not** the campus pitch.
+Legacy invoice tools under `tools/readInvoice.ts`, `sendMockEmail.ts`, etc. remain for older task APIs   **not** the campus pitch.
 
 ---
 
@@ -188,7 +188,7 @@ Seeding is mostly upsert for fixtures; if the DB is stale, delete `data/tracefen
 
 1. `POST /api/sessions/:id/attachments` (role must ALLOW `use_chat_upload`)  
 2. Extract text → `sanitizeChatUpload` → store status `ready` \| `flagged` \| `blocked`  
-3. On send with `attachmentIds`, `invoke(use_chat_upload)` — only sanitized text enters context  
+3. On send with `attachmentIds`, `invoke(use_chat_upload)`   only sanitized text enters context  
 
 ### Faculty export approval
 
@@ -216,7 +216,7 @@ Copy from `tracefence/.env.example` → `tracefence/.env` (never commit `.env`).
 |---|---|---|
 | `LLM_BASE_URL` | `http://127.0.0.1:11434` | Ollama HTTP API base. Chat falls back to scripted answers if unreachable. |
 | `LLM_MODEL` | `qwen3:8b` | Model name passed to Ollama (`/api/chat`). Must be pulled locally. |
-| `LLM_NUM_PREDICT` | `180` | Max tokens to generate — keeps campus answers short and latency down. |
+| `LLM_NUM_PREDICT` | `180` | Max tokens to generate   keeps campus answers short and latency down. |
 | `LLM_NUM_CTX` | `2048` | Context window size for the local 8B model (KV memory). |
 | `LLM_TEMPERATURE` | `0.2` | Sampling temperature (low = more deterministic demos). |
 | `LLM_TIMEOUT_MS` | `25000` | Abort Ollama request after this many ms; then scripted/fallback path. |
@@ -247,7 +247,7 @@ Copy from `tracefence/.env.example` → `tracefence/.env` (never commit `.env`).
 | Variable | Default | What it does |
 |---|---|---|
 | `SMTP_HOST` | *(unset)* | If set, code may attempt real SMTP; **mock outbox is always written** regardless. Demo should not depend on deliverability. |
-| `SMTP_URL` | *(unset)* | Alternate SMTP URL style config (same spirit as `SMTP_HOST`). Placeholder wiring — do not claim production mail. |
+| `SMTP_URL` | *(unset)* | Alternate SMTP URL style config (same spirit as `SMTP_HOST`). Placeholder wiring   do not claim production mail. |
 
 ### Variables you should **not** invent for MVP
 
@@ -266,7 +266,7 @@ Password: **`demo1234`**
 | `admin@nulltrace.demo` | admin |
 | `alex@…` / `jordan@…` / `sam@…` | student / faculty / admin (extra) |
 
-Guest: no password — public corpus only via guest session.
+Guest: no password   public corpus only via guest session.
 
 ---
 

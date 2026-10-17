@@ -32,6 +32,7 @@ export function getDb(): Database.Database {
     // Hot-reload can keep an open handle opened before new migrations landed.
     migrateTenantProfiles(global.__tracefenceDb);
     migrateMockEmailOutbox(global.__tracefenceDb);
+    migrateSessionMessageAttachments(global.__tracefenceDb);
     return global.__tracefenceDb;
   }
 
@@ -51,6 +52,7 @@ export function getDb(): Database.Database {
   migrateOrgTablesToMultiTenant(db);
   migrateTenantProfiles(db);
   migrateMockEmailOutbox(db);
+  migrateSessionMessageAttachments(db);
 
   global.__tracefenceDb = db;
 
@@ -183,5 +185,13 @@ function migrateMockEmailOutbox(db: Database.Database) {
   }
   if (!cols.has("kind")) {
     db.exec(`ALTER TABLE mock_email_outbox ADD COLUMN kind TEXT`);
+  }
+}
+
+/** Chat bubbles can show which uploads rode with a user turn. */
+function migrateSessionMessageAttachments(db: Database.Database) {
+  const cols = tableColumns(db, "session_messages");
+  if (!cols.has("attachments_json")) {
+    db.exec(`ALTER TABLE session_messages ADD COLUMN attachments_json TEXT`);
   }
 }

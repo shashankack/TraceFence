@@ -94,7 +94,7 @@ OWASP's agentic AI security guidance documents risks involving excessive agency,
 
 ### 2.4 Core problem statement
 
-> **How can an application ensure that each AI-proposed action is authorized for the specific task, user, resource, and arguments—even when the agent receives malicious or misleading external content?**
+> **How can an application ensure that each AI-proposed action is authorized for the specific task, user, resource, and arguments even when the agent receives malicious or misleading external content?**
 
 ---
 
@@ -1085,4 +1085,4 @@ These links informed the architectural decisions and competitive positioning. Re
 
 ---
 
-*Prepared as a complete hackathon project brief and implementation guide. All example invoices, users, domains, and attack scenarios are synthetic. Security features described as MVP requirements are proposed implementation work—not features already built or independently validated.*
+*Prepared as a complete hackathon project brief and implementation guide. All example invoices, users, domains, and attack scenarios are synthetic. Security features described as MVP requirements are proposed implementation work not features already built or independently validated.*

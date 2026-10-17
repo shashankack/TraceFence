@@ -6,7 +6,7 @@ export function formatTime(ts?: string) {
 }
 
 export function argsLine(args?: Record<string, unknown> | null) {
-  if (!args) return "—";
+  if (!args) return " ";
   return Object.entries(args)
     .map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : typeof v === "string" ? `"${v}"` : JSON.stringify(v)}`)
     .join("  ");

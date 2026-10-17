@@ -35,8 +35,13 @@ export function createChatUpload(input: {
   userId: string;
   filename: string;
   rawText: string;
+  /** Extra flags from PDF byte scans (invisible watermarks, etc.). */
+  extraFlags?: ContentScanHit[];
 }): ChatUploadRow {
-  const { sanitized, flags, status } = sanitizeChatUpload(input.rawText);
+  const { sanitized, flags, status } = sanitizeChatUpload(
+    input.rawText,
+    input.extraFlags ?? [],
+  );
   const id = `upl_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
   const now = new Date().toISOString();
   const excerpt = input.rawText.replace(/\s+/g, " ").trim().slice(0, 240);
@@ -134,7 +139,7 @@ export function readSanitizedChatUpload(input: {
   if (upload.status === "blocked" || !upload.sanitized.trim()) {
     return {
       ok: false,
-      error: "Upload blocked after sanitize — content never enters model context",
+      error: "Upload blocked after sanitize   content never enters model context",
       status: upload.status,
       flags: upload.flags,
     };

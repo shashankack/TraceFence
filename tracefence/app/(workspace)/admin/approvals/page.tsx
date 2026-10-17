@@ -54,7 +54,7 @@ function Approvals() {
       {pendingCount > 0 && (
         <BlurFade>
           <p className="m-0 rounded-xl border border-approval/25 bg-approval-soft px-4 py-3 text-sm text-approval">
-            {pendingCount} pending approval{pendingCount === 1 ? "" : "s"} —
+            {pendingCount} pending approval{pendingCount === 1 ? "" : "s"}  
             organization admins were emailed (see Notifications below).
           </p>
         </BlurFade>

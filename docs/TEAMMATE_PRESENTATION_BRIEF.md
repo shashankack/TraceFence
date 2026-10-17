@@ -1,4 +1,4 @@
-# TraceFence — Teammate presentation brief
+# TraceFence   Teammate presentation brief
 
 **Team:** NullTrace · **Product:** TraceFence  
 **Tagline:** *A source-aware security gateway for AI agents*  
@@ -10,7 +10,7 @@ Use this one-pager to prep slides, demo roles, and Q&A. Living product rules: [`
 
 ## One-sentence product
 
-TraceFence decides **what an AI agent may read** and **what tools it may run** in application code — not by trusting the model or the document text.
+TraceFence decides **what an AI agent may read** and **what tools it may run** in application code   not by trusting the model or the document text.
 
 ---
 
@@ -20,7 +20,7 @@ TraceFence decides **what an AI agent may read** and **what tools it may run** i
 >  
 > **TraceFence** is a source-aware security gateway. The org uploads documents and sets who may read which collections and which tools are ALLOW / DENY / REQUIRE_APPROVAL. We filter what enters model context, and every consequential tool hits the gateway. Timeline: **SOURCE → PROPOSAL → DECISION → OUTCOME**.  
 >  
-> Demo: Admin shows corpus + policy matrix, then campus chat — student gets hostel curfew from public sources; cannot pull confidential directory into context; export is **DENY**. Faculty export needs **one exact approval**. Document text cannot rewrite permissions.  
+> Demo: Admin shows corpus + policy matrix, then campus chat   student gets hostel curfew from public sources; cannot pull confidential directory into context; export is **DENY**. Faculty export needs **one exact approval**. Document text cannot rewrite permissions.  
 >  
 > We are **not** claiming prompt-injection immunity or production security. We show inspectable, enforceable agent permissions.
 
@@ -100,7 +100,7 @@ Chat uploads: sanitize on server first; gateway must ALLOW before cleaned text e
 
 ## Fixtures (NullTrace only)
 
-Under `fixtures/campus/docs/` — **no PES corpus** on current backend tip:
+Under `fixtures/campus/docs/`   **no PES corpus** on current backend tip:
 
 | Doc | Class |
 |---|---|
@@ -124,7 +124,7 @@ npm run dev            # http://localhost:3000
 npx tsx scripts/smoke-demos.ts
 ```
 
-`DEMO_MODE=true` seeds fixtures and labels demos — it **must never** bypass a DENY.
+`DEMO_MODE=true` seeds fixtures and labels demos   it **must never** bypass a DENY.
 
 ---
 
@@ -133,10 +133,10 @@ npx tsx scripts/smoke-demos.ts
 | Judge question | Answer |
 |---|---|
 | What is TraceFence? | Source-aware security gateway for AI agents. |
-| Just blocking email? | No — filter reads + gate many tools; notify is one tool. |
+| Just blocking email? | No   filter reads + gate many tools; notify is one tool. |
 | Why campus? | Clear public vs confidential so the fence is visible in minutes. |
 | Model ignores policy? | Bad sources stay out of context; tools still denied in app code. |
-| Did you invent RBAC/RAG? | No — we compose known controls into an agent gateway with a visible trail. |
+| Did you invent RBAC/RAG? | No   we compose known controls into an agent gateway with a visible trail. |
 | Injection-proof? | No. We detect/log/strip and still enforce policy. |
 
 ---

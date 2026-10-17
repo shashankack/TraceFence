@@ -165,6 +165,11 @@ export const api = {
         role: string;
         content: string;
         citations?: CitationDTO[];
+        attachments?: Array<{
+          id: string;
+          filename: string;
+          status: string;
+        }>;
         createdAt: string;
       }>;
     }>(`/api/sessions/${sessionId}/messages`),

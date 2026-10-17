@@ -5,7 +5,7 @@ import { handleChatTurn } from "@/lib/campus/chat";
 import { getDb } from "@/lib/db/client";
 import type { CampusRole } from "@/lib/security/types";
 
-/** Ollama via tunnel can be slow — allow long serverless execution on Vercel. */
+/** Ollama via tunnel can be slow   allow long serverless execution on Vercel. */
 export const maxDuration = 60;
 export const runtime = "nodejs";
 
@@ -49,7 +49,8 @@ export async function GET(
 
   const rows = getDb()
     .prepare(
-      `SELECT id, role, content, citations_json as citationsJson, created_at as createdAt
+      `SELECT id, role, content, citations_json as citationsJson,
+              attachments_json as attachmentsJson, created_at as createdAt
        FROM session_messages WHERE session_id = ?
        ORDER BY created_at ASC`,
     )
@@ -58,6 +59,7 @@ export async function GET(
     role: string;
     content: string;
     citationsJson: string | null;
+    attachmentsJson: string | null;
     createdAt: string;
   }>;
 
@@ -74,6 +76,13 @@ export async function GET(
       role: r.role,
       content: r.content,
       citations: r.citationsJson ? JSON.parse(r.citationsJson) : undefined,
+      attachments: r.attachmentsJson
+        ? (JSON.parse(r.attachmentsJson) as Array<{
+            id: string;
+            filename: string;
+            status: string;
+          }>)
+        : undefined,
       createdAt: r.createdAt,
     })),
   });

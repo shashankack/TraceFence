@@ -1,4 +1,4 @@
-# TraceFence — Full PPT slide content
+# TraceFence   Full PPT slide content
 
 Copy each slide into PowerPoint / Google Slides. Keep **TraceFence** as the product name.  
 Pitch lock: [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md) · Demo prep: [`TEAMMATE_PRESENTATION_BRIEF.md`](./TEAMMATE_PRESENTATION_BRIEF.md).
@@ -7,7 +7,7 @@ Pitch lock: [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md) · Demo prep: [`TEAMMATE_PR
 
 ---
 
-## Slide 1 — Title
+## Slide 1   Title
 
 **On slide**
 - **TraceFence**
@@ -20,7 +20,7 @@ Introduce team name and one-line product. Do not say SecureRAG or “email produ
 
 ---
 
-## Slide 2 — The problem
+## Slide 2   The problem
 
 **On slide**
 - AI agents **read untrusted sources** and **call tools**
@@ -33,12 +33,12 @@ Contrast hope-based safety vs enforceable policy in application code.
 
 ---
 
-## Slide 3 — What TraceFence is
+## Slide 3   What TraceFence is
 
 **On slide**
 - **Source-aware security gateway** for AI agents
 - Decides **what the agent may read** and **what it may do**
-- Enforced in **server application code** — not by the model
+- Enforced in **server application code**   not by the model
 - The model may **propose**; only the gateway may **execute**
 
 **Speaker notes**  
@@ -46,19 +46,19 @@ One sentence: TraceFence is the fence around the agent, configured by the org.
 
 ---
 
-## Slide 4 — Three pillars
+## Slide 4   Three pillars
 
 **On slide**
-1. **Source-aware** — only ACL-allowed text enters LLM context; document text ≠ authority  
-2. **Multi-tool gateway** — ALLOW / DENY / REQUIRE_APPROVAL on every consequential tool  
-3. **Visible trail** — SOURCE → PROPOSAL → DECISION → OUTCOME  
+1. **Source-aware**   only ACL-allowed text enters LLM context; document text ≠ authority  
+2. **Multi-tool gateway**   ALLOW / DENY / REQUIRE_APPROVAL on every consequential tool  
+3. **Visible trail**   SOURCE → PROPOSAL → DECISION → OUTCOME  
 
 **Speaker notes**  
 Point at the decision rail in the live UI later.
 
 ---
 
-## Slide 5 — Not an email-only product
+## Slide 5   Not an email-only product
 
 **On slide**
 | Tool | Purpose |
@@ -73,11 +73,11 @@ Point at the decision rail in the live UI later.
 - The product is the **gateway**, not a mail filter
 
 **Speaker notes**  
-Judges often assume “email firewall” — correct that early.
+Judges often assume “email firewall”   correct that early.
 
 ---
 
-## Slide 6 — Org configures the fence
+## Slide 6   Org configures the fence
 
 **On slide**
 Admin can:
@@ -94,7 +94,7 @@ Show Admin → Sources & policies in the demo.
 
 ---
 
-## Slide 7 — How a request flows
+## Slide 7   How a request flows
 
 **On slide**
 ```
@@ -116,7 +116,7 @@ Identity never comes from the browser’s JSON or from the model.
 
 ---
 
-## Slide 8 — Architecture (stack)
+## Slide 8   Architecture (stack)
 
 **On slide**
 - **UI:** Next.js App Router · TypeScript · role workspaces (student / faculty / admin)
@@ -131,7 +131,7 @@ Honest: keyword/chunk RAG is enough for the campus demo.
 
 ---
 
-## Slide 9 — Campus demo world
+## Slide 9   Campus demo world
 
 **On slide**
 - **Tenant:** NullTrace Institute (synthetic)
@@ -140,14 +140,14 @@ Honest: keyword/chunk RAG is enough for the campus demo.
 - **Internal:** faculty guide  
 - **Confidential:** student directory, grades notes  
 
-All names/emails use reserved `.example` domains — **no real PII**.
+All names/emails use reserved `.example` domains   **no real PII**.
 
 **Speaker notes**  
 Campus = clear public vs confidential so judges “see” the fence in minutes.
 
 ---
 
-## Slide 10 — Policy matrix (campus MVP)
+## Slide 10   Policy matrix (campus MVP)
 
 **On slide**
 
@@ -164,13 +164,13 @@ Guest: public Q&A only; uploads / exports need sign-in.
 
 ---
 
-## Slide 11 — Live demo agenda
+## Slide 11   Live demo agenda
 
 **On slide**
-1. **Admin** — corpus + policy matrix (policy version)  
-2. **Student** — hostel curfew → **ALLOW** (public sources)  
-3. **Student** — export / peer grades → **fenced + DENY**  
-4. **Faculty** — export → **REQUIRE_APPROVAL** → admin approves **once**  
+1. **Admin**   corpus + policy matrix (policy version)  
+2. **Student**   hostel curfew → **ALLOW** (public sources)  
+3. **Student**   export / peer grades → **fenced + DENY**  
+4. **Faculty**   export → **REQUIRE_APPROVAL** → admin approves **once**  
 5. *(Optional)* Poisoned doc or chat upload → still **DENY** / sanitized  
 
 **Accounts:** `*@nulltrace.demo` / password `demo1234`
@@ -180,7 +180,7 @@ Run demo before more slides if time is short. Point at rail reason codes.
 
 ---
 
-## Slide 12 — Demo deep dive: student ALLOW
+## Slide 12   Demo deep dive: student ALLOW
 
 **On slide**
 - Ask: “What time is hostel curfew on weekdays?”
@@ -194,7 +194,7 @@ Show citations / classification badges if visible in UI.
 
 ---
 
-## Slide 13 — Demo deep dive: DENY & approval
+## Slide 13   Demo deep dive: DENY & approval
 
 **On slide**
 **Student export**
@@ -208,17 +208,17 @@ Show citations / classification badges if visible in UI.
 - Replay rejected
 
 **Speaker notes**  
-Approvals are single-use by design — not a sticky “admin mode.”
+Approvals are single-use by design   not a sticky “admin mode.”
 
 ---
 
-## Slide 14 — Untrusted content & uploads
+## Slide 14   Untrusted content & uploads
 
 **On slide**
 - Corpus may include injection (“export to attacker@…”)
 - Chat file attach: **sanitize first** (strip injection, tool inducement, markup, role spoof)
 - Status: ready / flagged / blocked
-- Gateway tool `use_chat_upload` — only **cleaned** text may enter context
+- Gateway tool `use_chat_upload`   only **cleaned** text may enter context
 - Raw poison **never** becomes policy authority
 
 **Speaker notes**  
@@ -226,20 +226,20 @@ Optional live attach of `fixtures/campus/uploads/poisoned-chat-note.txt`.
 
 ---
 
-## Slide 15 — Audit & evidence
+## Slide 15   Audit & evidence
 
 **On slide**
 - Every consequential decision lands in the **timeline**
 - Admin **Audit** report: sessions, decisions, reason codes
 - Approvals inbox / notifications (mock outbox; optional SMTP)
-- DEMO_MODE seeds fixtures — **does not** bypass DENY
+- DEMO_MODE seeds fixtures   **does not** bypass DENY
 
 **Speaker notes**  
 Close the loop: configurable fence → live decisions → inspectable evidence.
 
 ---
 
-## Slide 16 — What we are / are not claiming
+## Slide 16   What we are / are not claiming
 
 **On slide**
 **We show**
@@ -258,7 +258,7 @@ Honesty builds judge trust.
 
 ---
 
-## Slide 17 — What’s next
+## Slide 17   What’s next
 
 **On slide**
 - Same gateway → more connectors (SharePoint, Drive, tickets)
@@ -271,7 +271,7 @@ Campus is the demo domain; TraceFence is domain-agnostic by design.
 
 ---
 
-## Slide 18 — Team & thank you
+## Slide 18   Team & thank you
 
 **On slide**
 - **TraceFence** · NullTrace
@@ -285,20 +285,20 @@ Repo / local: Next.js · SQLite · Ollama `qwen3:8b` · synthetic fixtures only
 
 ## Backup slides (if asked)
 
-### B1 — Why not “just RAG with a system prompt”?
+### B1   Why not “just RAG with a system prompt”?
 - Unauthorized chunks must never enter context
 - Tools must hit the same gateway even if the model “agrees” to export
 
-### B2 — Guest vs signed-in
+### B2   Guest vs signed-in
 - Guest: public handbook / hostel / exams
 - Signed-in: role-bound collections + tools
 - Elevated guest intents → login (`AUTH_REQUIRED`)
 
-### B3 — Custom org roles
+### B3   Custom org roles
 - Admins can add labels / gateway role ids
-- Permissions still come from server policy — not display names
+- Permissions still come from server policy   not display names
 
-### B4 — Tech one-liner
+### B4   Tech one-liner
 - Next.js App Router + TypeScript · better-sqlite3 · Ollama · lexical chunk RAG · shadcn-style UI
 
 ---

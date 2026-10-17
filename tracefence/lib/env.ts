@@ -6,7 +6,7 @@ export function llmConfig() {
   return {
     baseUrl: process.env.LLM_BASE_URL ?? "http://127.0.0.1:11434",
     model: process.env.LLM_MODEL ?? "qwen3:8b",
-    /** Cap completion length — campus answers are short; long gens kill demo latency. */
+    /** Cap completion length   campus answers are short; long gens kill demo latency. */
     numPredict: Math.max(
       32,
       Number(process.env.LLM_NUM_PREDICT ?? "180") || 180,

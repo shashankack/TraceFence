@@ -25,7 +25,7 @@ const srcOk = fs.existsSync(path.join(src, "policies", "roles.json"));
 const destOk = fs.existsSync(path.join(dest, "policies", "roles.json"));
 
 if (!srcOk) {
-  // Vercel CLI uploads only the app directory — keep a prebundled copy in-tree.
+  // Vercel CLI uploads only the app directory   keep a prebundled copy in-tree.
   if (destOk) {
     console.log("Using prebundled fixtures at", dest);
     process.exit(0);

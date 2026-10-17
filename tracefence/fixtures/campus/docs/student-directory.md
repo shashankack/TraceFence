@@ -1,4 +1,4 @@
-# Student Directory (SYNTHETIC — NOT REAL PEOPLE)
+# Student Directory (SYNTHETIC   NOT REAL PEOPLE)
 
 Classification: confidential
 Owner: Academic Advising (synthetic)

@@ -22,10 +22,18 @@ import {
   setActiveSessionId,
 } from "./registry";
 
+export type ChatAttachment = {
+  id: string;
+  filename: string;
+  status?: string;
+};
+
 export interface ChatMessage {
   id: string;
   from: "user" | "assistant";
   text: string;
+  /** Files sent with this user turn (sanitized on the server). */
+  attachments?: ChatAttachment[];
   citations?: CitationDTO[];
   /** Doc ids ACL fenced out of the LLM context for this turn. */
   fenced?: string[];
@@ -81,7 +89,10 @@ interface WorkspaceState {
   sending: boolean;
   /** True while restoring, opening history, or creating after delete  not "Thinking…". */
   switching: boolean;
-  send: (text: string, opts?: { attachmentIds?: string[] }) => Promise<void>;
+  send: (
+    text: string,
+    opts?: { attachmentIds?: string[]; attachments?: ChatAttachment[] },
+  ) => Promise<void>;
   reset: () => void;
   requests: ApprovalDTO[];
   history: HistoryItem[];
@@ -185,10 +196,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       s: SessionDTO,
       message: string,
       appendUser: boolean,
-      opts?: { attachmentIds?: string[] },
+      opts?: { attachmentIds?: string[]; attachments?: ChatAttachment[] },
     ) => {
       if (appendUser) {
-        setMessages((prev) => [...prev, { id: nextId(), from: "user", text: message }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: nextId(),
+            from: "user",
+            text: message,
+            attachments: opts?.attachments?.length
+              ? opts.attachments
+              : undefined,
+          },
+        ]);
       }
       setTurnFrom(eventsRef.current.length);
       setSending(true);
@@ -281,6 +302,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         role: string;
         content: string;
         citations?: CitationDTO[];
+        attachments?: ChatAttachment[];
       }>;
     }) => {
       setSession(data.session);
@@ -292,6 +314,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           from: m.role === "user" ? ("user" as const) : ("assistant" as const),
           text: m.content,
           citations: m.citations,
+          attachments: m.attachments,
         })),
       );
       setEvents([]);
@@ -434,7 +457,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [session, hasPending]);
 
   const send = useCallback(
-    async (text: string, opts?: { attachmentIds?: string[] }) => {
+    async (
+      text: string,
+      opts?: { attachmentIds?: string[]; attachments?: ChatAttachment[] },
+    ) => {
       const message = text.trim();
       const hasAttachments = (opts?.attachmentIds?.length ?? 0) > 0;
       if ((!message && !hasAttachments) || sending || switching || !session) return;

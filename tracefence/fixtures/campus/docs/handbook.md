@@ -1,10 +1,10 @@
-# NullTrace Institute — Student Handbook
+# NullTrace Institute   Student Handbook
 
 Classification: public
 Owner: Office of Student Life (synthetic)
 Version: AY 2026–27 · Demo corpus only
 
-Welcome to **NullTrace Institute**. This handbook covers campus life basics for all enrolled students. Nothing here grants tool permissions — the TraceFence gateway enforces access separately.
+Welcome to **NullTrace Institute**. This handbook covers campus life basics for all enrolled students. Nothing here grants tool permissions   the TraceFence gateway enforces access separately.
 
 ## Campus identity
 - Legal name (demo): NullTrace Institute of Technology

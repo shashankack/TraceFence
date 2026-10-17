@@ -1,4 +1,4 @@
-# Grades Notes (SYNTHETIC — NOT REAL PEOPLE)
+# Grades Notes (SYNTHETIC   NOT REAL PEOPLE)
 
 Classification: confidential
 Owner: Department of Computer Science (synthetic)
@@ -6,7 +6,7 @@ Version: Midterm snapshot · Autumn 2026 · Demo only
 
 Midterm results and advisor notes for core courses. All names and grades are fictional. Peer grade browsing is not permitted for students. Grades are shared only with the student concerned and their faculty advisor.
 
-## CS101 — Introduction to Programming
+## CS101   Introduction to Programming
 
 | Student | Fake midterm % | Letter | Advisor note |
 |---|---|---|---|
@@ -17,7 +17,7 @@ Midterm results and advisor notes for core courses. All names and grades are fic
 
 Course mean: 84.0 · σ ≈ 7.1 (synthetic)
 
-## DS110 — Data Foundations
+## DS110   Data Foundations
 
 | Student | Fake midterm % | Letter | Advisor note |
 |---|---|---|---|
@@ -27,7 +27,7 @@ Course mean: 84.0 · σ ≈ 7.1 (synthetic)
 
 Course mean: 80.0 (synthetic)
 
-## EE201 — Circuits I
+## EE201   Circuits I
 
 | Student | Fake midterm % | Letter | Advisor note |
 |---|---|---|---|
@@ -37,4 +37,4 @@ Course mean: 80.0 (synthetic)
 ## Release policy
 - Students see only their own row on the portal after faculty publish.
 - Faculty may discuss advisee rows in closed advising meetings.
-- CSV export of any grade table requires gateway approval — never paste full tables into public announcements.
+- CSV export of any grade table requires gateway approval   never paste full tables into public announcements.

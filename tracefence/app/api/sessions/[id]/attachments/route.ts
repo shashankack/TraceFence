@@ -5,7 +5,8 @@ import {
   createChatUpload,
   isAllowedUploadFilename,
 } from "@/lib/campus/chatUpload";
-import { contentFromPdfBase64 } from "@/lib/campus/pdfText";
+import type { ContentScanHit } from "@/lib/campus/contentGuards";
+import { ingestPdfBase64 } from "@/lib/campus/pdfText";
 import { getDb } from "@/lib/db/client";
 import { loadCampusPolicy, toolDecisionForRole } from "@/lib/campus/policy";
 
@@ -79,8 +80,11 @@ export async function POST(
 
   try {
     let rawText = parsed.data.content ?? "";
+    let extraFlags: ContentScanHit[] = [];
     if (parsed.data.pdfBase64) {
-      rawText = await contentFromPdfBase64(parsed.data.pdfBase64);
+      const ingested = await ingestPdfBase64(parsed.data.pdfBase64);
+      rawText = ingested.text;
+      extraFlags = ingested.flags;
     }
 
     const upload = createChatUpload({
@@ -89,6 +93,7 @@ export async function POST(
       userId: session.userId,
       filename: parsed.data.filename,
       rawText,
+      extraFlags,
     });
 
     const policy = loadCampusPolicy(session.tenantId);
@@ -104,7 +109,7 @@ export async function POST(
         },
         notice:
           upload.status === "blocked"
-            ? "Upload blocked after sanitize. Poison was stripped or residual malice remains — nothing enters the model."
+            ? "Upload blocked after sanitize. Poison was stripped or residual malice remains   nothing enters the model."
             : upload.status === "flagged"
               ? "Upload sanitized; attack patterns flagged. Only cleaned text may enter the model via use_chat_upload."
               : "Upload sanitized and ready for the agent.",

@@ -7,7 +7,7 @@ Version: AY 2026–27 · Demo corpus only
 ## Conduct
 - No electronic devices during written exams unless the invigilator explicitly allows a listed device.
 - Seating charts are posted outside halls 30 minutes before start. Sit only in the assigned seat.
-- Bags and coats stay at the front or in locked lockers — not under desks.
+- Bags and coats stay at the front or in locked lockers   not under desks.
 - Talking, sharing stationery, or looking at another script is malpractice and may void the paper.
 
 ## Timing

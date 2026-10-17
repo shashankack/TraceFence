@@ -8,7 +8,7 @@ Hackathon-friendly public UI on **Vercel**, local **Ollama** reached via a **Clo
 |---|---|
 | SQLite | Lives under `/tmp` on Vercel (ephemeral). `DEMO_MODE` reseeds on cold start. Not multi-instance durable storage. |
 | Ollama | Runs on your machine; tunnel URL must stay up during the demo. |
-| Security | Quick tunnels expose Ollama to anyone with the URL — demo only. |
+| Security | Quick tunnels expose Ollama to anyone with the URL   demo only. |
 
 ## 1. Local Ollama
 
@@ -24,7 +24,7 @@ Ollama rejects requests whose `Host` header is a public tunnel hostname (HTTP 40
 Run the small Host-rewrite proxy, then tunnel **to the proxy**:
 
 ```bash
-# Terminal A — keep Ollama running on :11434
+# Terminal A   keep Ollama running on :11434
 node scripts/ollama-tunnel-proxy.mjs
 # listens on :11435 → 127.0.0.1:11434
 
@@ -61,4 +61,4 @@ Build copies `../fixtures/campus` into the app so policy + docs seed on the serv
 
 ## Refresh tunnel URL
 
-If the quick tunnel restarts, the hostname changes — update `LLM_BASE_URL` on Vercel and redeploy (or use `vercel env add` + redeploy).
+If the quick tunnel restarts, the hostname changes   update `LLM_BASE_URL` on Vercel and redeploy (or use `vercel env add` + redeploy).

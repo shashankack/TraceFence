@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS session_messages (
   role TEXT NOT NULL,
   content TEXT NOT NULL,
   citations_json TEXT,
+  attachments_json TEXT,
   created_at TEXT NOT NULL,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );

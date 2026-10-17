@@ -12,9 +12,14 @@ export type ContentScanHit = {
     | "classification_claim"
     | "markup_payload"
     | "role_spoof"
-    | "control_chars";
+    | "control_chars"
+    | "invisible_watermark";
   excerpt: string;
 };
+
+/** Zero-width / invisible Unicode often used for stego watermarks in “plain” text. */
+const INVISIBLE_UNICODE =
+  /[\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]/g;
 
 /**
  * Strip benign corpus metadata before scanning.
@@ -51,7 +56,9 @@ export function scanUntrustedContent(text: string): ContentScanHit[] {
       t,
     ) ||
     /\b(wget|curl)\s+https?:\/\//.test(t) ||
-    /\bexfiltrat/.test(t)
+    // Require an imperative / attempt — mere discussion of "exfiltration" in security docs is fine.
+    /\b(exfiltrate|exfiltrating)\b/.test(t) ||
+    /\b(do|try|attempt|perform|enable)\s+exfiltration\b/.test(t)
   ) {
     hits.push({
       kind: "tool_inducement",
@@ -85,8 +92,11 @@ export function scanUntrustedContent(text: string): ContentScanHit[] {
     });
   }
 
+  // Role labels alone appear in agent specs; flag only takeover-shaped spoofs.
   if (
-    /^\s*(system|assistant|developer)\s*[:=]/im.test(body) ||
+    /^\s*(system|assistant|developer)\s*[:=].{0,80}\b(ignore|grant|override|jailbreak|admin|unrestricted)\b/im.test(
+      body,
+    ) ||
     /\b<<\s*sys\b|\b\[INST\]/i.test(body)
   ) {
     hits.push({
@@ -185,12 +195,15 @@ const MAX_UPLOAD_CHARS = 80_000;
  * Strips attack payloads before any text may enter the LLM or drive tool use.
  * Raw bytes never become authority over policy.
  */
-export function sanitizeChatUpload(raw: string): {
+export function sanitizeChatUpload(
+  raw: string,
+  extraFlags: ContentScanHit[] = [],
+): {
   sanitized: string;
   flags: ContentScanHit[];
   status: "ready" | "flagged" | "blocked";
 } {
-  const flags: ContentScanHit[] = [];
+  const flags: ContentScanHit[] = [...extraFlags];
   let text = raw.replace(/^\uFEFF/, "");
 
   if (text.length > MAX_UPLOAD_CHARS) {
@@ -199,6 +212,16 @@ export function sanitizeChatUpload(raw: string): {
       kind: "control_chars",
       excerpt: `Truncated upload to ${MAX_UPLOAD_CHARS} characters`,
     });
+  }
+
+  if (INVISIBLE_UNICODE.test(text)) {
+    INVISIBLE_UNICODE.lastIndex = 0;
+    const count = (text.match(INVISIBLE_UNICODE) ?? []).length;
+    flags.push({
+      kind: "invisible_watermark",
+      excerpt: `Stripped ${count} zero-width / bidi invisible Unicode codepoint(s)`,
+    });
+    text = text.replace(INVISIBLE_UNICODE, "");
   }
 
   if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(text)) {
@@ -239,27 +262,31 @@ export function sanitizeChatUpload(raw: string): {
   const keptLines: string[] = [];
   for (const line of text.split(/\r?\n/)) {
     const l = line.toLowerCase();
-    if (
-      looksLikePromptInjection(line) ||
-      /^\s*(system|assistant|developer)\s*[:=]/i.test(line) ||
-      /\b<<\s*sys\b|\b\[INST\]/i.test(line)
-    ) {
+    const roleSpoof =
+      /^\s*(system|assistant|developer)\s*[:=].{0,80}\b(ignore|grant|override|jailbreak|admin|unrestricted)\b/i.test(
+        line,
+      ) || /\b<<\s*sys\b|\b\[INST\]/i.test(line);
+    if (looksLikePromptInjection(line) || roleSpoof) {
       flags.push({
-        kind: /system|assistant|developer|<<\s*sys|\[INST\]/i.test(line)
-          ? "role_spoof"
-          : "instruction_override",
+        kind: roleSpoof ? "role_spoof" : "instruction_override",
         excerpt: clip(line),
       });
       continue;
     }
+    // Require gateway tool names or clear exfil shape — "use the tool" alone is
+    // common in coding-agent specs and must not strip legitimate project docs.
     if (
       /\b(export|email|send|notify|dump)\b.{0,60}\b(all|every|entire)\b.{0,40}\b(email|student|grades?|directory|roster)\b/i.test(
         line,
       ) ||
-      /\b(call|invoke|run|use)\s+(the\s+)?(tool|function)\s+/i.test(line) ||
+      /\b(call|invoke|run|use)\s+(the\s+)?(tool|function)\s+(export_records|notify_external|post_announcement|use_chat_upload)\b/i.test(
+        line,
+      ) ||
+      /\b(export_records|notify_external|post_announcement)\s*\(/i.test(line) ||
       /\battacker@/i.test(line) ||
       /\b(wget|curl)\s+https?:\/\//i.test(l) ||
-      /\bexfiltrat/i.test(l)
+      /\b(exfiltrate|exfiltrating)\b/i.test(l) ||
+      /\b(do|try|attempt|perform|enable)\s+exfiltration\b/i.test(l)
     ) {
       flags.push({ kind: "tool_inducement", excerpt: clip(line) });
       continue;
