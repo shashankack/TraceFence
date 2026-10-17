@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { api, ApiError } from "@/components/api/client";
 import type { ApprovalDTO, CitationDTO, EventDTO, SessionDTO } from "@/components/api/types";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { rememberLocalEvents } from "./localEvidence";
 import {
   forgetSessions,
   forgetUserSessions,
@@ -223,14 +224,34 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         });
         void refreshHistory();
       }
+      let active = s;
       try {
-        const res = await api.sendMessage(s.sessionId, message, {
-          attachmentIds: opts?.attachmentIds,
-        });
+        let res;
+        try {
+          res = await api.sendMessage(active.sessionId, message, {
+            attachmentIds: opts?.attachmentIds,
+          });
+        } catch (firstErr) {
+          // Vercel /tmp hop: session row missing on this instance — mint a fresh one and retry once.
+          if (!(firstErr instanceof ApiError && firstErr.status === 404)) {
+            throw firstErr;
+          }
+          const fresh = await api.createSession();
+          if (sessionRef.current?.sessionId !== s.sessionId) return;
+          active = fresh;
+          setSession(fresh);
+          sessionRef.current = fresh;
+          if (fresh.role !== "guest") {
+            setActiveSessionId(fresh.userId, fresh.sessionId);
+          }
+          res = await api.sendMessage(fresh.sessionId, message, {
+            attachmentIds: opts?.attachmentIds,
+          });
+        }
         // Ignore late replies if the user switched chats mid-request.
-        if (sessionRef.current?.sessionId !== s.sessionId) return;
-        const timeline = await api.sessionEvents(s.sessionId).catch(() => null);
-        if (sessionRef.current?.sessionId !== s.sessionId) return;
+        if (sessionRef.current?.sessionId !== active.sessionId) return;
+        const timeline = await api.sessionEvents(active.sessionId).catch(() => null);
+        if (sessionRef.current?.sessionId !== active.sessionId) return;
         // This turn's events come from the response. Do not slice the full
         // session timeline by a stale client length  after restore, events
         // are empty while the DB still has history, which leaked old fences.
@@ -241,6 +262,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         } else {
           setEvents((prev) => [...prev, ...turnEvents]);
         }
+        rememberLocalEvents({
+          sessionId: active.sessionId,
+          role: active.role,
+          userId: active.userId,
+          events: timeline?.length ? timeline : turnEvents,
+        });
         setMessages((prev) => [
           ...prev,
           {
@@ -261,14 +288,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           setLoginGateOpen(true);
         }
         if (res.pendingApprovalId) {
-          const list = await api.approvals(s.sessionId).catch(() => []);
-          if (sessionRef.current?.sessionId === s.sessionId) setRequests(list);
+          const list = await api.approvals(active.sessionId).catch(() => []);
+          if (sessionRef.current?.sessionId === active.sessionId) setRequests(list);
           toast("Sent to an admin for approval", {
             description: "The gateway paused this action until it is reviewed.",
           });
         }
       } catch (err) {
-        if (sessionRef.current?.sessionId !== s.sessionId) return;
+        if (
+          sessionRef.current?.sessionId &&
+          sessionRef.current.sessionId !== s.sessionId &&
+          sessionRef.current.sessionId !== active.sessionId
+        ) {
+          return;
+        }
         const reason =
           err instanceof ApiError
             ? err.status === 0

@@ -453,6 +453,36 @@ export async function handleChatTurn(input: {
     events.push(ev);
     insertEvent(input.sessionId, ev);
 
+    // Flagged-but-admitted uploads: mirror the indirect-source injection record
+    // so admin audit shows SOURCE → policy_guard → INJECTION_IGNORED.
+    if (
+      !blocked &&
+      result &&
+      typeof result === "object" &&
+      (result as { status?: string }).status === "flagged"
+    ) {
+      const flagList = (result as { flags?: Array<{ kind?: string }> }).flags;
+      const injEv: ChatEvent = {
+        id: randomUUID(),
+        tool: "policy_guard",
+        decision: "ALLOW",
+        reasonCode: ReasonCode.INJECTION_IGNORED,
+        argsPreview: {
+          kind: "chat_upload",
+          upload_id: uploadId,
+          filename: (result as { filename?: string }).filename,
+          flags: Array.isArray(flagList)
+            ? flagList.map((f) => f.kind).filter(Boolean)
+            : [],
+        },
+        outcome:
+          "Chat upload contained attack patterns; sanitized text only. Permissions unchanged.",
+        phase: "SOURCE",
+      };
+      events.push(injEv);
+      insertEvent(input.sessionId, injEv);
+    }
+
     if (!blocked && result && typeof result === "object" && "content" in result) {
       const content = String((result as { content: string }).content);
       const filename = String((result as { filename?: string }).filename ?? uploadId);

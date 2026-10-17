@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { getDb } from "../db/client";
+import { ReasonCode } from "../security/reasonCodes";
 import {
   sanitizeChatUpload,
   type ContentScanHit,
@@ -22,6 +23,19 @@ export type ChatUploadRow = {
 
 const ALLOWED_EXT = new Set([".txt", ".md", ".csv", ".pdf"]);
 
+/** Gateway timeline row for upload sanitize (chat panel ↔ admin audit). */
+export type UploadSanitizeEvent = {
+  id: string;
+  sessionId: string;
+  ts: string;
+  phase: "SOURCE";
+  tool: "policy_guard" | "use_chat_upload";
+  argsPreview: Record<string, unknown>;
+  decision: "ALLOW" | "DENY";
+  reasonCode: string;
+  outcome: string;
+};
+
 export function isAllowedUploadFilename(filename: string): boolean {
   const lower = filename.toLowerCase();
   const dot = lower.lastIndexOf(".");
@@ -37,7 +51,7 @@ export function createChatUpload(input: {
   rawText: string;
   /** Extra flags from PDF byte scans (invisible watermarks, etc.). */
   extraFlags?: ContentScanHit[];
-}): ChatUploadRow {
+}): { upload: ChatUploadRow; event: UploadSanitizeEvent | null } {
   const { sanitized, flags, status } = sanitizeChatUpload(
     input.rawText,
     input.extraFlags ?? [],
@@ -66,7 +80,64 @@ export function createChatUpload(input: {
       now,
     );
 
-  return getChatUpload(input.sessionId, input.tenantId, input.userId, id)!;
+  const upload = getChatUpload(input.sessionId, input.tenantId, input.userId, id)!;
+  // Audit immediately on ingest so admin evidence reflects flags before a chat turn.
+  const event = recordUploadSanitizeEvent(upload);
+  return { upload, event };
+}
+
+export function recordUploadSanitizeEvent(
+  upload: ChatUploadRow,
+): UploadSanitizeEvent | null {
+  if (upload.status === "ready" && upload.flags.length === 0) return null;
+
+  const decision = upload.status === "blocked" ? "DENY" : "ALLOW";
+  const reasonCode =
+    upload.status === "blocked"
+      ? ReasonCode.UPLOAD_BLOCKED
+      : ReasonCode.INJECTION_IGNORED;
+  const event: UploadSanitizeEvent = {
+    id: randomUUID(),
+    sessionId: upload.sessionId,
+    ts: new Date().toISOString(),
+    phase: "SOURCE",
+    tool: upload.status === "blocked" ? "use_chat_upload" : "policy_guard",
+    argsPreview: {
+      kind: "chat_upload_sanitize",
+      upload_id: upload.id,
+      filename: upload.filename,
+      status: upload.status,
+      flags: upload.flags.map((f) => f.kind),
+      excerpt: upload.flags[0]?.excerpt ?? upload.rawExcerpt.slice(0, 120),
+    },
+    decision,
+    reasonCode,
+    outcome:
+      upload.status === "blocked"
+        ? `Upload blocked after sanitize (${upload.filename}); content never enters model context.`
+        : `Upload sanitized and flagged (${upload.filename}); attack patterns stripped before any tool use.`,
+  };
+
+  getDb()
+    .prepare(
+      `INSERT INTO session_events
+       (id, session_id, ts, phase, tool, args_preview_json, decision, reason_code, outcome, doc_ids_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      event.id,
+      event.sessionId,
+      event.ts,
+      event.phase,
+      event.tool,
+      JSON.stringify(event.argsPreview),
+      event.decision,
+      event.reasonCode,
+      event.outcome,
+      null,
+    );
+
+  return event;
 }
 
 export function getChatUpload(

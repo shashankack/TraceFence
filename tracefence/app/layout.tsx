@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: "TraceFence",
   description: "A source-aware security gateway for AI agents",
   icons: {
-    icon: "/trace_fence_logo.png",
-    apple: "/trace_fence_logo.png",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.png" }],
+    apple: "/favicon.png",
   },
 };
 

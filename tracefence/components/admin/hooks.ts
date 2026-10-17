@@ -10,6 +10,12 @@ import type {
   OrgPolicyDTO,
   Role,
 } from "@/components/api/types";
+import {
+  localDecisionCounts,
+  mergeAuditCounts,
+  mergeEvidencePages,
+  readLocalEvidence,
+} from "@/components/workspace/localEvidence";
 
 type Load<T> = {
   data: T | null;
@@ -39,11 +45,16 @@ function usePolled<T>(
           setData(d);
           setError(null);
         })
-        .catch(
-          (e) =>
-            alive &&
-            setError(e instanceof ApiError ? e.message : "Request failed"),
-        )
+        .catch((e) => {
+          if (!alive) return;
+          // 403 while RoleGate redirects (e.g. non-admin) — don't spam the console UX.
+          if (e instanceof ApiError && e.status === 403) {
+            setError(null);
+            setData(null);
+            return;
+          }
+          setError(e instanceof ApiError ? e.message : "Request failed");
+        })
         .finally(() => alive && setLoading(false));
     run();
     const t = intervalMs ? setInterval(run, intervalMs) : null;
@@ -57,7 +68,19 @@ function usePolled<T>(
   return { data, error, loading, reload };
 }
 
-export const useAudit = () => usePolled<AuditDTO>(api.audit, 8000);
+export const useAudit = () =>
+  usePolled<AuditDTO>(
+    () =>
+      api.audit().then((d) => ({
+        ...d,
+        sessionDecisions: mergeAuditCounts(
+          d.sessionDecisions,
+          localDecisionCounts(),
+        ),
+        sessions: Math.max(d.sessions, readLocalEvidence().length),
+      })),
+    8000,
+  );
 export const useApprovals = () =>
   usePolled<ApprovalDTO[]>(() => api.approvals(), 5000);
 export const usePolicy = () => usePolled<OrgPolicyDTO>(api.orgPolicy, null);
@@ -91,13 +114,18 @@ export function useEvidence(
 
   return usePolled<EvidencePage>(
     () =>
-      api.auditEvidence({ page, pageSize }).then((r) => ({
-        sessions: r.sessions,
-        page: r.page,
-        pageSize: r.pageSize,
-        totalSessions: r.totalSessions,
-        totalPages: r.totalPages,
-      })),
+      api.auditEvidence({ page, pageSize }).then((r) =>
+        mergeEvidencePages(
+          {
+            sessions: r.sessions,
+            page: r.page,
+            pageSize: r.pageSize,
+            totalSessions: r.totalSessions,
+            totalPages: r.totalPages,
+          },
+          readLocalEvidence(),
+        ),
+      ),
     pollMs,
     [page, pageSize],
   );

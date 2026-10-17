@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/requireAuth";
+import { loadOwnedSession } from "@/lib/campus/sessionAccess";
 import { getDb } from "@/lib/db/client";
 
 export async function GET(
@@ -12,19 +13,9 @@ export async function GET(
   }
 
   const { id } = await ctx.params;
-  const session = getDb()
-    .prepare(
-      `SELECT id, tenant_id as tenantId, user_id as userId FROM sessions WHERE id = ?`,
-    )
-    .get(id) as
-    | { id: string; tenantId: string; userId: string }
-    | undefined;
-
-  if (!session) {
-    return NextResponse.json({ error: "Session not found" }, { status: 404 });
-  }
-  if (session.tenantId !== gate.auth.tenantId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const owned = loadOwnedSession(id, gate.auth);
+  if ("error" in owned) {
+    return NextResponse.json({ error: owned.error }, { status: owned.status });
   }
 
   const rows = getDb()

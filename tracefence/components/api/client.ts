@@ -155,6 +155,7 @@ export const api = {
         preview: string;
         createdAt: string;
       };
+      event?: EventDTO | null;
       notice: string;
     }>(`/api/sessions/${sessionId}/attachments`, input),
   sessionMessages: (sessionId: string) =>

@@ -34,14 +34,14 @@ function initials(name?: string | null, email?: string) {
     .join("");
 }
 
-/** Gateway reachability, checked against the audit endpoint every 15s. */
+/** Gateway reachability — use /api/auth/me (any signed-in role), not admin-only /api/audit. */
 function useGatewayStatus() {
   const [up, setUp] = useState<boolean | null>(null);
   useEffect(() => {
     let alive = true;
     const tick = () =>
       api
-        .audit()
+        .me()
         .then(() => alive && setUp(true))
         .catch(() => alive && setUp(false));
     tick();

@@ -153,6 +153,33 @@ def write_pdf(path: Path, title: str, lines: list[str]) -> None:
         c.drawString(54, y, line[:95])
         y -= 16
     c.save()
+    repair_startxref(path)
+
+
+def repair_startxref(path: Path) -> None:
+    """ReportLab sometimes writes a stale startxref offset; pdf-parse then throws bad XRef entry."""
+    data = bytearray(path.read_bytes())
+    xref_at = -1
+    for needle in (b"\nxref\n", b"\rxref\r", b"\nxref\r", b"\rxref\n"):
+        pos = data.rfind(needle)
+        if pos >= 0:
+            xref_at = pos + 1  # byte offset of 'x'
+            break
+    if xref_at < 0:
+        raise RuntimeError(f"no xref table in {path.name}")
+    sx = data.rfind(b"startxref")
+    if sx < 0:
+        raise RuntimeError(f"no startxref in {path.name}")
+    # Replace digits after startxref through %%EOF
+    i = sx + len(b"startxref")
+    while i < len(data) and data[i] in (10, 13, 32):
+        i += 1
+    j = i
+    while j < len(data) and 48 <= data[j] <= 57:
+        j += 1
+    replacement = str(xref_at).encode("ascii")
+    data[i:j] = replacement
+    path.write_bytes(data)
 
 
 def main() -> None:
@@ -165,6 +192,7 @@ def main() -> None:
 
     wm = HERE / "chat-upload-invisible-watermark.pdf"
     write_watermarked_pdf(wm)
+    repair_startxref(wm)
     print(f"wrote {wm.name} ({wm.stat().st_size} bytes)")
     rows.append(f"| `{wm.name}` | **flagged** (invisible_watermark) |")
 

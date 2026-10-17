@@ -6,9 +6,11 @@ Hackathon-friendly public UI on **Vercel**, local **Ollama** reached via a **Clo
 
 | Piece | Behavior on this setup |
 |---|---|
-| SQLite | Lives under `/tmp` on Vercel (ephemeral). `DEMO_MODE` reseeds on cold start. Not multi-instance durable storage. |
+| SQLite | Lives under `/tmp` on Vercel (ephemeral). `DEMO_MODE` reseeds on cold start. Chat history / audit counts are **not** durable across instances. |
+| Auth | Bearer tokens are **HMAC-signed** so login works across serverless instances. Set `AUTH_SECRET` in production. |
+| Sessions | Missing session rows are **rehydrated** on the receiving instance so chat does not 404 after a function hop. |
 | Ollama | Runs on your machine; tunnel URL must stay up during the demo. |
-| Security | Quick tunnels expose Ollama to anyone with the URL   demo only. |
+| Security | Quick tunnels expose Ollama to anyone with the URL — demo only. |
 
 ## 1. Local Ollama
 
@@ -41,13 +43,14 @@ Smoke: `curl https://YOUR-TUNNEL.trycloudflare.com/api/tags` should list `qwen3:
 ```bash
 cd tracefence
 npx vercel login
-npx vercel --prod \
-  -e DEMO_MODE=true \
-  -e LLM_BASE_URL=https://YOUR-TUNNEL.trycloudflare.com \
-  -e LLM_MODEL=qwen3:8b \
-  -e LLM_TIMEOUT_MS=55000 \
-  -e APP_BASE_URL=https://YOUR-VERCEL-APP.vercel.app \
-  -e NOTIFY_ALLOWLIST_SUFFIXES=nulltrace.example,nulltrace.demo,students.nulltrace.example
+npx vercel env add DEMO_MODE production --value "true" --yes --force
+npx vercel env add LLM_BASE_URL production --value "https://YOUR-TUNNEL.trycloudflare.com" --yes --force
+npx vercel env add LLM_MODEL production --value "qwen3:8b" --yes --force
+npx vercel env add LLM_TIMEOUT_MS production --value "55000" --yes --force
+npx vercel env add APP_BASE_URL production --value "https://tracefence.vercel.app" --yes --force
+npx vercel env add AUTH_SECRET production --value "pick-a-long-random-string" --yes --force
+npx vercel env add NOTIFY_ALLOWLIST_SUFFIXES production --value "nulltrace.example,nulltrace.demo,students.nulltrace.example" --yes --force
+npx vercel --prod --yes
 ```
 
 Then set `APP_BASE_URL` to the production URL Vercel printed (Project → Settings → Environment Variables → Redeploy if needed).

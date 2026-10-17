@@ -28,6 +28,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { docTitle } from "@/components/domain/catalog";
 import { cn } from "@/components/lib/utils";
 import { roleLabelFor } from "@/components/shell/nav";
+import { rememberLocalEvents } from "@/components/workspace/localEvidence";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ClassLabel } from "@/components/ui/decision-badge";
@@ -182,6 +183,14 @@ export function CampusChat({ role }: { role: ChatRole }) {
           flags: res.upload.flags.length,
         },
       ]);
+      if (res.event) {
+        rememberLocalEvents({
+          sessionId: session.sessionId,
+          role: session.role,
+          userId: session.userId,
+          events: [res.event],
+        });
+      }
       if (res.upload.status === "blocked") {
         toast.error("Upload blocked", { description: res.notice });
       } else if (res.upload.status === "flagged") {

@@ -57,9 +57,36 @@ export async function POST(
     return NextResponse.json({ error: "Approval not found" }, { status: 404 });
   }
 
-  const sessionCheck = db
-    .prepare(`SELECT tenant_id as tenantId FROM sessions WHERE id = ?`)
-    .get(row.taskId) as { tenantId: string } | undefined;
+  let sessionCheck = db
+    .prepare(
+      `SELECT tenant_id as tenantId, user_id as userId, role FROM sessions WHERE id = ?`,
+    )
+    .get(row.taskId) as
+    | { tenantId: string; userId: string; role: CampusRole }
+    | undefined;
+  // Vercel /tmp hop: approval row exists but session was on another instance.
+  if (!sessionCheck) {
+    const policy = loadCampusPolicy(gate.auth.tenantId);
+    db.prepare(
+      `INSERT OR IGNORE INTO sessions
+       (id, tenant_id, user_id, role, policy_version, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).run(
+      row.taskId,
+      gate.auth.tenantId,
+      row.userId,
+      "faculty",
+      policy.policyVersion,
+      new Date().toISOString(),
+    );
+    sessionCheck = db
+      .prepare(
+        `SELECT tenant_id as tenantId, user_id as userId, role FROM sessions WHERE id = ?`,
+      )
+      .get(row.taskId) as
+      | { tenantId: string; userId: string; role: CampusRole }
+      | undefined;
+  }
   if (!sessionCheck || sessionCheck.tenantId !== gate.auth.tenantId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

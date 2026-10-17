@@ -7,24 +7,8 @@ import {
 } from "@/lib/campus/chatUpload";
 import type { ContentScanHit } from "@/lib/campus/contentGuards";
 import { ingestPdfBase64 } from "@/lib/campus/pdfText";
-import { getDb } from "@/lib/db/client";
+import { loadOwnedSession } from "@/lib/campus/sessionAccess";
 import { loadCampusPolicy, toolDecisionForRole } from "@/lib/campus/policy";
-
-function loadOwnedSession(id: string, auth: { tenantId: string; userId: string }) {
-  const session = getDb()
-    .prepare(
-      `SELECT id, tenant_id as tenantId, user_id as userId, role
-       FROM sessions WHERE id = ?`,
-    )
-    .get(id) as
-    | { id: string; tenantId: string; userId: string; role: string }
-    | undefined;
-  if (!session) return { error: "Session not found" as const, status: 404 as const };
-  if (session.tenantId !== auth.tenantId || session.userId !== auth.userId) {
-    return { error: "Forbidden" as const, status: 403 as const };
-  }
-  return { session };
-}
 
 /**
  * Upload a file for this chat session. Server sanitizes before the agent may use it.
@@ -41,7 +25,7 @@ export async function POST(
 
   const { id } = await ctx.params;
   const owned = loadOwnedSession(id, gate.auth);
-  if (!("session" in owned) || !owned.session) {
+  if ("error" in owned) {
     return NextResponse.json({ error: owned.error }, { status: owned.status });
   }
   const session = owned.session;
@@ -87,7 +71,7 @@ export async function POST(
       extraFlags = ingested.flags;
     }
 
-    const upload = createChatUpload({
+    const { upload, event } = createChatUpload({
       sessionId: session.id,
       tenantId: session.tenantId,
       userId: session.userId,
@@ -107,6 +91,7 @@ export async function POST(
           preview: upload.sanitized.slice(0, 280),
           createdAt: upload.createdAt,
         },
+        event,
         notice:
           upload.status === "blocked"
             ? "Upload blocked after sanitize. Poison was stripped or residual malice remains   nothing enters the model."

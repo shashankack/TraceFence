@@ -2,34 +2,12 @@ import { NextResponse } from "next/server";
 import { sessionMessageSchema } from "@/lib/api/schemas";
 import { requireAuth } from "@/lib/auth/requireAuth";
 import { handleChatTurn } from "@/lib/campus/chat";
+import { loadOwnedSession } from "@/lib/campus/sessionAccess";
 import { getDb } from "@/lib/db/client";
-import type { CampusRole } from "@/lib/security/types";
 
-/** Ollama via tunnel can be slow   allow long serverless execution on Vercel. */
+/** Ollama via tunnel can be slow — allow long serverless execution on Vercel. */
 export const maxDuration = 60;
 export const runtime = "nodejs";
-
-function loadOwnedSession(id: string, auth: { tenantId: string; userId: string }) {
-  const session = getDb()
-    .prepare(
-      `SELECT id, tenant_id as tenantId, user_id as userId, role, policy_version as policyVersion
-       FROM sessions WHERE id = ?`,
-    )
-    .get(id) as
-    | {
-        id: string;
-        tenantId: string;
-        userId: string;
-        role: CampusRole;
-        policyVersion: number;
-      }
-    | undefined;
-  if (!session) return { error: "Session not found" as const, status: 404 as const };
-  if (session.tenantId !== auth.tenantId || session.userId !== auth.userId) {
-    return { error: "Forbidden" as const, status: 403 as const };
-  }
-  return { session };
-}
 
 /** Load persisted chat turns for the history sidebar. */
 export async function GET(
@@ -43,7 +21,7 @@ export async function GET(
 
   const { id } = await ctx.params;
   const owned = loadOwnedSession(id, gate.auth);
-  if (!("session" in owned) || !owned.session) {
+  if ("error" in owned) {
     return NextResponse.json({ error: owned.error }, { status: owned.status });
   }
 
@@ -108,7 +86,7 @@ export async function POST(
   }
 
   const owned = loadOwnedSession(id, gate.auth);
-  if (!("session" in owned) || !owned.session) {
+  if ("error" in owned) {
     return NextResponse.json({ error: owned.error }, { status: owned.status });
   }
   const session = owned.session;
