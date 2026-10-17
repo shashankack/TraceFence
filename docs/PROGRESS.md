@@ -15,8 +15,9 @@ Newest entries first.
 - Reset the demo DB and ran `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation — ALL DEMOS PASSED.
 - Retrieval (student) "Vice-Chancellor appointment Board of Governors" → `pes-university-act` (2 chunks), `pes-grievance-redressal`, `pes-admission-documents`.
 
+- Rendered the 7 NullTrace demo docs (handbook, hostel-rules, exam-rules, it-maintenance-notice, faculty-guide, student-directory, grades-notes) to `pdf/<id>.pdf` with `scripts/md_to_pdf.py` (reportlab 5.0.1, `PYTHONUTF8=1`), rendered in a scratch folder so the supplied PES PDFs were not overwritten. Each is one page with the correct classification banner. All 20 documents now have md + pdf with matching classification.
+
 ### Open
-- The 7 NullTrace demo docs (handbook, hostel-rules, exam-rules, it-maintenance-notice, faculty-guide, student-directory, grades-notes) have no `pdf/<id>.pdf`. Render with `scripts/md_to_pdf.py` (needs reportlab) if every document must have a PDF.
 - `pdf-parse` is not installed in `tracefence/node_modules`, so `register_docs.cjs <folder>` cannot convert raw PDFs yet.
 - `pes-university-act.md` has 3 lines with Cyrillic look-alike letters ("KARNAТАКА", "АCT") left from PDF extraction; keyword search misses "Karnataka Act" on those lines.
 
