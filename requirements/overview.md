@@ -1,19 +1,14 @@
 # Requirements overview
 
-Authoritative detail: [`docs/SCOPE_AND_RULES.md`](../docs/SCOPE_AND_RULES.md) (PPT option A).
+TraceFence implements a **SecureRAG** campus MVP. Detail: `docs/SCOPE_AND_RULES.md`, `docs/SECURERAG_ALIGNMENT.md`.
 
-## Goal
+## Goals
 
-Source-aware authorization for AI tool use: inspect what the agent reads (synthetic QR page), enforce what it may execute, explain source → proposal → decision → outcome.
+- Permission-filtered retrieval by role before any LLM context.
+- Tool gateway for sensitive campus actions.
+- Visible audit / decisions.
+- Synthetic campus data only.
 
-## P0 highlights
+## Non-goals (MVP)
 
-- Invoice task + three mock tools behind gateway.
-- QR/URL + Playwright offline inspect + SOURCE on timeline.
-- ALLOW / DENY / REQUIRE_APPROVAL; exact-action approvals.
-- Local Ollama agent + scripted fallback.
-- Unauthorized external email never reaches executor.
-
-## Out of scope
-
-Arbitrary live scanning, real email, APK analysis, RAG, production IAM.
+Full SecureRAG platform (all domains, ABAC, production tenants, claimed injection immunity).

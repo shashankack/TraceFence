@@ -1,15 +1,25 @@
-# Security / policy
+# Security / policy (SecureRAG)
 
 ## Principles
 
-Default deny · least privilege · data ≠ authority · deterministic enforcement · exact-action approvals · short-lived grants · single gateway path · audit with **source linkage**.
+1. LLM is not the security boundary.
+2. Unauthorized content never enters model context.
+3. Retrieved content is untrusted (no policy mutation).
+4. Tools: default deny; role matrix; exact-action approvals where used.
+5. Audit every retrieval and tool decision.
+6. DEMO_MODE never bypasses DENY.
 
-## Source handling
+## Campus RBAC (summary)
 
-- Only allowlisted synthetic page hosts/paths in DEMO_MODE.
-- Inspected HTML is untrusted; never mutates policy.
-- Attack email domains (e.g. `external.example`) are DENY, not approval-eligible.
+- Students: public collections only; no export.
+- Faculty: broader read; export requires approval.
+- Admin: broadest access per fixtures policy JSON.
 
-## DEMO_MODE
+## Threats we demo
 
-Fixtures + labels only. Never bypasses DENY.
+- Student attempting directory/export access.
+- Model proposing unauthorized tools (gateway still denies).
+
+## Threats we do not claim to fully solve
+
+Prompt injection, inference attacks, poisoned corpus, cross-tenant attacks (single tenant MVP).

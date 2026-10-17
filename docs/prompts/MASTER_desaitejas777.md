@@ -1,36 +1,49 @@
 # TraceFence master prompt — desaitejas777
 
-Copy everything inside the block below into Cursor agent instructions.
+Paste this into your coding agent. Before coding: pull latest from origin.
 
 ```text
-You help desaitejas777 on TraceFence (team NullTrace). Repo: https://github.com/shashankack/TraceFence.git
-You own ADCE context + git for them. Product name is TraceFence (not AgentGate, TrustFence, or TrustTrace).
+You help desaitejas777 own campus fixtures for TraceFence (NullTrace).
+Repo: https://github.com/shashankack/TraceFence.git
+Product: TraceFence — A source-aware security gateway for AI agents.
 
-=== ADCE ===
-Before any meaningful change:
-1) adce status
-2) adce context --task "<current task>" --format markdown
-3) Read MUST READ → CAUTION → TRUST ORDER → ALSO RELEVANT
-4) Prefer CANONICAL/AUTHORITATIVE/VERIFIED
-5) If CAUTION non-empty: adce conflicts
-6) After edits: adce scan
-7) Prefer fixtures/, docs/attacks/, security/policy.md
-8) Do not change CANONICAL/AUTHORITATIVE cross-cutting docs
-9) Never commit .adce/cache, logs, metrics, state.db
-
-INVARIANTS: Synthetic data only. Primary PPT attack is QR supplier page (docs/attacks/qr-supplier-page.md) plus fixtures/pages/*.html with external-audit@external.example instruction. Also seed INV-001..003. DEMO_MODE never bypasses DENY. Update docs/PROGRESS.md every iteration. No app code into repo unless human says: implement
-
-=== GIT ===
-Branch ONLY: feature/desaitejas777-fixtures. Never commit to main.
-Owns: fixtures/** (including fixtures/pages/**), docs/attacks/**, sample policy JSON, seed invoices
-Must not touch: tracefence runtime lib/api, components, tests/**
-Workflow: status → fetch → rebase onto origin/main when needed → stage owned files only → commit → push -u origin HEAD → open PR to main.
-Commit messages: short human imperative. NEVER AI/commit watermarks. No --no-verify. No force-push to main.
-
-First session:
+=== GIT (do first) ===
 git fetch origin
 git checkout feature/desaitejas777-fixtures
-adce doctor
+git pull origin feature/desaitejas777-fixtures
+Sync shared docs: git merge origin/main
+Branch owns: fixtures/campus/**, docs/attacks/**
+Must NOT touch: tracefence/lib, app/api, components, tests
+Synthetic data only — no real student PII.
+No app code unless human says: implement
+Commits: human voice, no AI watermarks.
+
+=== MUST READ (in order) ===
+1. docs/SCOPE_AND_RULES.md — corpus + roles + killer demos
+2. docs/JUDGE_AND_TEAM_BRIEF.md — what demos must prove
+3. fixtures/campus/README.md — fixture layout (create/extend)
+4. docs/contracts.md — tool + collection expectations
+5. docs/attacks/campus-export-deny.md — deny scenario narrative
+6. docs/SYSTEM_OVERVIEW.md — ACL table by role
+7. docs/TEAM_AND_GIT.md — ownership
+8. docs/PROGRESS.md — update each iteration
+
+=== ALSO USEFUL ===
+docs/DEMO_SCRIPT.md (which docs appear in live demo)
+docs/SECURERAG_ALIGNMENT.md (classification ideas; not a product brand)
+docs/AGENT_ADCE_MASTER_PROMPT.md
+
+=== YOUR BUILD FOCUS ===
+- Public docs: handbook, hostel/exam rules (student-readable)
+- Confidential docs: fake directory / grades notes (student NEVER retrieve)
+- Explicit ACL / policy JSON under fixtures/campus/policies/
+- Labels clear enough for filtered retrieval demos
+
+=== ADCE ===
 adce status
-adce context --task "Synthetic supplier page and invoice fixtures for TraceFence QR attack" --format markdown
+adce context --task "Campus ACL fixtures for TraceFence" --format markdown
+After edits: adce scan. Update docs/PROGRESS.md.
+
+First context:
+adce context --task "Campus ACL fixtures for TraceFence" --format markdown
 ```

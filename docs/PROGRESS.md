@@ -6,6 +6,67 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Lock product name + tagline
+
+### Decision
+- Hackathon ships **one** product: **TraceFence**.
+- Locked tagline: *A source-aware security gateway for AI agents*.
+- SecureRAG design doc = **internal reference only** — not a co-product or slide brand.
+
+### Done
+- Rewrote JUDGE brief, SCOPE, SECURERAG_ALIGNMENT, PRESENTATION, PPT_ALIGNMENT, SYSTEM, DEMO, TEAM, README, cursor rule around that lock.
+- Regenerated all `docs/prompts/MASTER_*.md` with GIT-first steps + MUST READ doc lists.
+- Commit + push to `main` so teammates can pull.
+
+### Next
+- `implement` sessions + ACL retrieval + campus tools on `feature/shashankack-backend`.
+- Teammates: merge `origin/main` into their feature branches; paste their MASTER prompt.
+
+---
+
+## 2026-10-17 — Align TraceFence docs with SecureRAG
+
+### Done
+- Added [`SECURERAG_ALIGNMENT.md`](./SECURERAG_ALIGNMENT.md).
+- Rewrote SCOPE, SYSTEM, JUDGE brief, contracts, PRESENTATION, DEMO, TEAM, PPT_ALIGNMENT, README, cursor rule, ADR, requirements/architecture/security/design/testing, campus fixtures README, all `docs/prompts/MASTER_*.md`, ADCE master trust order.
+- Framing: SecureRAG = architecture; TraceFence = campus domain product; filtered retrieval + tool gateway.
+
+### Next
+- Commit/push doc set; regenerate PPT; `implement` sessions + ACL retrieval.
+- `adce authority set` on SecureRAG design + alignment docs.
+
+---
+
+## 2026-10-17 — REVAMP: Campus Policy Firewall (A + campus)
+
+### Decision
+- Drop invoice/email-as-hero and QR-primary story.
+- **Chat-first** TraceFence for **NullTrace Institute** (synthetic campus).
+- Roles: student / faculty / admin.
+- Tools: `search_docs`, `read_document`, `export_records`, (+ optional notify/announce) via gateway.
+- Killer demo: student curfew ALLOW; student export DENY; faculty export approval.
+
+### Done
+- Rewrote SCOPE, SYSTEM, JUDGE brief, contracts, PRESENTATION, DEMO, TEAM, PPT_ALIGNMENT, README, cursor rule, campus fixtures READMEs.
+
+### Next
+- Regenerate `docs/prompts/MASTER_*.md` for campus ownership.
+- Rewire `tracefence/` APIs from tasks/invoices → sessions/chat (say `implement`).
+- Update Mystara PPT file to campus slides.
+- Team sign-off on JUDGE_AND_TEAM_BRIEF.
+
+---
+
+## 2026-10-17 — Judge & team brief for agreement
+
+### Done
+- Added [`docs/JUDGE_AND_TEAM_BRIEF.md`](./JUDGE_AND_TEAM_BRIEF.md): 60s pitch, Q&A, build checklist, sign-off table.
+
+### Next
+- Team reads brief; if all agree, continue wiring demo path (inspect → gateway DENY → timeline).
+
+---
+
 ## 2026-10-17 — Implement: Next.js scaffold + API stubs
 
 ### Done

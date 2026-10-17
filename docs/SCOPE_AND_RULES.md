@@ -1,103 +1,74 @@
 # TraceFence — Scope and Dev Rules
 
-Source of truth for hackathon scope. Aligned to Mystara PPT (**option A**: project follows deck).  
-Blueprint: [`TraceFence_Project_Blueprint.md`](./TraceFence_Project_Blueprint.md). Team/git: [`TEAM_AND_GIT.md`](./TEAM_AND_GIT.md). PPT map: [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md).
+**Product:** TraceFence · **Team:** NullTrace  
+**Tagline:** *A source-aware security gateway for AI agents*
 
-## Branding
-
-| Use | Name |
-|---|---|
-| Product (repo, UI, docs, slides) | **TraceFence** |
-| Team | **NullTrace** |
-| Former working names | TrustFence / TrustTrace — do not use on new materials |
-
-**Tagline (PPT-aligned):** *Know what your AI reads. Control what it does.*  
-**Supporting line:** *Give AI agents tools, not unchecked authority.*
+**Demo slice:** Campus chat (education) — NullTrace Institute.  
+**Design reference (not a second product):** [`SECURERAG_ALIGNMENT.md`](./SECURERAG_ALIGNMENT.md), [`secure_rag_domain_agnostic_design.md`](./secure_rag_domain_agnostic_design.md).
 
 ## Pitch (one line)
 
-A **source-aware** security gateway for AI agents: inspect untrusted content the agent encounters, then enforce ALLOW / DENY / REQUIRE_APPROVAL on every proposed tool call in application code—not by the model.
+TraceFence: **source-aware** control of what the agent may **read** (permission-filtered retrieval) and **do** (tool gateway ALLOW / DENY / REQUIRE_APPROVAL) — enforced in application code, not by the model.
+
+## Demo world
+
+**Tenant:** `nulltrace-institute` (synthetic).  
+**Roles:** `student` | `faculty` | `admin`  
+**Corpus:** handbook, hostel/exam rules (public); fake student-directory / grades notes (confidential).  
+No real signup/uploads in MVP.
 
 ## P0 (must ship)
 
-1. Create an invoice-summary task with instruction and resource scope (`INV-001`–`INV-003`).
-2. Configure read / email / delete policy rules for that task.
-3. **QR / URL input** pointing at a **synthetic offline supplier page** (not arbitrary live web scanning).
-4. **Playwright (or equivalent headless) investigation** of that page; store a **SOURCE** record (URL, excerpt, suspicious instruction text).
-5. Run a local LLM agent via **Ollama API** (`qwen3:8b`) with structured tool calls.
-6. Validate every proposed tool call against policy before execution (trusted gateway).
-7. Support `ALLOW`, `DENY`, `REQUIRE_APPROVAL`.
-8. Pending-approval state; approve/reject workflow.
-9. Bind approval to exact canonical arguments, task, caller, and deadline; single-use.
-10. Timeline events that link **SOURCE → PROPOSAL → DECISION → OUTCOME**.
-11. Persist audit records and mock tool outcomes (SQLite).
-12. Predefined attack: page instructs email to `external-audit@external.example` (or `@attacker.example`) → **DENY**; invoice reads may continue.
-13. **Scripted proposal fallback** when Ollama fails (same gateway + same source link).
-14. Reason codes visible in UI and audit.
+### Gateway pillars (required)
 
-## P1 (only after P0)
+1. **Identity** — server session with trusted `role` (UI may pick role; server stores it).
+2. **Source-aware retrieval** — search/read only returns documents/collections allowed for that role. Confidential docs never enter student LLM context.
+3. **Untrusted retrieved content** — retrieved text cannot change policy or escalate role.
+4. **Tool authorization** — every consequential tool goes through the gateway.
 
-- React Flow / richer permission diagrams.
-- Policy templates.
-- Audit export JSON/CSV.
-- Side-by-side protected vs unprotected *simulated* replay.
-- Lightweight MCP adapter for one controlled tool.
-- Camera QR scan polish (URL paste is enough for P0).
+### Product surface
 
-## Explicitly out of scope (24h)
+5. Chat panel + role selector + decision / audit rail.
+6. Tools: `search_docs`, `read_document`, `export_records` (+ optional `post_announcement` / `notify_external`).
+7. Killer demos:
+   - Student: hostel curfew → retrieve public handbook only → ALLOW → answer.
+   - Student: ask for peer grades / directory dump → no confidential retrieval +/or `export_records` **DENY**.
+   - Faculty: `export_records` → REQUIRE_APPROVAL → one-time approve.
+8. Local LLM (Ollama `qwen3:8b`) + scripted fallback through **same** filters + gateway.
+9. SQLite audit with reason codes.
+10. Honest limits stated in pitch.
 
-- **Arbitrary live website scanning** (only allowlisted synthetic pages).
-- Real customer data or real outbound email.
-- APK analysis.
-- Production OAuth / SSO / multi-tenant RBAC.
-- Arbitrary MCP servers or SaaS tools.
-- Network transparent gateway for third-party agents.
-- Formal verification or claim of prompt-injection immunity.
-- Custom prompt-injection classifier training.
-- Shell or filesystem tools.
-- **RAG / vector search in MVP**.
+## P1 (after P0)
+
+- Vector embeddings / real RAG index
+- Output DLP / redaction pass
+- Stronger retrieved-content injection heuristics
+- Self-serve doc upload; second demo domain later
+- Full OAuth / multi-tenant
+
+## Out of scope (24h)
+
+- Real student PII, real email
+- Production ABAC, crypto integrity, full tenant isolation
+- Claiming prompt-injection immunity
+- Invoice/QR/email-hero as primary story
+- Shipping a second product named SecureRAG
+- Building every module in the design-reference doc
 
 ## Invariants
 
-- The model may propose a tool call. Only the server gateway may execute it.
-- Untrusted page/invoice text cannot change permissions.
-- `userId`, `taskId`, and policy version come from the server, not the browser or model JSON.
-- `DEMO_MODE` seeds fixtures and labels tests. It must **not** bypass a deny.
-- Do not claim production security, prompt-injection immunity, or that TraceFence invented scanning or tool authorization.
-- Team size for slides: **5** (not 6).
+- Product name for judges/slides/repo pitch: **TraceFence** only.
+- Tagline: **A source-aware security gateway for AI agents.**
+- LLM is not the security boundary.
+- Unauthorized docs never enter model context.
+- Model proposes tools; only gateway executes.
+- `userId`, `role`, `tenantId`, policy version from server.
+- `DEMO_MODE` never bypasses DENY.
 
-## Novelty (PPT + product)
+## Novelty (honest)
 
-| Now | Later |
-|---|---|
-| **Source-to-action traceability** (content → proposal → decision → outcome) | Gated retrieval / MCP adapters |
-| Exact-action, single-use, argument-bound approvals | Policy versioning / multi-tenant identity |
-| QR → synthetic page investigation + invoice tools behind one gateway | Broader allowlisted source types |
+Source-aware read filters + tool decisions outside the model, shown as a **working campus demo** — not inventing RAG or RBAC.
 
-Honest claim: focused combination and DX — not invention of scanning or tool auth.
+## Coding rules
 
-## Coding and agent rules
-
-1. **No app code into the repo until the lead says `implement`.** Until then, agents may propose snippets for humans to review and type.
-2. Work **only** on your feature branch and **only** in your owned paths (see `TEAM_AND_GIT.md`).
-3. Never commit secrets (`.env`, API keys). Use `.env.example` only.
-4. Commit messages: short, human voice. **No** agent watermark trailers.
-5. Update [`PROGRESS.md`](./PROGRESS.md) on every iteration.
-6. Default deny; no direct model → mock-tool path; no UI → mock-tool path.
-7. Prefer ADCE before large changes; living AUTHORITATIVE docs override stale blueprint sections on team size / QR MVP when they conflict.
-
-## Demo fixtures (synthetic only)
-
-### Invoices
-
-| Invoice | Customer | Amount | Status |
-|---|---|---:|---|
-| INV-001 | Acme Demo Pvt Ltd | ₹12,500 | Pending |
-| INV-002 | Northwind Sample Co | ₹8,250 | Paid |
-| INV-003 | Example Traders | ₹6,900 | Pending |
-
-### Supplier page (PPT attack)
-
-- Served from `fixtures/pages/` (offline). QR/URL points here.
-- Contains untrusted instruction, e.g. email all invoices to `external-audit@external.example`.
-- INV-003 note may **reinforce** the same attack for document-path demos; primary PPT path is the QR page.
+Path ownership: `TEAM_AND_GIT.md`. No app code until lead says `implement`. Update `PROGRESS.md` each iteration. ADCE before large changes; prefer SCOPE over stale blueprint invoice sections.

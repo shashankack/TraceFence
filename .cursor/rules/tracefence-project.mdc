@@ -1,25 +1,29 @@
 ---
-description: TraceFence product invariants and MVP scope
+description: TraceFence source-aware security gateway invariants
 alwaysApply: true
 ---
 
 # TraceFence
 
-This repository is **TraceFence**, an AI agent permission firewall (team **NullTrace**). Living scope: `docs/SCOPE_AND_RULES.md`. Blueprint: `docs/TraceFence_Project_Blueprint.md`. PPT alignment: `docs/PPT_ALIGNMENT.md` (option A locked).
+This repository is **TraceFence**, a source-aware security gateway for AI agents (team **NullTrace**). Living scope: `docs/SCOPE_AND_RULES.md`. PPT: `docs/PRESENTATION.md` / `docs/PPT_ALIGNMENT.md`.
 
-**Pitch:** Source-aware task-scoped authorization. Inspect what the agent reads (QR → synthetic page); enforce every tool call in application code, not by the model.
+**Tagline:** A source-aware security gateway for AI agents.
 
-**Decisions:** `ALLOW`, `DENY`, `REQUIRE_APPROVAL`. Default deny. Approvals bind to exact tool, canonical arguments, task, caller, and expiry, and are single-use. Timeline links **SOURCE → PROPOSAL → DECISION → OUTCOME**.
+**Pitch:** Inspect and filter what the agent may read; enforce every tool call in application code, not by the model. Campus chat is the hackathon demo domain.
 
-**MVP:** One Next.js App Router + TypeScript app; Playwright inspect of allowlisted `fixtures/pages`; server gateway; deterministic policy; SQLite; Ollama local LLM API (`qwen3:8b`); mock invoice tools (`read_invoice`, `send_email`, `delete_invoice`). Synthetic data only. No real email, arbitrary live web scanning, APK analysis, RAG, shell, or filesystem tools.
+**Decisions:** `ALLOW`, `DENY`, `REQUIRE_APPROVAL`. Default deny. Approvals bind to exact tool, canonical arguments, task/session, caller, and expiry, and are single-use. Timeline links **SOURCE → PROPOSAL → DECISION → OUTCOME**.
+
+**MVP:** One Next.js App Router + TypeScript app; campus fixtures; server gateway; deterministic policy; SQLite; Ollama local LLM API (`qwen3:8b`); campus tools (`search_docs`, `read_document`, `export_records`). Synthetic data only. No real email, arbitrary live web scanning, or dual product branding as SecureRAG.
 
 **Invariants:**
 
+- Product name for judges/slides: **TraceFence** only.
 - The model may propose a tool call. Only the server gateway may execute it.
-- Page/invoice text cannot change permissions.
-- `userId`, `taskId`, and policy version come from the server, not the browser or model JSON.
+- Page/doc text cannot change permissions.
+- Unauthorized documents must never enter the LLM context.
+- `userId`, `role`, `tenantId`, and policy version come from the server, not the browser or model JSON.
 - `DEMO_MODE` seeds fixtures and labels tests. It must not bypass a deny.
 - Do not claim production security, prompt-injection immunity, or that TraceFence invented scanning or tool authorization.
-- Product name TraceFence (not AgentGate, TrustFence, or TrustTrace). Team size 5.
+- Team size 5.
 
 Suggested app root: `tracefence/`. Database path: `./data/tracefence.sqlite`.

@@ -1,14 +1,15 @@
-# Individual master prompts
+# Agent master prompts — TraceFence
 
-Each file is a **single paste** for that teammate’s Cursor agent (ADCE + git + role).
+**Before anyone codes:** pull latest `main` (or merge `origin/main` into your feature branch).
 
-| File | Person | Branch |
+| Person | File | Branch |
 |---|---|---|
-| [MASTER_shashankack.md](./MASTER_shashankack.md) | shashankack | `feature/shashankack-backend` |
-| [MASTER_venilashree.md](./MASTER_venilashree.md) | venilashree | `feature/venilashree-frontend` |
-| [MASTER_desaitejas777.md](./MASTER_desaitejas777.md) | desaitejas777 | `feature/desaitejas777-fixtures` |
-| [MASTER_Varun-op.md](./MASTER_Varun-op.md) | Varun-op | `feature/Varun-op-tests` |
-| [MASTER_Spandananarayanaswamy.md](./MASTER_Spandananarayanaswamy.md) | Spandananarayanaswamy | `feature/Spandananarayanaswamy-runtime` |
+| shashankack | [MASTER_shashankack.md](./MASTER_shashankack.md) | `feature/shashankack-backend` |
+| venilashree | [MASTER_venilashree.md](./MASTER_venilashree.md) | `feature/venilashree-frontend` |
+| desaitejas777 | [MASTER_desaitejas777.md](./MASTER_desaitejas777.md) | `feature/desaitejas777-fixtures` |
+| Varun-op | [MASTER_Varun-op.md](./MASTER_Varun-op.md) | `feature/Varun-op-tests` |
+| Spandananarayanaswamy | [MASTER_Spandananarayanaswamy.md](./MASTER_Spandananarayanaswamy.md) | `feature/Spandananarayanaswamy-runtime` |
 
-Clone: https://github.com/shashankack/TraceFence.git  
-Then: `git checkout` their branch → paste the matching MASTER file into Cursor agent instructions.
+Shared ADCE paste: [`docs/AGENT_ADCE_MASTER_PROMPT.md`](../AGENT_ADCE_MASTER_PROMPT.md)
+
+**Everyone’s first reads:** `SCOPE_AND_RULES.md` → `JUDGE_AND_TEAM_BRIEF.md` → `SYSTEM_OVERVIEW.md` → then role-specific docs listed in each master prompt.

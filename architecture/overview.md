@@ -1,19 +1,15 @@
 # Architecture overview
 
-See [`docs/SYSTEM_OVERVIEW.md`](../docs/SYSTEM_OVERVIEW.md).
+See `docs/SYSTEM_OVERVIEW.md` and `docs/secure_rag_domain_agnostic_design.md`.
 
-## Components
+## Split
 
-| Component | Responsibility |
+| Layer | Responsibility |
 |---|---|
-| Frontend | Task, QR/URL, source panel, timeline, approvals |
-| Inspect service | Playwright fetch of allowlisted synthetic pages → SOURCE |
-| Orchestrator | LLM loop + scripted fallback; passes source context |
-| Gateway + policy | Sole execution path; reason codes |
-| Approval service | Exact bind; consume once |
-| Mock tools | Invoices + mock outbox |
-| DB / audit | Tasks, sources, events, approvals |
+| Platform core | Session identity, policy engine, filtered retrieval, tool gateway, audit, LLM adapter |
+| Campus domain | Roles, classifications, ACLs, fixtures, prompts |
+| UI | Chat, role toggle, decision rail |
 
-## LLM
+## Critical path
 
-Ollama local API — `LLM_BASE_URL` / `LLM_MODEL=qwen3:8b`.
+Identity → Policy → **Filtered retrieval** → LLM → Tool gateway → Response + audit.

@@ -1,27 +1,32 @@
-# PPT vs project alignment
+# Pitch / PPT alignment
 
-Source PPT: `TraceFence_Mystara_Pitch-1.pptx`  
-**Decision locked: A — project follows PPT** (2026-10-17).
+## Current lock
 
-## Status after option A
-
-| Gap | Resolution in living docs |
+| Item | Value |
 |---|---|
-| Naming | Product = **TraceFence** (repo + slides); drop TrustFence / TrustTrace |
-| QR + Playwright synthetic page | P0 in `SCOPE_AND_RULES` + `SYSTEM_OVERVIEW` |
-| Source → proposal → decision → outcome | Contracts + timeline DTO; UI ownership for venilashree |
-| LLM API | Ollama as **local LLM API** (`docs/local-llm.md`) |
-| 6 vs 5 devs | Slides must say **5**; `TEAM_AND_GIT` |
-| Arbitrary live scanning | Still **out of scope**; only allowlisted `fixtures/pages` |
+| Product name | **TraceFence** only |
+| Tagline | *A source-aware security gateway for AI agents* |
+| Demo domain | Campus chat (NullTrace Institute) |
+| Design reference | `secure_rag_domain_agnostic_design.md` (internal; **not** a second product) |
 
-## PPT edits still needed (human on deck file)
+| Source | Role |
+|---|---|
+| `SCOPE_AND_RULES.md` | What we build in 24h |
+| `JUDGE_AND_TEAM_BRIEF.md` | Pitch + Q&A |
+| `SECURERAG_ALIGNMENT.md` | How MVP maps to design-reference ideas |
+| Mystara PPT v1 (invoice/QR) | **Superseded** — rewrite deck from `PRESENTATION.md` |
 
-1. Ensure product name on every slide is **TraceFence** (not TrustFence / TrustTrace).  
-2. Change **6 devs** → **5**.  
-3. Stack: “One LLM API” → **“Local LLM API (Ollama qwen3:8b)”**.  
-4. Keep QR / Playwright / source-trace story — project will build it.
+## Deck must say
 
-## Do not reopen without lead OK
+1. Tagline: source-aware security gateway for AI agents  
+2. Permission-filtered retrieval (what the agent may read)  
+3. Tool gateway (what the agent may do)  
+4. Campus demo roles  
+5. Honest non-claims  
 
-- Dropping QR/Playwright (that would be option B).  
-- Claiming live unrestricted web scanning or prompt-injection immunity.
+## Deck must not say
+
+- Invoice/QR as the main product  
+- “We are SecureRAG” / dual product branding  
+- “We invented Secure RAG”  
+- Full multi-domain production platform already built  

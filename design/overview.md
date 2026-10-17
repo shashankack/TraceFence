@@ -1,13 +1,11 @@
 # Design overview
 
-UI must match PPT “Explain” story.
+Chat-first SecureRAG campus UX.
 
-## Surfaces
+1. Role selector  
+2. Chat transcript  
+3. Decision rail (retrieval + tool events, reason codes)  
+4. Approval drawer when needed  
+5. Optional audit summary  
 
-1. Mission Control — task, policies, QR/URL  
-2. Source panel — URL, excerpt, flagged instruction  
-3. Timeline — SOURCE → PROPOSAL → DECISION → OUTCOME  
-4. Approval drawer  
-5. Audit report  
-
-Owner: `venilashree`. Prefer clarity over decorative dashboards.
+Owner: `venilashree`. Cite public docs used in answers when easy.

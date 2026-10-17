@@ -812,17 +812,17 @@ Also report the model-specific outcome separately: e.g., “The live model propo
 
 ## 17. Team allocation
 
-> **Alignment note (2026-10-17):** Mystara PPT option A is locked — project follows the deck’s **source-aware QR → Playwright synthetic page → gateway** story. Living scope in [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md) and [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md) supersedes older invoice-note-only novelty wording where they conflict. Product name remains **TraceFence** (not TraceFence).
+> **Alignment note (2026-10-17):** **TraceFence** is the only product name — *A source-aware security gateway for AI agents*. Campus chat is the demo. `secure_rag_domain_agnostic_design.md` is an internal design reference, not a second product. Living docs: [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md), [`JUDGE_AND_TEAM_BRIEF.md`](./JUDGE_AND_TEAM_BRIEF.md). Invoice/QR/email-hero sections below are historical only.
 
-**Active hackathon team: 5 people.** Path-owned branches and GitHub usernames are the source of truth in [`docs/TEAM_AND_GIT.md`](./TEAM_AND_GIT.md). Summary:
+**Active hackathon team: 5 people.** See [`docs/TEAM_AND_GIT.md`](./TEAM_AND_GIT.md).
 
 | Member | GitHub | Primary owner | Integration contract |
 |---|---|---|---|
-| **1 — Backend + integration** | `shashankack` | Orchestrator, gateway, policy, API, DB, merges to `main` | Owns `gateway.invoke` and release candidate |
-| **2 — Frontend** | `venilashree` | Mission Control, trace, approval drawer, audit UI | Consumes HTTP DTOs from `docs/contracts.md` |
-| **3 — Fixtures & attacks** | `desaitejas777` | Seed invoices, malicious note, sample policies | Data only; executors still gateway-only |
-| **4 — Tests / QA** | `Varun-op` | Vitest suite and acceptance matrix | Asserts zero forbidden executions |
-| **5 — Local runtime & scenarios** | `Spandananarayanaswamy` | Ollama `qwen3:8b` ops, scripted proposal scenarios | Fallback proposals still go through gateway |
+| **1 — Backend + integration** | `shashankack` | Session/chat APIs, gateway, campus tools, DB | Owns `gateway.invoke` |
+| **2 — Frontend** | `venilashree` | Chat UI, role toggle, decision rail, approvals | Session/message DTOs |
+| **3 — Fixtures** | `desaitejas777` | `fixtures/campus/**`, role policy JSON | Data only |
+| **4 — Tests / QA** | `Varun-op` | Export DENY / handbook ALLOW matrix | Zero forbidden exports |
+| **5 — Runtime + scenarios** | `Spandananarayanaswamy` | Ollama + campus scripted scenarios | Fallback via gateway |
 
 Historical six-role split (Agent / Security / Backend / Frontend / Test harness / Integration) from earlier drafts is **superseded** by the table above: backend+policy+agent loop are consolidated under `shashankack` for this team size.
 
