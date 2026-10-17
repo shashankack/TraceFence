@@ -6,6 +6,17 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Killer demos verified + switch-tenant
+
+### Done
+- `POST /api/auth/switch-tenant` for multi-membership users.
+- `scripts/smoke-demos.ts` passes: student curfew ALLOW, student export DENY, faculty APPROVE→CONSUMED, Riverview tenant isolation.
+
+### Next
+- Frontend login + Bearer + Org wiring; Varun/Spandana consume smoke path.
+
+---
+
 ## 2026-10-17 — Multi-tenant SQLite + real auth
 
 ### Done
@@ -22,7 +33,7 @@ Newest entries first.
 ## 2026-10-17 — Org Admin APIs + approval execute
 
 ### Done
-- `GET/POST /api/org/documents`, `PATCH /api/org/documents/:id`, `GET/PUT /api/org/policy` (admin session via `x-session-id`).
+- `GET/POST /api/org/documents`, `PATCH /api/org/documents/:id`, `GET/PUT /api/org/policy` (admin via Bearer).
 - SQLite `org_documents` + `org_policy`; edits bump `policyVersion`; retrieval reads upload overrides.
 - Approval `APPROVE` executes the bound tool once and marks `CONSUMED` (OUTCOME event).
 

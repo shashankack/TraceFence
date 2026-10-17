@@ -16,6 +16,10 @@ export const loginSchema = z.object({
   tenantId: z.string().min(1).optional(),
 });
 
+export const switchTenantSchema = z.object({
+  tenantId: z.string().min(1),
+});
+
 export const sessionMessageSchema = z.object({
   message: z.string().min(1),
 });

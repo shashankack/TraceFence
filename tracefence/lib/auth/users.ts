@@ -3,7 +3,7 @@ import { getDb } from "../db/client";
 import type { CampusRole } from "../security/types";
 import { seedPolicyForTenant } from "../campus/tenantBootstrap";
 import { hashPassword, verifyPassword } from "./password";
-import { createAuthSession } from "./session";
+import { createAuthSession, revokeAuthSession } from "./session";
 
 const DEFAULT_TENANT = "nulltrace-institute";
 
@@ -194,4 +194,41 @@ export function listMemberships(userId: string) {
     tenantName: string;
     role: CampusRole;
   }>;
+}
+
+/** Switch active tenant/role for an authenticated user; revokes old token. */
+export function switchTenant(input: {
+  userId: string;
+  currentToken: string;
+  tenantId: string;
+}):
+  | {
+      ok: true;
+      tenantId: string;
+      role: CampusRole;
+      token: string;
+      expiresAt: string;
+    }
+  | { ok: false; status: number; error: string } {
+  const memberships = listMemberships(input.userId);
+  const chosen = memberships.find((m) => m.tenantId === input.tenantId);
+  if (!chosen) {
+    return { ok: false, status: 403, error: "Not a member of that tenant" };
+  }
+
+  revokeAuthSession(input.currentToken);
+
+  const session = createAuthSession({
+    userId: input.userId,
+    tenantId: chosen.tenantId,
+    role: chosen.role,
+  });
+
+  return {
+    ok: true,
+    tenantId: chosen.tenantId,
+    role: chosen.role,
+    token: session.token,
+    expiresAt: session.expiresAt,
+  };
 }

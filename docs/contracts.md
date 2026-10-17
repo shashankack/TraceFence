@@ -18,6 +18,7 @@ Authorization: Bearer <token>
 |---|---|---|
 | `POST` | `/api/auth/signup` | `{ email, password, displayName?, tenantName? }` |
 | `POST` | `/api/auth/login` | `{ email, password, tenantId? }` → token + memberships |
+| `POST` | `/api/auth/switch-tenant` | `{ tenantId }` → new token (membership required) |
 | `POST` | `/api/auth/logout` | Revoke token |
 | `GET` | `/api/auth/me` | Current user + tenant + role |
 
