@@ -31,3 +31,9 @@ Newest entries first.
 
 ### Blockers
 - None for docs/git. App code not started.
+
+### ADCE / git follow-up (same day)
+- `adce scan --full`: 22 artifacts; git detected.
+- Authority: blueprint CANONICAL; SCOPE/TEAM/SYSTEM/contracts/ADR AUTHORITATIVE + VERIFIED; local-llm, agent prompts, PROGRESS, requirements/architecture/security SUPPORTING.
+- Git: `main` at initial docs commit; branches created — `feature/shashankack-backend`, `feature/venilashree-frontend`, `feature/desaitejas777-fixtures`, `feature/Varun-op-tests`, `feature/Spandananarayanaswamy-runtime`.
+- Remote not pushed yet — `shashankack` should create GitHub repo and `git push -u origin main` then push all feature branches.
