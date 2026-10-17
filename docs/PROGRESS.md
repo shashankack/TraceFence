@@ -6,6 +6,25 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Implement: Next.js scaffold + API stubs
+
+### Done
+- Scaffolded `tracefence/` (Next 16, TS, Tailwind, Zod, better-sqlite3).
+- Lib: db schema/client + invoice seed, authorize/gateway/approvals/canonicalize, tools, investigate allowlist stub, orchestrator stub.
+- API routes per contracts: sources, tasks, approvals, audit.
+- Public synthetic page: `/fixtures/pages/supplier-attack.html`.
+- `npm run build` succeeds.
+
+### Still stubbed (next slices)
+- Playwright fetch + SOURCE persist
+- Ollama orchestrator loop + scenarios fallback
+- Full approval consume → execute path
+
+### Next
+- Push `feature/shashankack-backend`; Playwright inspect + run loop.
+
+---
+
 ## 2026-10-17 — Individual master prompts + push
 
 ### Done
