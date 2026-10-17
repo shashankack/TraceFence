@@ -71,7 +71,7 @@ export const SEED_POLICY: OrgPolicyDTO = {
 };
 
 export const CLASSIFICATION_TONE: Record<Classification, string> = {
-  public: "text-allow bg-allow-soft",
-  internal: "text-internal bg-internal-soft",
-  confidential: "text-deny bg-deny-soft",
+  public: "text-allow bg-allow-soft border-allow/30",
+  internal: "text-internal bg-internal-soft border-internal/30",
+  confidential: "text-deny bg-deny-soft border-deny/30",
 };

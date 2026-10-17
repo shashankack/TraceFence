@@ -7,9 +7,9 @@ import { Icon } from "@/components/ui/Icon";
 import { panelVariants } from "./motion";
 
 const CELL_TONE: Record<Decision, string> = {
-  ALLOW: "text-allow bg-allow-soft border-[#c5e2d0]",
-  DENY: "text-deny bg-deny-soft border-[#ecc4c4]",
-  REQUIRE_APPROVAL: "text-approval bg-approval-soft border-[#ecd2a8]",
+  ALLOW: "text-allow bg-allow-soft border-allow/35",
+  DENY: "text-deny bg-deny-soft border-deny/35",
+  REQUIRE_APPROVAL: "text-approval bg-approval-soft border-approval/40",
 };
 
 const NEXT: Record<Decision, Decision> = { ALLOW: "DENY", DENY: "REQUIRE_APPROVAL", REQUIRE_APPROVAL: "ALLOW" };
@@ -81,7 +81,7 @@ export function PolicyMatrices({
 function Panel({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: "sliders" | "lock"; children: React.ReactNode }) {
   return (
     <motion.section
-      className="overflow-hidden rounded-xl border border-line bg-white shadow-[0_6px_20px_rgba(26,58,61,.04)]"
+      className="overflow-hidden glass rounded-2xl"
       variants={panelVariants}
     >
       <div className="flex min-h-[60px] items-center justify-between border-b border-line px-4 py-3">
@@ -117,7 +117,7 @@ function Matrix({ columns, wide, children }: { columns: readonly string[]; wide?
 function Row({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <div
-      className={`grid min-h-[46px] items-center gap-1.5 border-b border-[#eef2f1] py-1 text-sm last:border-b-0 ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
+      className={`grid min-h-[46px] items-center gap-1.5 border-b border-line py-1 text-sm last:border-b-0 ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
     >
       <span className="font-semibold">{label}</span>
       {children}

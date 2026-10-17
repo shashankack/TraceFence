@@ -1,21 +1,36 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/components/api/client";
-import type { AuditDTO } from "@/components/api/types";
+import type { AuditDTO, Decision, EventDTO, Role } from "@/components/api/types";
 import { ROLE_LABEL } from "@/components/console/catalog";
 import { argsLine, formatTime } from "@/components/console/DecisionRail";
 import { useAppState } from "@/components/shell/AppState";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { DecisionChip } from "@/components/ui/DecisionChip";
-import { Icon } from "@/components/ui/Icon";
+import { Icon, toolIcon, type IconName } from "@/components/ui/Icon";
+
+type Row = EventDTO & { role: Role };
+type Filter = "all" | "DENY" | "REQUIRE_APPROVAL" | "ALLOW";
+
+const FILTERS: Array<{ id: Filter; label: string }> = [
+  { id: "all", label: "All" },
+  { id: "DENY", label: "Blocked" },
+  { id: "REQUIRE_APPROVAL", label: "Approval" },
+  { id: "ALLOW", label: "Allowed" },
+];
+
+/** An executor result is stored as JSON in `outcome`; a DENY row carrying one would mean a forbidden action ran. */
+const executed = (e: EventDTO) => typeof e.outcome === "string" && e.outcome.trim().startsWith("{");
 
 export function AuditView() {
   const { mode, events, session, archive } = useAppState();
   const [audit, setAudit] = useState<AuditDTO | null>(null);
   const [status, setStatus] = useState<"loading" | "live" | "offline">("loading");
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setRefreshing(true);
@@ -32,40 +47,49 @@ export function AuditView() {
   useEffect(() => {
     if (mode !== "live") return;
     let alive = true;
-    api
-      .audit()
-      .then((a) => {
-        if (!alive) return;
-        setAudit(a);
-        setStatus("live");
-      })
-      .catch(() => alive && setStatus("offline"));
+    const tick = () =>
+      api
+        .audit()
+        .then((a) => {
+          if (!alive) return;
+          setAudit(a);
+          setStatus("live");
+        })
+        .catch(() => alive && setStatus("offline"));
+    tick();
+    const t = setInterval(tick, 8000);
     return () => {
       alive = false;
+      clearInterval(t);
     };
   }, [mode]);
 
   const useLocal = mode !== "live" || status === "offline";
-  const rows = [...(session ? [{ session, events }] : []), ...archive]
-    .flatMap(({ session: s, events: evs }) => evs.map((e) => ({ ...e, role: s.role })))
-    .sort((a, b) => (b.ts ?? "").localeCompare(a.ts ?? ""));
+  const rows: Row[] = useMemo(
+    () =>
+      [...(session ? [{ session, events }] : []), ...archive]
+        .flatMap(({ session: s, events: evs }) => evs.map((e) => ({ ...e, role: s.role })))
+        .sort((a, b) => (b.ts ?? "").localeCompare(a.ts ?? "")),
+    [session, events, archive],
+  );
   const sessionCount = archive.length + (session ? 1 : 0);
   const decisions = rows.filter((e) => e.reasonCode !== "RETRIEVAL_FILTERED");
-  const count = (d: string) =>
-    useLocal
-      ? decisions.filter((e) => e.decision === d).length
-      : (audit?.sessionDecisions.find((x) => x.decision === d)?.count ?? 0);
+  const count = (d: Decision) =>
+    useLocal ? decisions.filter((e) => e.decision === d).length : (audit?.sessionDecisions.find((x) => x.decision === d)?.count ?? 0);
 
-  const kpis = [
-    { label: "Allowed", value: count("ALLOW"), dot: "bg-allow" },
-    { label: "Denied", value: count("DENY"), dot: "bg-deny" },
-    {
-      label: "Pending approvals",
-      value: useLocal ? decisions.filter((e) => e.decision === "REQUIRE_APPROVAL").length : (audit?.pendingApprovals ?? 0),
-      dot: "bg-[#d5831c]",
-    },
-    { label: "Sessions", value: useLocal ? sessionCount : (audit?.sessions ?? 0), dot: "bg-teal" },
-  ];
+  const allowed = count("ALLOW");
+  const denied = count("DENY");
+  const approvals = count("REQUIRE_APPROVAL");
+  const pending = useLocal ? decisions.filter((e) => e.decision === "REQUIRE_APPROVAL").length : (audit?.pendingApprovals ?? 0);
+  const forbiddenRan = decisions.filter((e) => e.decision === "DENY" && executed(e)).length;
+  const externalSent = decisions.filter((e) => e.tool === "notify_external" && e.decision === "ALLOW").length;
+  const exfilBlocked = decisions.filter(
+    (e) => e.decision === "DENY" && ["export_records", "notify_external"].includes(e.tool ?? ""),
+  ).length;
+  const fenced = rows.filter((e) => e.reasonCode === "RETRIEVAL_FILTERED").length;
+  const clean = forbiddenRan === 0;
+
+  const visible = filter === "all" ? rows : rows.filter((e) => e.decision === filter && e.reasonCode !== "RETRIEVAL_FILTERED");
 
   const exportJson = () => {
     const blob = new Blob(
@@ -81,24 +105,24 @@ export function AuditView() {
   };
 
   return (
-    <main className="mx-auto max-w-[1366px] px-6 py-8">
+    <main className="mx-auto w-full max-w-[1440px] space-y-4 p-3 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="block text-[10px] font-extrabold uppercase tracking-[.75px] text-teal">Gateway evidence</span>
-          <h1 className="mt-0.5 font-display text-[28px] font-bold tracking-tight">Audit report</h1>
-          <p className="mt-1 text-sm text-muted">Source and tool decisions across NullTrace Institute sessions.</p>
+          <span className="eyebrow block">Gateway evidence · NullTrace Institute</span>
+          <h2 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-ink">Audit report</h2>
+          <p className="mt-1 mb-0 text-sm text-muted">Every source and tool decision, with reason codes and outcomes.</p>
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`rounded-full px-2.5 py-1.5 text-[11px] font-bold ${useLocal ? "bg-approval-soft text-approval" : "bg-allow-soft text-allow"}`}
+            className={`rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold tracking-wider uppercase ${useLocal ? "border-approval/40 bg-approval-soft text-approval" : "border-allow/40 bg-allow-soft text-allow"}`}
           >
-            {useLocal ? "Replay session data" : "Live aggregate"}
+            {status === "loading" && !useLocal ? "Connecting…" : useLocal ? "Console evidence" : "● Live aggregate"}
           </span>
           {!useLocal && (
             <motion.button
-              aria-label="Refresh"
               animate={{ rotate: refreshing ? 360 : 0 }}
-              className="grid size-9 place-items-center rounded-lg border border-line-strong bg-white text-muted hover:text-ink"
+              aria-label="Refresh"
+              className="grid size-9 place-items-center rounded-lg border border-line text-muted hover:text-ink"
               onClick={load}
               transition={refreshing ? { duration: 0.8, repeat: Infinity, ease: "linear" } : { duration: 0 }}
               type="button"
@@ -107,7 +131,7 @@ export function AuditView() {
             </motion.button>
           )}
           <motion.button
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-white px-3 text-sm font-bold text-[#354448] hover:border-teal"
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-neon/40 bg-neon-soft px-3 text-sm font-semibold text-neon hover:bg-neon/20"
             onClick={exportJson}
             type="button"
             whileTap={{ scale: 0.96 }}
@@ -118,43 +142,92 @@ export function AuditView() {
         </div>
       </div>
 
+      {/* Verdict banner */}
+      <motion.section
+        animate={{ opacity: 1, y: 0 }}
+        className={`relative overflow-hidden rounded-2xl border p-5 ${clean ? "glow-allow border-allow/45 bg-[linear-gradient(120deg,rgba(46,229,157,.16),rgba(46,229,157,.03)_60%)]" : "glow-deny border-deny/50 bg-deny-soft"}`}
+        initial={{ opacity: 0, y: 10 }}
+      >
+        <motion.span
+          animate={{ x: ["-30%", "130%"] }}
+          className={`pointer-events-none absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent ${clean ? "via-allow/10" : "via-deny/10"} to-transparent`}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+        />
+        <div className="relative flex flex-wrap items-center gap-4">
+          <span className={`grid size-12 place-items-center rounded-2xl border ${clean ? "border-allow/50 bg-allow/15 text-allow" : "border-deny/50 bg-deny/15 text-deny"}`}>
+            <Icon name={clean ? "shield" : "alert"} size={26} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <strong className={`block font-display text-xl font-semibold tracking-tight ${clean ? "text-allow" : "text-deny"}`}>
+              {clean ? "No forbidden action executed" : `${forbiddenRan} denied action(s) show an execution result`}
+            </strong>
+            <p className="mt-0.5 mb-0 text-sm text-ink/75">
+              {denied} DENY decision{denied === 1 ? "" : "s"} {useLocal ? "in captured evidence" : "across the tenant"} stopped at the gateway ·{" "}
+              {forbiddenRan} executed in {rows.length} captured event{rows.length === 1 ? "" : "s"}.
+            </p>
+          </div>
+          <div className="flex gap-6">
+            <BannerStat label="External emails sent" tone={externalSent ? "deny" : "allow"} value={externalSent} />
+            <BannerStat label="Exfiltration blocked" tone="deny" value={exfilBlocked} />
+          </div>
+        </div>
+      </motion.section>
+
+      {/* KPIs */}
       <motion.div
         animate="show"
-        className="mt-5 grid h-[70px] grid-cols-4 rounded-[10px] border border-line bg-white"
+        className="grid grid-cols-2 gap-2.5 md:grid-cols-4"
         initial="hidden"
         variants={{ show: { transition: { staggerChildren: 0.06 } } }}
       >
-        {kpis.map((k) => (
-          <motion.div
-            className="flex items-center gap-2 border-r border-line px-4 last:border-r-0"
-            key={k.label}
-            variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}
-          >
-            <span className={`size-2 rounded-full ${k.dot}`} />
-            <p className="m-0 flex flex-1 items-baseline gap-2 text-xs font-semibold text-muted">
-              {k.label}
-              <AnimatedNumber className="font-display text-2xl font-bold text-ink" value={k.value} />
-            </p>
-          </motion.div>
-        ))}
+        <Kpi icon="check" label="Allowed" tone="allow" value={allowed} />
+        <Kpi icon="lock" label="Blocked" tone="deny" value={denied} />
+        <Kpi icon="clock" label="Pending approvals" tone="approval" value={pending} />
+        <Kpi icon="activity" label="Sessions" tone="neon" value={useLocal ? sessionCount : (audit?.sessions ?? 0)} />
       </motion.div>
 
+      <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr]">
+        <DecisionSummary allow={allowed} approval={approvals} deny={denied} fenced={fenced} />
+        <VerificationCard />
+      </div>
+
+      {/* Evidence trail */}
       <motion.section
         animate={{ opacity: 1, y: 0 }}
-        className="mt-3 overflow-hidden rounded-[11px] border border-line bg-white"
+        className="glass overflow-hidden rounded-2xl"
         initial={{ opacity: 0, y: 12 }}
         transition={{ delay: 0.15 }}
       >
-        <div className="flex min-h-[66px] items-center justify-between border-b border-line px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
           <div>
-            <h2 className="m-0 font-display text-base font-bold">Recent decisions</h2>
-            <p className="mt-0.5 text-xs text-muted">Source → proposal → decision → outcome</p>
+            <span className="eyebrow block">Evidence trail</span>
+            <h3 className="mt-0.5 mb-0 font-display text-base font-semibold text-ink">Source → proposal → decision → outcome</h3>
           </div>
-          <span className="rounded-md border border-line px-2 py-1 font-mono text-[11px] text-muted">
-            {sessionCount} session{sessionCount === 1 ? "" : "s"} from this console
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-0.5 rounded-lg border border-line bg-black/20 p-[3px]" role="tablist">
+              {FILTERS.map((f) => (
+                <button
+                  aria-selected={filter === f.id}
+                  className={`relative rounded-md px-2.5 py-1 text-xs font-semibold ${filter === f.id ? "text-ink" : "text-faint hover:text-muted"}`}
+                  key={f.id}
+                  onClick={() => setFilter(f.id)}
+                  role="tab"
+                  type="button"
+                >
+                  {filter === f.id && (
+                    <motion.span className="absolute inset-0 rounded-md border border-line-strong bg-surface-raised" layoutId="audit-filter" />
+                  )}
+                  <span className="relative">{f.label}</span>
+                </button>
+              ))}
+            </div>
+            <span className="hidden font-mono text-[10px] text-faint sm:inline">
+              {sessionCount} session{sessionCount === 1 ? "" : "s"} · this console
+            </span>
+          </div>
         </div>
-        <div className="grid min-h-[36px] grid-cols-[.8fr_.6fr_.7fr_1fr_1.1fr_1.3fr_1.6fr] items-center gap-2.5 bg-[#f7f9f8] px-3.5 text-[10px] font-extrabold uppercase tracking-[.45px] text-faint">
+
+        <div className="hidden grid-cols-[.8fr_.55fr_.6fr_1fr_1fr_1.2fr_1.6fr_24px] items-center gap-3 bg-black/20 px-4 py-2 font-mono text-[9.5px] font-semibold tracking-[.1em] text-faint uppercase md:grid">
           <span>Time</span>
           <span>Role</span>
           <span>Phase</span>
@@ -162,56 +235,176 @@ export function AuditView() {
           <span>Decision</span>
           <span>Reason code</span>
           <span>Args / outcome</span>
+          <span />
         </div>
-        {rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-1 py-12 text-center text-sm text-faint">
-            <Icon className="text-teal" name="spark" size={20} />
-            No decisions in this session yet — run a demo path from the Console.
+
+        {visible.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-14 text-center text-sm text-faint">
+            <Icon className="text-neon" name="activity" size={22} />
+            {rows.length === 0 ? "No decisions captured yet — run a demo path from the Console." : "No events match this filter."}
           </div>
         ) : (
           <AnimatePresence initial={false}>
-            {rows.map((e, i) => (
-              <motion.div
-                animate={{ opacity: 1, x: 0 }}
-                className="grid min-h-[56px] grid-cols-[.8fr_.6fr_.7fr_1fr_1.1fr_1.3fr_1.6fr] items-center gap-2.5 border-b border-[#eaf0ee] px-3.5 text-sm last:border-b-0"
-                initial={{ opacity: 0, x: -8 }}
-                key={e.id}
-                transition={{ delay: Math.min(i, 10) * 0.03 }}
-              >
-                <code className="font-mono text-[11px]">{formatTime(e.ts)}</code>
-                <span className="text-xs font-semibold">{ROLE_LABEL[e.role]}</span>
-                <span className="font-mono text-[11px] text-faint">{e.phase}</span>
-                <code className="font-mono text-xs">{e.tool ?? "—"}</code>
-                <span>
-                  {e.reasonCode === "RETRIEVAL_FILTERED" ? (
-                    <span className="rounded-full bg-deny-soft px-2 py-1 font-mono text-[10px] font-bold text-deny">FILTERED</span>
-                  ) : (
-                    e.decision && <DecisionChip decision={e.decision} />
-                  )}
-                </span>
-                <code className="font-mono text-[11px] text-muted">{e.reasonCode}</code>
-                <span className="min-w-0">
-                  <code className="block truncate font-mono text-[11px] text-[#586568]" title={argsLine(e.argsPreview)}>
-                    {argsLine(e.argsPreview)}
-                  </code>
-                  {e.outcome && (
-                    <span className={`block truncate text-[11px] ${e.decision === "DENY" ? "font-bold text-deny" : "text-faint"}`}>
-                      {e.outcome}
-                    </span>
-                  )}
-                </span>
-              </motion.div>
+            {visible.map((e, i) => (
+              <EvidenceRow event={e} index={i} key={e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} open={open === e.id} />
             ))}
           </AnimatePresence>
         )}
       </motion.section>
 
       {audit?.note && !useLocal && (
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
-          <Icon className="text-teal" name="shield" size={13} />
+        <p className="m-0 flex items-center gap-1.5 text-xs text-faint">
+          <Icon className="text-neon" name="shield" size={13} />
           {audit.note}
         </p>
       )}
     </main>
+  );
+}
+
+function BannerStat({ label, value, tone }: { label: string; value: number; tone: "allow" | "deny" }) {
+  return (
+    <div className="text-right">
+      <AnimatedNumber className={`font-display text-3xl font-semibold ${tone === "allow" ? "text-allow" : "text-deny"}`} value={value} />
+      <span className="block font-mono text-[9.5px] tracking-[.1em] text-muted uppercase">{label}</span>
+    </div>
+  );
+}
+
+const TONE = {
+  allow: "text-allow bg-allow-soft",
+  deny: "text-deny bg-deny-soft",
+  approval: "text-approval bg-approval-soft",
+  neon: "text-neon bg-neon-soft",
+};
+
+function Kpi({ label, value, tone, icon }: { label: string; value: number; tone: keyof typeof TONE; icon: IconName }) {
+  return (
+    <motion.div className="glass rounded-xl px-4 py-3.5" variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}>
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[10px] font-semibold tracking-[.12em] text-muted uppercase">{label}</span>
+        <span className={`grid size-7 place-items-center rounded-lg ${TONE[tone]}`}>
+          <Icon name={icon} size={14} />
+        </span>
+      </div>
+      <AnimatedNumber className={`mt-1 block font-display text-[2rem] leading-none font-semibold ${TONE[tone].split(" ")[0]}`} value={value} />
+    </motion.div>
+  );
+}
+
+function DecisionSummary({ allow, deny, approval, fenced }: { allow: number; deny: number; approval: number; fenced: number }) {
+  const total = Math.max(1, allow + deny + approval);
+  const parts = [
+    { label: "Allowed", value: allow, bar: "bg-allow", text: "text-allow" },
+    { label: "Blocked", value: deny, bar: "bg-deny", text: "text-deny" },
+    { label: "Needs approval", value: approval, bar: "bg-approval", text: "text-approval" },
+  ];
+  return (
+    <section className="glass rounded-2xl p-4">
+      <span className="eyebrow block">Decision summary</span>
+      <h3 className="mt-0.5 mb-3 font-display text-base font-semibold text-ink">How the gateway ruled</h3>
+      <div className="flex h-3 overflow-hidden rounded-full bg-white/5">
+        {parts.map((p) => (
+          <motion.span
+            animate={{ width: `${(p.value / total) * 100}%` }}
+            className={`${p.bar} h-full`}
+            initial={{ width: 0 }}
+            key={p.label}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          />
+        ))}
+      </div>
+      <ul className="mt-3 mb-0 grid grid-cols-2 gap-2 p-0 sm:grid-cols-4">
+        {parts.map((p) => (
+          <li className="list-none rounded-lg border border-line bg-black/20 px-3 py-2" key={p.label}>
+            <span className={`block font-display text-lg font-semibold ${p.text}`}>{Math.round((p.value / total) * 100)}%</span>
+            <span className="text-[11px] text-muted">
+              {p.label} · {p.value}
+            </span>
+          </li>
+        ))}
+        <li className="list-none rounded-lg border border-line bg-black/20 px-3 py-2">
+          <span className="block font-display text-lg font-semibold text-neon">{fenced}</span>
+          <span className="text-[11px] text-muted">ACL fence events</span>
+        </li>
+      </ul>
+    </section>
+  );
+}
+
+/**
+ * The gateway API does not report test results yet, so this card shows how to produce them
+ * instead of displaying a number it cannot verify.
+ */
+function VerificationCard() {
+  return (
+    <section className="glass flex flex-col rounded-2xl p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="eyebrow block">Verification suite</span>
+          <h3 className="mt-0.5 mb-0 font-display text-base font-semibold text-ink">Killer-demo smoke tests</h3>
+        </div>
+        <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[10px] tracking-wider text-faint uppercase">Not reported by API</span>
+      </div>
+      <p className="mt-3 mb-2 text-xs leading-relaxed text-muted">
+        Curfew ALLOW, student export DENY, faculty REQUIRE_APPROVAL → approve once → CONSUMED, replay rejected. Run against the same gateway:
+      </p>
+      <code className="mt-auto block rounded-lg border border-line bg-black/40 px-3 py-2 font-mono text-[11.5px] text-neon">npx tsx scripts/smoke-demos.ts</code>
+    </section>
+  );
+}
+
+function EvidenceRow({ event: e, index, open, onToggle }: { event: Row; index: number; open: boolean; onToggle: () => void }) {
+  const filtered = e.reasonCode === "RETRIEVAL_FILTERED";
+  const blocked = e.decision === "DENY" && !filtered;
+  return (
+    <motion.div
+      animate={{ opacity: 1, x: 0 }}
+      className={`border-b border-line last:border-b-0 ${blocked ? "bg-deny-soft/40" : ""}`}
+      initial={{ opacity: 0, x: -8 }}
+      layout="position"
+      transition={{ delay: Math.min(index, 10) * 0.025 }}
+    >
+      <button
+        aria-expanded={open}
+        className="grid w-full grid-cols-2 items-center gap-x-3 gap-y-1.5 px-4 py-3 text-left text-sm hover:bg-white/[.02] md:grid-cols-[.8fr_.55fr_.6fr_1fr_1fr_1.2fr_1.6fr_24px]"
+        onClick={onToggle}
+        type="button"
+      >
+        <code className="font-mono text-[11px] text-muted">{formatTime(e.ts)}</code>
+        <span className="text-right text-xs font-semibold text-ink md:text-left">{ROLE_LABEL[e.role]}</span>
+        <span className="font-mono text-[10px] tracking-wider text-faint">{e.phase}</span>
+        <code className="flex items-center gap-1.5 font-mono text-xs text-ink">
+          <Icon className="text-faint" name={toolIcon(e.tool)} size={12} />
+          {e.tool ?? "—"}
+        </code>
+        <span>
+          {filtered ? (
+            <span className="rounded-md border border-neon/35 bg-neon-soft px-2 py-[3px] font-mono text-[10px] font-bold text-neon">FENCED</span>
+          ) : (
+            e.decision && <DecisionChip decision={e.decision} glow={blocked} />
+          )}
+        </span>
+        <code className={`font-mono text-[11px] ${blocked ? "font-semibold text-deny" : "text-muted"}`}>{e.reasonCode}</code>
+        <span className="col-span-2 min-w-0 md:col-span-1">
+          <code className="block truncate font-mono text-[11px] text-muted" title={argsLine(e.argsPreview)}>
+            {argsLine(e.argsPreview)}
+          </code>
+          {e.outcome && <span className={`block truncate text-[11px] ${blocked ? "text-deny/90" : "text-faint"}`}>{e.outcome}</span>}
+        </span>
+        <motion.span animate={{ rotate: open ? 90 : 0 }} className="hidden text-faint md:block">
+          <Icon name="chevron" size={14} />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div animate={{ height: "auto", opacity: 1 }} className="overflow-hidden" exit={{ height: 0, opacity: 0 }} initial={{ height: 0, opacity: 0 }}>
+            <pre className="mx-4 mb-3 overflow-x-auto rounded-lg border border-line bg-black/40 p-3 font-mono text-[11px] leading-relaxed text-muted">
+              {JSON.stringify(e, null, 2)}
+            </pre>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

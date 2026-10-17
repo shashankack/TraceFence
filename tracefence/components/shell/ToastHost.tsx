@@ -6,9 +6,9 @@ import { Icon } from "@/components/ui/Icon";
 import { useAppState } from "./AppState";
 
 const TONE = {
-  allow: { border: "border-[#b8ddc6]", icon: "text-allow bg-allow-soft", glyph: "check" as const },
-  deny: { border: "border-[#e6bebe]", icon: "text-deny bg-deny-soft", glyph: "x" as const },
-  info: { border: "border-line-strong", icon: "text-teal bg-teal-soft", glyph: "shield" as const },
+  allow: { border: "border-allow/40", icon: "text-allow bg-allow-soft", glyph: "check" as const, glow: "glow-allow" },
+  deny: { border: "border-deny/40", icon: "text-deny bg-deny-soft", glyph: "x" as const, glow: "glow-deny" },
+  info: { border: "border-neon/30", icon: "text-neon bg-neon-soft", glyph: "shield" as const, glow: "" },
 };
 
 export function ToastHost() {
@@ -21,22 +21,22 @@ export function ToastHost() {
   }, [toast, dismissToast]);
 
   return (
-    <div aria-live="polite" className="pointer-events-none fixed right-5 bottom-5 z-[60]">
+    <div aria-live="polite" className="pointer-events-none fixed right-4 bottom-4 left-4 z-[60] flex justify-end sm:left-auto">
       <AnimatePresence>
         {toast && (
           <motion.div
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className={`pointer-events-auto flex min-w-[320px] items-center gap-2.5 rounded-[10px] border bg-white px-3.5 py-3 shadow-[0_10px_35px_rgba(20,45,48,.14)] ${TONE[toast.tone].border}`}
+            className={`glass pointer-events-auto flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 sm:w-[360px] ${TONE[toast.tone].border} ${TONE[toast.tone].glow}`}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             key={toast.id}
             transition={{ type: "spring", stiffness: 420, damping: 30 }}
           >
-            <span className={`grid size-7 place-items-center rounded-lg ${TONE[toast.tone].icon}`}>
-              <Icon name={TONE[toast.tone].glyph} size={15} />
+            <span className={`grid size-8 place-items-center rounded-lg ${TONE[toast.tone].icon}`}>
+              <Icon name={TONE[toast.tone].glyph} size={16} />
             </span>
-            <div className="flex flex-1 flex-col gap-0.5">
-              <strong className="text-sm">{toast.title}</strong>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <strong className="text-sm text-ink">{toast.title}</strong>
               <p className="m-0 text-xs text-muted">{toast.body}</p>
             </div>
             <button aria-label="Dismiss" className="text-faint hover:text-ink" onClick={dismissToast} type="button">

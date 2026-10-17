@@ -6,6 +6,25 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Command-center UI redesign (venilashree)
+
+### Done
+- Fast-forwarded `feature/venilashree-frontend` to `feature/shashankack-backend` (cb73f88); all backend routes kept as-is.
+- Dark "security command center" theme: sidebar + top bar with live activity indicator, glass panels, neon-blue accent; green ALLOW / red DENY / amber REQUIRE_APPROVAL badges.
+- Console is three columns: **Mission Control** (role, session, demo paths incl. prompt injection, chat) · **Untrusted Source** (latest input with injected phrases highlighted, red warning panel, context entered vs fenced out by ACL, model-proposed action) · **Live Trace** (SOURCE → PROPOSAL → DECISION → OUTCOME, large blocked-exfiltration cards with reason code, timestamp, target).
+- Stats strip: session counts + tenant totals polled from `GET /api/audit`.
+- Approval drawer: exact payload JSON, expiry countdown, binding (session, args hash, policy version, single use), Approve once / Reject.
+- Audit report: verdict banner computed from evidence (turns red if a DENY row carries an executor result), external emails sent, decision summary, filterable expandable evidence trail.
+- Fix: `components/api/client.ts` kept one shared Bearer token, so visiting Org (admin login) made later Console chat 403. Tokens are now per role.
+- Verified in headless Edge against the live gateway: student injection → `DENIED_EXPORT`; faculty export → approval → `APPROVAL_CONSUMED`; Org → Console chat still works; 390px layout stacks.
+
+### Known gaps (need backend)
+- Injection highlighting is a UI heuristic only; enforcement stays in the gateway.
+- No API reports test results, so Audit shows how to run `scripts/smoke-demos.ts` instead of a pass count.
+- Chat never emits `notify_external`; the "blocked external email" shown is the denied `export_records` attempt with the external address from the untrusted input.
+
+---
+
 ## 2026-10-17 — Merge Venila UI + Bearer client glue
 
 ### Done

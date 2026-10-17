@@ -109,15 +109,15 @@ export function OrgView() {
   };
 
   return (
-    <main className="mx-auto max-w-[1366px] px-6 pt-7 pb-10">
+    <main className="mx-auto w-full max-w-[1440px] p-3 pb-10 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="block text-[10px] font-extrabold uppercase tracking-[.85px] text-teal">
+          <span className="block eyebrow">
             Organization fence
           </span>
-          <h1 className="mt-0.5 font-display text-[28px] font-bold tracking-tight text-ink">
+          <h2 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-ink">
             NullTrace Institute
-          </h1>
+          </h2>
           <p className="mt-1 max-w-[600px] text-sm leading-normal text-muted">
             Upload sources and define who may read them and which tools are ALLOW / DENY / REQUIRE_APPROVAL.
           </p>
@@ -125,7 +125,7 @@ export function OrgView() {
         <div className="flex items-center gap-2.5">
           <BackendBadge backend={backend} />
           <motion.span
-            className="rounded-full border border-line bg-white px-3 py-1.5 font-mono text-xs font-bold text-muted"
+            className="rounded-full border border-line bg-black/20 px-3 py-1.5 font-mono text-xs font-bold text-muted"
             layout
           >
             Policy{" "}
@@ -143,7 +143,7 @@ export function OrgView() {
             {dirty && <span className="text-approval"> · unpublished changes</span>}
           </motion.span>
           <motion.button
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-teal px-3.5 text-sm font-bold text-white hover:bg-teal-strong disabled:opacity-45"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-neon px-3.5 text-sm font-bold text-[#04101f] shadow-[0_0_18px_rgba(76,194,255,.4)] hover:bg-neon-strong disabled:shadow-none disabled:opacity-45"
             disabled={!dirty || !canEdit || publishing}
             onClick={publish}
             type="button"
@@ -163,7 +163,7 @@ export function OrgView() {
             exit={{ opacity: 0, height: 0 }}
             initial={{ opacity: 0, height: 0 }}
           >
-            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-[#e8d1a8] bg-[#fff9ee] px-3.5 py-2.5 text-sm text-[#735b3c]">
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-approval/40 bg-approval-soft px-3.5 py-2.5 text-sm text-ink/80">
               <Icon className="text-approval" name="lock" size={15} />
               <span className="flex-1">
                 Org routes are gated to the <strong>admin</strong> role. You are viewing as{" "}
@@ -180,7 +180,7 @@ export function OrgView() {
           {[0, 1].map((i) => (
             <motion.div
               animate={{ opacity: [0.5, 1, 0.5] }}
-              className="h-48 rounded-xl border border-line bg-white"
+              className="glass h-48 rounded-2xl"
               key={i}
               transition={{ duration: 1.4, repeat: Infinity }}
             />
