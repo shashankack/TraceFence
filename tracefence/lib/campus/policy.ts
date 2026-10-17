@@ -36,7 +36,7 @@ export function resolveCampusRoot(): string {
   for (const c of candidates) {
     if (fs.existsSync(path.join(c, "policies", "roles.json"))) return c;
   }
-  throw new Error("fixtures/campus not found — run from repo with campus pack");
+  throw new Error("fixtures/campus not found  run from repo with campus pack");
 }
 
 /** Immutable seed from fixtures/campus (no DB overlays). */

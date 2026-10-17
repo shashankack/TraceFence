@@ -1,6 +1,7 @@
 "use client";
 
 import { Database, FileUp, Loader2, Lock, Plus, SlidersHorizontal, Upload } from "lucide-react";
+import { motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/components/api/client";
@@ -8,12 +9,16 @@ import { CLASSIFICATIONS, ROLES, TOOLS, type Classification, type Decision, type
 import { useDocuments, usePolicy } from "@/components/admin/hooks";
 import { RoleGate } from "@/components/auth/RoleGate";
 import { cn } from "@/components/lib/utils";
-import { ROLE_LABEL } from "@/components/shell/nav";
-import { BentoGrid, BentoTile } from "@/components/ui/bento";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { roleLabelFor } from "@/components/shell/nav";
+import { BentoTile } from "@/components/ui/bento";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClassLabel } from "@/components/ui/decision-badge";
 import { Input } from "@/components/ui/input";
+import { BlurFade } from "@/components/ui/motion/blur-fade";
+import { Stagger, StaggerItem } from "@/components/ui/motion/stagger";
+import { StatusCycle, SUGGESTING_TITLE_PHRASES } from "@/components/ui/motion/status-cycle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -79,111 +84,166 @@ function Policies() {
 
   return (
     <main className="p-4 sm:p-6">
-      <BentoGrid>
-        <AddSource className="md:col-span-6 xl:col-span-4" onAdded={(d) => setDocs((prev) => (prev ? [d, ...prev] : [d]))} />
+      <Stagger className="grid grid-cols-1 gap-4 md:grid-cols-6 xl:grid-cols-12" delay={0.04}>
+        <StaggerItem className="md:col-span-6 xl:col-span-4">
+          <AddSource
+            className="h-full"
+            onAdded={(d) => setDocs((prev) => (prev ? [d, ...prev] : [d]))}
+          />
+        </StaggerItem>
 
-        <BentoTile className="md:col-span-6 xl:col-span-8" icon={Database} kicker={docs ? `${docs.length} sources` : "sources"} title="Corpus">
-          {!docs ? (
-            <Skeleton className="m-5 h-48" />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-5">Source</TableHead>
-                  <TableHead>Classification</TableHead>
-                  <TableHead className="hidden sm:table-cell">Origin</TableHead>
-                  <TableHead className="pr-5 text-right">Enabled</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {docs.map((d) => (
-                  <TableRow className={cn(!d.enabled && "opacity-55")} key={d.id}>
-                    <TableCell className="pl-5">
-                      <span className="block font-medium">{d.title}</span>
-                      <span className="font-mono text-[11px] text-muted-foreground">{d.id}</span>
-                    </TableCell>
-                    <TableCell>
-                      <Select onValueChange={(v) => updateDoc(d.id, { classification: v as Classification })} value={d.classification}>
-                        <SelectTrigger aria-label={`Classification for ${d.title}`} className="h-8 w-[150px]" size="sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CLASSIFICATIONS.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              <ClassLabel value={c} />
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge className="font-mono text-[10.5px] font-normal" variant="outline">
-                        {(d as OrgDocumentDTO & { source?: string }).source ?? "fixture"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-5 text-right">
-                      <Switch aria-label={`Enable ${d.title}`} checked={d.enabled} onCheckedChange={(on) => updateDoc(d.id, { enabled: on })} />
-                    </TableCell>
+        <StaggerItem className="md:col-span-6 xl:col-span-8">
+          <BentoTile
+            className="h-full"
+            icon={Database}
+            kicker={docs ? `${docs.length} sources` : "sources"}
+            title="Corpus"
+          >
+            {!docs ? (
+              <Skeleton className="m-5 h-48" />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-5">Source</TableHead>
+                    <TableHead>Classification</TableHead>
+                    <TableHead className="hidden sm:table-cell">Origin</TableHead>
+                    <TableHead className="pr-5 text-right">Enabled</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </BentoTile>
+                </TableHeader>
+                <TableBody>
+                  {docs.map((d, i) => (
+                    <motion.tr
+                      className={cn(!d.enabled && "opacity-55")}
+                      key={d.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.08 + i * 0.035, duration: 0.35 }}
+                    >
+                      <TableCell className="pl-5">
+                        <span className="block font-medium">{d.title}</span>
+                        <span className="font-mono text-[11px] text-muted-foreground">{d.id}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          onValueChange={(v) => updateDoc(d.id, { classification: v as Classification })}
+                          value={d.classification}
+                        >
+                          <SelectTrigger
+                            aria-label={`Classification for ${d.title}`}
+                            className="h-8 w-[150px]"
+                            size="sm"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CLASSIFICATIONS.map((c) => (
+                              <SelectItem key={c} value={c}>
+                                <ClassLabel value={c} />
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Badge className="font-mono text-[10.5px] font-normal" variant="outline">
+                          {(d as OrgDocumentDTO & { source?: string }).source ?? "fixture"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="pr-5 text-right">
+                        <Switch
+                          aria-label={`Enable ${d.title}`}
+                          checked={d.enabled}
+                          onCheckedChange={(on) => updateDoc(d.id, { enabled: on })}
+                        />
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </BentoTile>
+        </StaggerItem>
 
-        <BentoTile
-          action={
-            <>
-              {dirty && (
-                <Badge className="border-approval/25 bg-approval-soft text-approval" variant="outline">
-                  unpublished changes
-                </Badge>
-              )}
-              <Button disabled={!dirty || publishing} onClick={() => setDraft(null)} size="sm" variant="ghost">
-                Discard
-              </Button>
-              <Button className="brand-gradient text-white hover:opacity-95" disabled={!dirty || publishing} onClick={publish} size="sm">
-                {publishing && <Loader2 className="size-3.5 animate-spin" />}
-                Publish v{(policyQ.data?.policyVersion ?? 0) + 1}
-              </Button>
-            </>
-          }
-          className="md:col-span-6 xl:col-span-12"
-          icon={SlidersHorizontal}
-          kicker={policyQ.data ? `live policy v${policyQ.data.policyVersion}` : "policy"}
-          title="Access policy"
-        >
-          {!draft ? (
-            <Skeleton className="m-5 h-48" />
-          ) : (
-            <div className="grid gap-0 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:divide-x">
-              <Matrix
-                caption="Retrieval ACL — which collections each role may read. Applied before the model sees anything."
-                columns={CLASSIFICATIONS}
-                value={(r, c) => (draft.roles[r].collections.includes(c) ? "ALLOW" : "DENY")}
-                onCycle={(r, c) => {
-                  const cur = draft.roles[r].collections;
-                  const collections = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
-                  setDraft({ ...draft, roles: { ...draft.roles, [r]: { ...draft.roles[r], collections } } });
-                }}
-              />
-              <Matrix
-                caption="Tool gateway — what happens when the model proposes each tool. Click a cell to cycle."
-                columns={TOOLS}
-                value={(r, t) => (draft.roles[r].tools[t] ?? "DENY") as Decision}
-                onCycle={(r, t) => {
-                  const v = (draft.roles[r].tools[t] ?? "DENY") as Decision;
-                  setDraft({ ...draft, roles: { ...draft.roles, [r]: { ...draft.roles[r], tools: { ...draft.roles[r].tools, [t]: NEXT[v] } } } });
-                }}
-              />
-            </div>
-          )}
-        </BentoTile>
-      </BentoGrid>
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Lock className="size-3.5" />
-        Uploaded content is untrusted. Document text can never change its own classification or the tool policy.
-      </p>
+        <StaggerItem className="md:col-span-6 xl:col-span-12">
+          <BentoTile
+            action={
+              <>
+                {dirty && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                  >
+                    <Badge className="border-approval/25 bg-approval-soft text-approval" variant="outline">
+                      unpublished changes
+                    </Badge>
+                  </motion.span>
+                )}
+                <Button disabled={!dirty || publishing} onClick={() => setDraft(null)} size="sm" variant="ghost">
+                  Discard
+                </Button>
+                <Button
+                  className="brand-gradient text-white hover:opacity-95"
+                  disabled={!dirty || publishing}
+                  onClick={publish}
+                  size="sm"
+                >
+                  {publishing && <Loader2 className="size-3.5 animate-spin" />}
+                  Publish v{(policyQ.data?.policyVersion ?? 0) + 1}
+                </Button>
+              </>
+            }
+            icon={SlidersHorizontal}
+            kicker={policyQ.data ? `live policy v${policyQ.data.policyVersion}` : "policy"}
+            title="Access policy"
+          >
+            {!draft ? (
+              <Skeleton className="m-5 h-48" />
+            ) : (
+              <div className="grid gap-0 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:divide-x">
+                <Matrix
+                  caption="Retrieval ACL  which collections each role may read. Applied before the model sees anything."
+                  columns={CLASSIFICATIONS}
+                  value={(r, c) => (draft.roles[r].collections.includes(c) ? "ALLOW" : "DENY")}
+                  onCycle={(r, c) => {
+                    const cur = draft.roles[r].collections;
+                    const collections = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
+                    setDraft({
+                      ...draft,
+                      roles: { ...draft.roles, [r]: { ...draft.roles[r], collections } },
+                    });
+                  }}
+                />
+                <Matrix
+                  caption="Tool gateway  what happens when the model proposes each tool. Click a cell to cycle."
+                  columns={TOOLS}
+                  value={(r, t) => (draft.roles[r].tools[t] ?? "DENY") as Decision}
+                  onCycle={(r, t) => {
+                    const v = (draft.roles[r].tools[t] ?? "DENY") as Decision;
+                    setDraft({
+                      ...draft,
+                      roles: {
+                        ...draft.roles,
+                        [r]: {
+                          ...draft.roles[r],
+                          tools: { ...draft.roles[r].tools, [t]: NEXT[v] },
+                        },
+                      },
+                    });
+                  }}
+                />
+              </div>
+            )}
+          </BentoTile>
+        </StaggerItem>
+      </Stagger>
+      <BlurFade delay={0.18}>
+        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="size-3.5" />
+          Classification and tool access are set here — wording inside a PDF cannot override them.
+        </p>
+      </BlurFade>
     </main>
   );
 }
@@ -199,6 +259,8 @@ function Matrix({
   value: (r: (typeof ROLES)[number], c: string) => Decision;
   onCycle: (r: (typeof ROLES)[number], c: string) => void;
 }) {
+  const { user } = useAuth();
+  const label = (r: (typeof ROLES)[number]) => roleLabelFor(r, user?.orgType);
   return (
     <div className="min-w-0 px-5 py-4">
       <p className="m-0 mb-3 text-xs text-muted-foreground">{caption}</p>
@@ -217,19 +279,25 @@ function Matrix({
           <tbody>
             {ROLES.map((r) => (
               <tr key={r}>
-                <td className="pr-2 font-medium">{ROLE_LABEL[r]}</td>
+                <td className="pr-2 font-medium">{label(r)}</td>
                 {columns.map((c) => {
                   const d = value(r, c);
                   return (
                     <td key={c}>
-                      <button
-                        aria-label={`${ROLE_LABEL[r]} ${c}: ${d}`}
-                        className={cn("h-8 w-full min-w-[78px] rounded-md border font-mono text-[10.5px] transition-transform hover:-translate-y-px", CELL[d])}
+                      <motion.button
+                        aria-label={`${label(r)} ${c}: ${d}`}
+                        className={cn(
+                          "h-8 w-full min-w-[78px] rounded-md border font-mono text-[10.5px]",
+                          CELL[d],
+                        )}
                         onClick={() => onCycle(r, c)}
                         type="button"
+                        whileHover={{ y: -2, scale: 1.03 }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 24 }}
                       >
                         {d === "REQUIRE_APPROVAL" ? "APPROVAL" : d}
-                      </button>
+                      </motion.button>
                     </td>
                   );
                 })}
@@ -246,25 +314,77 @@ function AddSource({ className, onAdded }: { className?: string; onAdded: (d: Or
   const [title, setTitle] = useState("");
   const [classification, setClassification] = useState<Classification>("public");
   const [content, setContent] = useState("");
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const suggestGen = useRef(0);
+  const titleTouchedRef = useRef(false);
+
+  const applySuggestedTitle = async (input: {
+    content?: string;
+    pdfBase64?: string;
+    fileName?: string;
+  }) => {
+    if (titleTouchedRef.current) return;
+    const gen = ++suggestGen.current;
+    setSuggesting(true);
+    try {
+      const res = await api.suggestOrgDocumentTitle(input);
+      if (gen !== suggestGen.current || titleTouchedRef.current) return;
+      setTitle(res.title);
+    } catch {
+      // Keep filename-derived title if suggestion fails.
+    } finally {
+      if (gen === suggestGen.current) setSuggesting(false);
+    }
+  };
 
   const readFile = async (file: File) => {
-    setContent(await file.text());
     setFileName(file.name);
-    if (!title) setTitle(file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "));
+    const fromName = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+    if (!titleTouchedRef.current) setTitle(fromName);
+    const isPdf =
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (isPdf) {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+      const b64 = btoa(binary);
+      setPdfBase64(b64);
+      setContent("");
+      void applySuggestedTitle({ pdfBase64: b64, fileName: file.name });
+      return;
+    }
+    setPdfBase64(null);
+    const text = await file.text();
+    setContent(text);
+    void applySuggestedTitle({ content: text, fileName: file.name });
   };
 
   const submit = async () => {
     if (!title.trim()) return;
+    if (!pdfBase64 && !content.trim()) {
+      toast.error("Add a PDF or paste text first");
+      return;
+    }
     setSaving(true);
     try {
-      const doc = await api.createOrgDocument({ title: title.trim(), classification, content });
+      const doc = await api.createOrgDocument({
+        title: title.trim(),
+        classification,
+        ...(pdfBase64 ? { pdfBase64 } : { content }),
+      });
       onAdded(doc);
-      toast.success("Source added", { description: `${doc.title} stored as ${doc.classification}.` });
+      toast.success("Source added", {
+        description: `${doc.title} stored as ${doc.classification} (chunked for search).`,
+      });
       setTitle("");
+      titleTouchedRef.current = false;
       setContent("");
+      setPdfBase64(null);
       setFileName(null);
     } catch (err) {
       toast.error("Upload rejected", { description: err instanceof Error ? err.message : "Unknown error" });
@@ -274,7 +394,7 @@ function AddSource({ className, onAdded }: { className?: string; onAdded: (d: Or
   };
 
   return (
-    <BentoTile className={className} icon={FileUp} kicker="classify before save" title="Add a source">
+    <BentoTile className={className} icon={FileUp} kicker="PDF preferred · classify before save" title="Add a source">
       <div className="flex flex-1 flex-col gap-3 px-5 py-4">
         <button
           className="flex items-center gap-3 rounded-lg border border-dashed bg-muted/40 px-3 py-3 text-left transition-colors hover:border-primary/40 hover:bg-accent/40"
@@ -283,18 +403,53 @@ function AddSource({ className, onAdded }: { className?: string; onAdded: (d: Or
           onDrop={(e) => {
             e.preventDefault();
             const f = e.dataTransfer.files[0];
-            if (f) readFile(f);
+            if (f) void readFile(f);
           }}
           type="button"
         >
           <Upload className="size-4 text-primary" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-medium">{fileName ?? "Drop a .md or .txt file"}</span>
-            <span className="block text-xs text-muted-foreground">{fileName ? `${content.length.toLocaleString()} characters` : "or paste text below"}</span>
+            <span className="block truncate text-sm font-medium">
+              {fileName ?? "Drop a PDF (or .txt)"}
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              {fileName ? (
+                suggesting ? (
+                  <StatusCycle className="text-xs" phrases={SUGGESTING_TITLE_PHRASES} />
+                ) : pdfBase64 ? (
+                  "PDF ready to extract & index"
+                ) : (
+                  `${content.length.toLocaleString()} characters`
+                )
+              ) : (
+                "Campus policies as PDF  text is extracted and chunked"
+              )}
+            </span>
           </span>
         </button>
-        <input accept=".md,.txt,text/plain,text/markdown" className="hidden" onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])} ref={fileRef} type="file" />
-        <Input onChange={(e) => setTitle(e.target.value)} placeholder="Title" value={title} />
+        <input
+          accept=".pdf,application/pdf,.txt,text/plain"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && void readFile(e.target.files[0])}
+          ref={fileRef}
+          type="file"
+        />
+        <div className="space-y-1">
+          <Input
+            onChange={(e) => {
+              titleTouchedRef.current = true;
+              setTitle(e.target.value);
+            }}
+            placeholder={suggesting ? "Suggesting title…" : "Title"}
+            value={title}
+          />
+          {suggesting && (
+            <p className="m-0 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" />
+              <StatusCycle className="text-[11px]" phrases={SUGGESTING_TITLE_PHRASES} />
+            </p>
+          )}
+        </div>
         <Select onValueChange={(v) => setClassification(v as Classification)} value={classification}>
           <SelectTrigger aria-label="Classification" className="w-full">
             <SelectValue />
@@ -308,9 +463,23 @@ function AddSource({ className, onAdded }: { className?: string; onAdded: (d: Or
           </SelectContent>
         </Select>
         {!fileName && (
-          <Textarea className="min-h-[88px] resize-y text-sm" onChange={(e) => setContent(e.target.value)} placeholder="Paste document text. It is stored as data, never as instructions." value={content} />
+          <Textarea
+            className="min-h-[88px] resize-y text-sm"
+            onBlur={() => {
+              if (!titleTouchedRef.current && content.trim().length >= 20) {
+                void applySuggestedTitle({ content });
+              }
+            }}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Or paste text if you don't have a PDF yet. Stored as data, never as instructions."
+            value={content}
+          />
         )}
-        <Button className="mt-auto" disabled={!title.trim() || saving} onClick={submit}>
+        <Button
+          className="mt-auto"
+          disabled={!title.trim() || saving || (!pdfBase64 && !content.trim())}
+          onClick={() => void submit()}
+        >
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
           Add source
         </Button>

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Dynamic SQLite + API routes — disable Cache Components for MVP.
+  // Dynamic SQLite + API routes  disable Cache Components for MVP.
   serverExternalPackages: ["better-sqlite3", "pdf-parse"],
   turbopack: {
     rules: {

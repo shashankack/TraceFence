@@ -1,6 +1,6 @@
-# TraceFence — 3-minute demo
+# TraceFence  3-minute demo
 
-**Open line:** “TraceFence — a source-aware security gateway for AI agents. Not an email-only tool.”
+**Open line:** “TraceFence  a source-aware security gateway for AI agents. Not an email-only tool.”
 
 ### 0:00–0:25 Problem
 “Agents read sources and call tools. Trusting the model isn’t a boundary.”
@@ -12,7 +12,7 @@ Role = **Student**. “We filter sources before the LLM and authorize every tool
 Ask hostel curfew. Show **public** sources only → ALLOW → answer.  
 Point: confidential directory never entered context.
 
-### 1:25–2:10 Denied action (export — not “email story”)
+### 1:25–2:10 Denied action (export  not “email story”)
 Ask to export student records / dump directory.  
 Show DENY on `export_records` (and empty confidential retrieval). Audit row.
 

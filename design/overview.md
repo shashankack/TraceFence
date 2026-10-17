@@ -1,12 +1,12 @@
 # Design overview
 
-TraceFence UX — source-aware security gateway (campus demo).
+TraceFence UX  source-aware security gateway (campus demo).
 
 ## Pages
 
-1. **Console** — role selector, chat, citations, decision rail, approval drawer  
-2. **Org / Admin** — document library (upload + classify) + policy matrix (roles × collections × tools)  
-3. **Audit** — decision aggregates / history  
+1. **Console**  role selector, chat, citations, decision rail, approval drawer  
+2. **Org / Admin**  document library (upload + classify) + policy matrix (roles × collections × tools)  
+3. **Audit**  decision aggregates / history  
 
 Owner (UI): `venilashree`.  
 Backend (upload + policy APIs): `shashankack`.  

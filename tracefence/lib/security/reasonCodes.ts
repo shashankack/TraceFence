@@ -20,6 +20,10 @@ export const ReasonCode = {
   APPROVAL_REPLAY: "APPROVAL_REPLAY",
   RETRIEVAL_FILTERED: "RETRIEVAL_FILTERED",
   AUTH_REQUIRED: "AUTH_REQUIRED",
+  /** User text tried to override role/policy; ignored in app code. */
+  INJECTION_IGNORED: "INJECTION_IGNORED",
+  /** General chatbot / creative ask outside campus document scope. */
+  SCOPE_REFUSED: "SCOPE_REFUSED",
   SOURCE_INSPECTED: "SOURCE_INSPECTED",
   NOT_IMPLEMENTED: "NOT_IMPLEMENTED",
 } as const;

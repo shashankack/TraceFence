@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { NAV, ROLE_LABEL, activeItem } from "./nav";
+import { HOME } from "@/components/auth/AuthProvider";
+import { NAV, activeItem, roleLabelFor } from "./nav";
 
 function initials(name?: string | null, email?: string) {
   const src = name || email || "?";
@@ -53,11 +54,22 @@ function useGatewayStatus() {
   return up;
 }
 
+const CHAT_PATHS = new Set(["/student", "/faculty"]);
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
   const gateway = useGatewayStatus();
   if (!user) return <>{children}</>;
+
+  // Student / faculty / guest use a dedicated ChatGPT-style layout (no double chrome).
+  if (
+    CHAT_PATHS.has(pathname) &&
+    (user.role === "guest" || user.role === "student" || user.role === "faculty")
+  ) {
+    return <>{children}</>;
+  }
+
   const current = activeItem(user.role, pathname);
 
   return (
@@ -82,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="min-w-0">
             <p className="kicker m-0 hidden sm:block">
-              {user.tenantName ?? user.tenantId} · {ROLE_LABEL[user.role]}
+              {user.tenantName ?? user.tenantId} · {roleLabelFor(user.role, user.orgType)}
             </p>
             <h1 className="m-0 truncate text-[15px] leading-5 font-semibold tracking-[-0.01em]">{current.label}</h1>
           </div>
@@ -93,7 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {gateway === false ? "gateway unreachable" : gateway ? "gateway enforcing" : "connecting"}
             </Badge>
             <Badge className="hidden h-7 rounded-full border-violet/20 bg-violet-soft px-3 text-[11px] font-medium text-violet md:inline-flex" variant="outline">
-              {ROLE_LABEL[user.role]} view
+              {roleLabelFor(user.role, user.orgType)} view
             </Badge>
           </div>
         </header>
@@ -104,14 +116,22 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function SidebarBody({ pathname }: { pathname: string }) {
-  const { user, logout } = useAuth();
+  const { user, logout, switchTenant } = useAuth();
   const router = useRouter();
   if (!user) return null;
   const items = NAV[user.role];
+  const roleLabel = roleLabelFor(user.role, user.orgType);
+  const multiTenant = (user.memberships?.length ?? 0) > 1;
 
   const signOut = async () => {
     await logout();
     router.replace("/login");
+  };
+
+  const onSwitch = async (tenantId: string) => {
+    if (tenantId === user.tenantId) return;
+    const me = await switchTenant(tenantId);
+    router.replace(HOME[me.role]);
   };
 
   return (
@@ -121,7 +141,7 @@ function SidebarBody({ pathname }: { pathname: string }) {
       </Link>
 
       <nav aria-label="Primary" className="flex flex-col gap-1 p-3">
-        <p className="kicker m-0 px-2 pt-1 pb-2">{ROLE_LABEL[user.role]} workspace</p>
+        <p className="kicker m-0 px-2 pt-1 pb-2">{roleLabel} workspace</p>
         {items.map((item) => {
           const active = activeItem(user.role, pathname).href === item.href;
           return (
@@ -167,9 +187,29 @@ function SidebarBody({ pathname }: { pathname: string }) {
             <DropdownMenuLabel className="font-normal">
               <span className="block text-sm font-medium">{user.displayName ?? user.email}</span>
               <span className="block font-mono text-[11px] text-muted-foreground">
-                {ROLE_LABEL[user.role]} · {user.tenantId}
+                {roleLabel} · {user.tenantName ?? user.tenantId}
               </span>
             </DropdownMenuLabel>
+            {multiTenant && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">
+                  Switch organization
+                </DropdownMenuLabel>
+                {user.memberships.map((m) => (
+                  <DropdownMenuItem
+                    disabled={m.tenantId === user.tenantId}
+                    key={m.tenantId}
+                    onSelect={() => void onSwitch(m.tenantId)}
+                  >
+                    {m.tenantName}
+                    <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                      {m.role}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={signOut}>
               <LogOut className="size-4" />

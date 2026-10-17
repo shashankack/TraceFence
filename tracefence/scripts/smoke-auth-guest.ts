@@ -53,9 +53,9 @@ async function main() {
   const jordan = login({ email: "jordan@nulltrace.demo", password: "demo1234" });
   assert(jordan.ok && jordan.role === "faculty", "jordan faculty");
 
-  console.log("A OK — guest public curfew");
-  console.log("B OK — guest export AUTH_REQUIRED");
-  console.log("C OK — seeded logins (student/alex/jordan)");
+  console.log("A OK  guest public curfew");
+  console.log("B OK  guest export AUTH_REQUIRED");
+  console.log("C OK  seeded logins (student/alex/jordan)");
   console.log("AUTH GUEST SMOKE PASSED");
 }
 

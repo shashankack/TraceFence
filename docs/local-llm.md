@@ -4,7 +4,7 @@
 **Runtime:** [Ollama](https://ollama.com) on `http://127.0.0.1:11434`  
 **Owner:** `Spandananarayanaswamy` (docs + scenarios); orchestrator wiring owned by `shashankack`.
 
-**PPT wording:** this is our **“local LLM API”** — same role as “one LLM API” on the deck, without requiring a cloud key.
+**PPT wording:** this is our **“local LLM API”**  same role as “one LLM API” on the deck, without requiring a cloud key.
 
 ## Why this model
 

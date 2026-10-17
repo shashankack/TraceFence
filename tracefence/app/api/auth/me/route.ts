@@ -14,6 +14,7 @@ export async function GET(req: Request) {
     displayName: gate.auth.displayName,
     tenantId: gate.auth.tenantId,
     tenantName: gate.auth.tenantName,
+    orgType: gate.auth.orgType,
     role: gate.auth.role,
     memberships: listMemberships(gate.auth.userId),
   });

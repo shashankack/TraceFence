@@ -10,9 +10,17 @@ interface AuthState {
   status: Status;
   user: AuthMeDTO | null;
   login: (email: string, password: string) => Promise<AuthMeDTO>;
-  signup: (input: { email: string; password: string; displayName?: string; tenantName?: string }) => Promise<AuthMeDTO>;
-  /** Public corpus only — no password. */
+  signup: (input: {
+    email: string;
+    password: string;
+    displayName?: string;
+    tenantName?: string;
+    orgType?: import("@/components/api/types").OrgType;
+    notifyEmail?: string;
+  }) => Promise<AuthMeDTO>;
+  /** Public corpus only  no password. */
   continueAsGuest: () => Promise<AuthMeDTO>;
+  switchTenant: (tenantId: string) => Promise<AuthMeDTO>;
   logout: () => Promise<void>;
 }
 
@@ -71,11 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => adopt((await api.login(email, password)).token), [adopt]);
 
   const signup = useCallback(
-    async (input: { email: string; password: string; displayName?: string; tenantName?: string }) => adopt((await api.signup(input)).token),
+    async (input: {
+      email: string;
+      password: string;
+      displayName?: string;
+      tenantName?: string;
+      orgType?: import("@/components/api/types").OrgType;
+      notifyEmail?: string;
+    }) => adopt((await api.signup(input)).token),
     [adopt],
   );
 
   const continueAsGuest = useCallback(async () => adopt((await api.guest()).token), [adopt]);
+
+  const switchTenant = useCallback(
+    async (tenantId: string) => adopt((await api.switchTenant(tenantId)).token),
+    [adopt],
+  );
 
   const logout = useCallback(async () => {
     await api.logout().catch(() => {});
@@ -85,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, login, signup, continueAsGuest, logout }),
-    [status, user, login, signup, continueAsGuest, logout],
+    () => ({ status, user, login, signup, continueAsGuest, switchTenant, logout }),
+    [status, user, login, signup, continueAsGuest, switchTenant, logout],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

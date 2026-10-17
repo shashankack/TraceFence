@@ -6,7 +6,7 @@ const GUEST_USER_ID = "usr_guest_public";
 const GUEST_EMAIL = "guest@nulltrace.demo";
 const DEFAULT_TENANT = "nulltrace-institute";
 
-/** Idempotent guest principal — public corpus only, no password login. */
+/** Idempotent guest principal  public corpus only, no password login. */
 export function ensureGuestUser(): void {
   const db = getDb();
   const now = new Date().toISOString();
@@ -21,7 +21,7 @@ export function ensureGuestUser(): void {
     "Public Guest",
     now,
   );
-  // Email unique — if id conflict skipped but email exists under other id, ignore.
+  // Email unique  if id conflict skipped but email exists under other id, ignore.
   db.prepare(
     `INSERT INTO memberships (user_id, tenant_id, role, created_at)
      VALUES (?, ?, 'guest', ?)

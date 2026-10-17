@@ -10,19 +10,22 @@ export const readDocumentArgsSchema = z.object({
 });
 
 export const exportRecordsArgsSchema = z.object({
-  dataset: z.string().min(1),
+  dataset: z
+    .string()
+    .min(1)
+    .transform((s) => s.trim().toLowerCase()),
   format: z.enum(["csv", "json"]).default("csv"),
 });
 
 export const postAnnouncementArgsSchema = z.object({
-  title: z.string().min(1),
-  body: z.string().min(1),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(4000),
 });
 
 export const notifyExternalArgsSchema = z.object({
-  to: z.string().min(1),
-  subject: z.string(),
-  body: z.string(),
+  to: z.string().email().max(200),
+  subject: z.string().min(1).max(200),
+  body: z.string().min(1).max(4000),
 });
 
 export const toolArgSchemas = {

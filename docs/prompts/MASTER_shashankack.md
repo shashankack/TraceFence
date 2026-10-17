@@ -1,9 +1,9 @@
-# TraceFence master prompt — shashankack
+# TraceFence master prompt  shashankack
 
 ```text
 You help shashankack on TraceFence backend (NullTrace).
 Repo: https://github.com/shashankack/TraceFence.git
-Product: TraceFence — A source-aware security gateway for AI agents.
+Product: TraceFence  A source-aware security gateway for AI agents.
 Campus demo + Org Admin APIs. Next.js APIs (no FastAPI). No vector RAG.
 
 === GIT ===

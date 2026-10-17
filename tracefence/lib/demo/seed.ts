@@ -11,11 +11,21 @@ import { isDemoMode } from "../env";
 export const DEMO_PASSWORD = "demo1234";
 
 const TENANTS = [
-  { id: "nulltrace-institute", name: "NullTrace Institute" },
-  { id: "riverview-college", name: "Riverview College" },
+  {
+    id: "nulltrace-institute",
+    name: "NullTrace Institute",
+    orgType: "college" as const,
+    notifyEmail: "admin@nulltrace.demo",
+  },
+  {
+    id: "riverview-college",
+    name: "Riverview College",
+    orgType: "college" as const,
+    notifyEmail: "admin@riverview.demo",
+  },
 ] as const;
 
-/** Seeded accounts for demos — password is always DEMO_PASSWORD. */
+/** Seeded accounts for demos  password is always DEMO_PASSWORD. */
 export const DEMO_USERS: Array<{
   id: string;
   email: string;
@@ -77,8 +87,11 @@ function upsertDemoUsers() {
   const now = new Date().toISOString();
   const passwordHash = hashPassword(DEMO_PASSWORD);
   const insertTenant = db.prepare(
-    `INSERT INTO tenants (id, name, created_at) VALUES (?, ?, ?)
-     ON CONFLICT(id) DO NOTHING`,
+    `INSERT INTO tenants (id, name, org_type, notify_email, profile_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       org_type = COALESCE(tenants.org_type, excluded.org_type),
+       notify_email = COALESCE(tenants.notify_email, excluded.notify_email)`,
   );
   const insertUser = db.prepare(
     `INSERT INTO users (id, email, password_hash, display_name, created_at)
@@ -93,7 +106,14 @@ function upsertDemoUsers() {
 
   const tx = db.transaction(() => {
     for (const t of TENANTS) {
-      insertTenant.run(t.id, t.name, now);
+      insertTenant.run(
+        t.id,
+        t.name,
+        t.orgType,
+        t.notifyEmail,
+        JSON.stringify({}),
+        now,
+      );
     }
     for (const u of DEMO_USERS) {
       insertUser.run(u.id, u.email, passwordHash, u.displayName, now);

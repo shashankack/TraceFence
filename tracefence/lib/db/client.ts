@@ -23,6 +23,9 @@ function resolveDbPath(): string {
 
 export function getDb(): Database.Database {
   if (global.__tracefenceDb) {
+    // Hot-reload can keep an open handle opened before new migrations landed.
+    migrateTenantProfiles(global.__tracefenceDb);
+    migrateMockEmailOutbox(global.__tracefenceDb);
     return global.__tracefenceDb;
   }
 
@@ -35,6 +38,8 @@ export function getDb(): Database.Database {
   db.exec(SCHEMA_SQL);
   migrateApprovalsForSessions(db);
   migrateOrgTablesToMultiTenant(db);
+  migrateTenantProfiles(db);
+  migrateMockEmailOutbox(db);
 
   global.__tracefenceDb = db;
 
@@ -133,5 +138,39 @@ function migrateOrgTablesToMultiTenant(db: Database.Database) {
       FROM org_documents_legacy;
       DROP TABLE org_documents_legacy;
     `);
+  }
+}
+
+function tableColumns(db: Database.Database, table: string): Set<string> {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{
+    name: string;
+  }>;
+  return new Set(rows.map((r) => r.name));
+}
+
+/** Org type + notify profile columns on tenants. */
+function migrateTenantProfiles(db: Database.Database) {
+  const cols = tableColumns(db, "tenants");
+  if (!cols.has("org_type")) {
+    db.exec(
+      `ALTER TABLE tenants ADD COLUMN org_type TEXT NOT NULL DEFAULT 'college'`,
+    );
+  }
+  if (!cols.has("notify_email")) {
+    db.exec(`ALTER TABLE tenants ADD COLUMN notify_email TEXT`);
+  }
+  if (!cols.has("profile_json")) {
+    db.exec(`ALTER TABLE tenants ADD COLUMN profile_json TEXT`);
+  }
+}
+
+/** Tenant-scoped notification outbox for approval alerts. */
+function migrateMockEmailOutbox(db: Database.Database) {
+  const cols = tableColumns(db, "mock_email_outbox");
+  if (!cols.has("tenant_id")) {
+    db.exec(`ALTER TABLE mock_email_outbox ADD COLUMN tenant_id TEXT`);
+  }
+  if (!cols.has("kind")) {
+    db.exec(`ALTER TABLE mock_email_outbox ADD COLUMN kind TEXT`);
   }
 }

@@ -7,19 +7,17 @@ import { externalRecipients } from "@/components/domain/injection";
 import { cn } from "@/components/lib/utils";
 import { BentoTile } from "@/components/ui/bento";
 import { DecisionBadge, FencedBadge, LiveDot } from "@/components/ui/decision-badge";
+import { LiveFenceRail } from "@/components/ui/motion/live-fence";
 import { argsLine, formatTime } from "./format";
 import { useWorkspace } from "./WorkspaceProvider";
 
 const EXFIL = new Set(["export_records", "notify_external", "post_announcement"]);
-const PHASES = ["SOURCE", "PROPOSAL", "DECISION", "OUTCOME"];
 
 export function TraceTile({ className, roleLabel }: { className?: string; roleLabel: string }) {
-  const { events, messages, turnFrom, sending } = useWorkspace();
+  const { events, messages, turnFrom, railEvents, sending } = useWorkspace();
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUser = [...messages].reverse().find((m) => m.from === "user");
   const targets = lastUser ? externalRecipients(lastUser.text) : [];
-  const reached = new Set<string>(events.map((e) => e.phase ?? "DECISION"));
-  if (events.some((e) => e.tool)) reached.add("PROPOSAL");
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -39,20 +37,8 @@ export function TraceTile({ className, roleLabel }: { className?: string; roleLa
       kicker="source → proposal → decision → outcome"
       title="Live trace"
     >
-      <div className="flex items-center gap-2 border-b px-5 py-2.5">
-        {PHASES.map((p, i) => (
-          <div className="flex flex-1 items-center gap-2" key={p}>
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 font-mono text-[10px]",
-                reached.has(p) ? "bg-accent text-accent-foreground" : "text-muted-foreground/70",
-              )}
-            >
-              {p}
-            </span>
-            {i < PHASES.length - 1 && <span className={cn("h-px flex-1", reached.has(PHASES[i + 1]) ? "bg-primary/30" : "bg-border")} />}
-          </div>
-        ))}
+      <div className="border-b px-4 py-3">
+        <LiveFenceRail compact events={railEvents} sending={sending} />
       </div>
 
       <div className="scroll-thin max-h-[560px] min-h-[160px] flex-1 overflow-y-auto px-5 py-3" ref={scrollRef}>

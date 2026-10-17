@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronRight, Clock3, Loader2, ShieldCheck, X } from "lucide-react";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/components/api/client";
@@ -8,6 +9,8 @@ import type { ApprovalDTO, EventDTO } from "@/components/api/types";
 import { cn } from "@/components/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DecisionBadge, FencedBadge } from "@/components/ui/decision-badge";
+import { BlurFade } from "@/components/ui/motion/blur-fade";
+import { LOADING_TRACE_PHRASES, StatusCycle } from "@/components/ui/motion/status-cycle";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -39,19 +42,45 @@ export function ApprovalsQueue({ approvals, onOpen, limit }: { approvals: Approv
   }
   return (
     <ul className="m-0 list-none divide-y p-0">
-      {rows.map((a) => {
+      {rows.map((a, i) => {
         const pending = a.status === "PENDING";
         const remaining = new Date(a.expiresAt).getTime() - now;
         return (
-          <li key={a.id}>
-            <button className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-muted/60" onClick={() => onOpen(a)} type="button">
+          <motion.li
+            key={a.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 380,
+              damping: 30,
+              delay: Math.min(i, 8) * 0.04,
+            }}
+          >
+            <motion.button
+              className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-muted/60"
+              onClick={() => onOpen(a)}
+              type="button"
+              whileHover={{ x: 3 }}
+              transition={{ type: "spring", stiffness: 420, damping: 28 }}
+            >
               <span
                 className={cn(
                   "grid size-8 flex-none place-items-center rounded-lg",
-                  pending ? "bg-approval-soft text-approval" : a.status === "CONSUMED" ? "bg-allow-soft text-allow" : "bg-muted text-muted-foreground",
+                  pending
+                    ? "bg-approval-soft text-approval"
+                    : a.status === "CONSUMED"
+                      ? "bg-allow-soft text-allow"
+                      : "bg-muted text-muted-foreground",
                 )}
               >
-                {pending ? <Clock3 className="size-4" /> : a.status === "CONSUMED" ? <Check className="size-4" /> : <X className="size-4" />}
+                {pending ? (
+                  <Clock3 className="size-4" />
+                ) : a.status === "CONSUMED" ? (
+                  <Check className="size-4" />
+                ) : (
+                  <X className="size-4" />
+                )}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{describe(a)}</span>
@@ -59,12 +88,21 @@ export function ApprovalsQueue({ approvals, onOpen, limit }: { approvals: Approv
                   {a.userId} · {a.sessionId}
                 </span>
               </span>
-              <span className={cn("font-mono text-xs tabular-nums", pending ? "text-approval" : "text-muted-foreground")}>
-                {pending ? (remaining > 0 ? formatRemaining(remaining) : "expired") : a.status.toLowerCase()}
+              <span
+                className={cn(
+                  "font-mono text-xs tabular-nums",
+                  pending ? "text-approval" : "text-muted-foreground",
+                )}
+              >
+                {pending
+                  ? remaining > 0
+                    ? formatRemaining(remaining)
+                    : "expired"
+                  : a.status.toLowerCase()}
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />
-            </button>
-          </li>
+            </motion.button>
+          </motion.li>
         );
       })}
     </ul>
@@ -95,14 +133,14 @@ export function ApprovalSheet({ approval, onClose, onDecided }: { approval: Appr
     setDeciding(decision);
     try {
       await api.decideApproval(approval.id, decision);
-      toast.success(decision === "APPROVE" ? "Approved once — action executed" : "Request rejected", {
+      toast.success(decision === "APPROVE" ? "Approved once  action executed" : "Request rejected", {
         description: decision === "APPROVE" ? "The single-use grant is now consumed." : "Nothing was executed.",
       });
       onDecided();
       onClose();
     } catch (err) {
       toast.error("Decision not recorded", {
-        description: err instanceof ApiError ? `${err.reasonCode ? `${err.reasonCode} — ` : ""}${err.message}` : "Unknown error",
+        description: err instanceof ApiError ? `${err.reasonCode ? `${err.reasonCode}  ` : ""}${err.message}` : "Unknown error",
       });
     } finally {
       setDeciding(null);
@@ -118,7 +156,7 @@ export function ApprovalSheet({ approval, onClose, onDecided }: { approval: Appr
     <Sheet onOpenChange={(o) => !o && onClose()} open={open}>
       <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
         {approval && (
-          <>
+          <BlurFade className="flex h-full flex-col">
             <SheetHeader className="border-b px-6 py-5">
               <span className="kicker flex items-center gap-1.5 text-approval">
                 <ShieldCheck className="size-3.5" />
@@ -175,7 +213,8 @@ export function ApprovalSheet({ approval, onClose, onDecided }: { approval: Appr
                 <span className="kicker">Session context</span>
                 {context === null ? (
                   <p className="m-0 mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="size-3.5 animate-spin" /> Loading trace…
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <StatusCycle className="text-xs" phrases={LOADING_TRACE_PHRASES} />
                   </p>
                 ) : context.length === 0 ? (
                   <p className="m-0 mt-2 text-sm text-muted-foreground">No events recorded for this session.</p>
@@ -201,7 +240,11 @@ export function ApprovalSheet({ approval, onClose, onDecided }: { approval: Appr
                     {deciding === "REJECT" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
                     Reject
                   </Button>
-                  <Button className="h-10 bg-allow text-white hover:bg-allow/90" disabled={!!deciding || expired} onClick={() => decide("APPROVE")}>
+                  <Button
+                    className="h-10 bg-allow text-white transition-transform hover:bg-allow/90 hover:scale-[1.02] active:scale-[0.97]"
+                    disabled={!!deciding || expired}
+                    onClick={() => decide("APPROVE")}
+                  >
                     {deciding === "APPROVE" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
                     Approve once
                   </Button>
@@ -209,7 +252,7 @@ export function ApprovalSheet({ approval, onClose, onDecided }: { approval: Appr
                 <p className="mt-3 mb-0 text-center text-xs text-muted-foreground">Your decision is recorded in the audit log.</p>
               </footer>
             )}
-          </>
+          </BlurFade>
         )}
       </SheetContent>
     </Sheet>

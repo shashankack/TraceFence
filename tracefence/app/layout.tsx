@@ -18,6 +18,10 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "TraceFence",
   description: "A source-aware security gateway for AI agents",
+  icons: {
+    icon: "/trace_fence_logo.png",
+    apple: "/trace_fence_logo.png",
+  },
 };
 
 export default function RootLayout({

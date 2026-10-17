@@ -27,7 +27,7 @@ function useNow(active: boolean) {
   return now;
 }
 
-/** Faculty view of their own approval requests. Faculty cannot approve their own requests here — admins decide. */
+/** Faculty view of their own approval requests. Faculty cannot approve their own requests here  admins decide. */
 export function RequestsTile({ className }: { className?: string }) {
   const { requests } = useWorkspace();
   const now = useNow(requests.some((r) => r.status === "PENDING"));

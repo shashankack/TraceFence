@@ -1,7 +1,10 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/components/lib/utils"
-import { Slot } from "radix-ui"
+"use client";
+
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/components/lib/utils";
+import { useSpotlight } from "@/components/ui/motion/spotlight";
+import { Slot } from "radix-ui";
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -34,30 +37,53 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);
 
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
+  disabled,
+  onMouseMove,
+  onMouseLeave,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot.Root : "button";
+  const skipSpot =
+    asChild || variant === "link" || variant === "ghost" || !!disabled;
+  const { spotlightProps } = useSpotlight({
+    size: 150,
+    disabled: skipSpot,
+  });
 
   return (
     <Comp
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled}
+      data-spotlight={spotlightProps["data-spotlight"]}
+      onMouseMove={(e: React.MouseEvent<HTMLElement>) => {
+        spotlightProps.onMouseMove?.(e);
+        onMouseMove?.(e as React.MouseEvent<HTMLButtonElement>);
+      }}
+      onMouseLeave={(e: React.MouseEvent<HTMLElement>) => {
+        spotlightProps.onMouseLeave?.(e);
+        onMouseLeave?.(e as React.MouseEvent<HTMLButtonElement>);
+      }}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        !skipSpot && spotlightProps.className,
+        !skipSpot && "tf-spotlight-sm",
+      )}
       {...props}
     />
-  )
+  );
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

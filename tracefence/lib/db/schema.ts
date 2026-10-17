@@ -4,6 +4,9 @@ export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS tenants (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  org_type TEXT NOT NULL DEFAULT 'college',
+  notify_email TEXT,
+  profile_json TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -127,6 +130,8 @@ CREATE TABLE IF NOT EXISTS approvals (
 CREATE TABLE IF NOT EXISTS mock_email_outbox (
   id TEXT PRIMARY KEY,
   task_id TEXT,
+  tenant_id TEXT,
+  kind TEXT,
   to_addr TEXT NOT NULL,
   subject TEXT NOT NULL,
   body TEXT NOT NULL,

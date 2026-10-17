@@ -69,7 +69,7 @@ async function main() {
     curfew.citations.every((c) => c.classification === "public"),
     "curfew citations public only",
   );
-  console.log("A OK — student curfew ALLOW");
+  console.log("A OK  student curfew ALLOW");
 
   // --- B. Student export DENY ---
   const exportDeny = await handleChatTurn({
@@ -82,7 +82,7 @@ async function main() {
   const exportEv = exportDeny.events.find((e) => e.tool === "export_records");
   assert(exportEv?.decision === "DENY", "student export DENY");
   assert(!exportDeny.pendingApprovalId, "no approval for student");
-  console.log("B OK — student export DENY");
+  console.log("B OK  student export DENY");
 
   // Confidential never in student hits
   const dirHits = searchDocs(
@@ -96,7 +96,7 @@ async function main() {
     ),
     "student must not retrieve confidential docs",
   );
-  console.log("B2 OK — confidential filtered from student retrieval");
+  console.log("B2 OK  confidential filtered from student retrieval");
 
   // --- C. Faculty export REQUIRE_APPROVAL → APPROVE ---
   const faculty = login({
@@ -154,7 +154,7 @@ async function main() {
     .prepare(`SELECT status FROM approvals WHERE id = ?`)
     .get(approvalId) as { status: string };
   assert(consumed.status === "CONSUMED", "approval CONSUMED");
-  console.log("C OK — faculty approval → execute → CONSUMED");
+  console.log("C OK  faculty approval → execute → CONSUMED");
 
   // --- D. Tenant isolation ---
   const riverHits = searchDocs("riverview-college", "student", "curfew hostel");
@@ -167,7 +167,7 @@ async function main() {
       riverHits.hits.length >= 0,
     "riverview scoped",
   );
-  console.log("D OK — tenant isolation (riverview ≠ nulltrace corpus)");
+  console.log("D OK  tenant isolation (riverview ≠ nulltrace corpus)");
 
   console.log("\nALL DEMOS PASSED");
 }

@@ -6,13 +6,16 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ApiError } from "@/components/api/client";
 import type { Role } from "@/components/api/types";
 import { HOME, useAuth } from "@/components/auth/AuthProvider";
-import { cn } from "@/components/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/ui/logo";
+import { BlurFade } from "@/components/ui/motion/blur-fade";
+import { MeshBg } from "@/components/ui/motion/mesh-bg";
+import { PipelineFlow } from "@/components/ui/motion/pipeline-flow";
+import { Pressable } from "@/components/ui/motion/pressable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -22,8 +25,6 @@ const DEMO: Array<{ role: Role; email: string; label: string; detail: string; ic
   { role: "admin", email: "admin@nulltrace.demo", label: "Admin", detail: "Policies, approvals, audit", icon: ShieldCheck },
 ];
 const DEMO_PASSWORD = "demo1234";
-
-const PIPELINE = ["Source", "Proposal", "Decision", "Outcome"];
 
 function message(err: unknown) {
   if (err instanceof ApiError) return err.status === 0 ? "The gateway is unreachable. Is the server running?" : err.message;
@@ -65,11 +66,14 @@ export default function LoginPage() {
     setBusy("signup");
     setError(null);
     try {
+      const orgTypeRaw = String(f.get("orgType") || "college");
       const me = await signup({
         email: String(f.get("email")),
         password: String(f.get("password")),
         displayName: String(f.get("name") || "") || undefined,
         tenantName: String(f.get("org") || "") || undefined,
+        orgType: orgTypeRaw === "small_business" ? "small_business" : "college",
+        notifyEmail: String(f.get("notifyEmail") || "") || undefined,
       });
       router.replace(HOME[me.role]);
     } catch (err) {
@@ -82,40 +86,40 @@ export default function LoginPage() {
     <main className="grid min-h-screen bg-white lg:grid-cols-[1.05fr_1fr]">
       {/* Brand panel */}
       <section className="relative hidden overflow-hidden border-r bg-background lg:flex lg:flex-col">
-        <div className="tech-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_30%_30%,black,transparent_75%)]" />
+        <MeshBg />
         <div className="relative flex flex-1 flex-col px-12 py-10">
-          <Logo />
+          <BlurFade>
+            <Logo />
+          </BlurFade>
 
           <div className="mt-auto max-w-[520px]">
-            <p className="kicker m-0">Source-aware security gateway</p>
-            <h1 className="mt-3 mb-0 text-[40px] leading-[1.08] font-semibold tracking-[-0.03em]">
-              Every agent action, <span className="brand-text">fenced and traced.</span>
-            </h1>
-            <p className="mt-4 mb-0 max-w-[440px] text-[15px] leading-relaxed text-muted-foreground">
-              The model proposes. TraceFence decides what it may read and do — in application code, per role, with an audit trail for every
-              call.
-            </p>
+            <BlurFade delay={0.08}>
+              <p className="kicker m-0">Source-aware security gateway</p>
+            </BlurFade>
+            <BlurFade delay={0.16}>
+              <h1 className="mt-3 mb-0 text-[40px] leading-[1.08] font-semibold tracking-[-0.03em]">
+                Every agent action, <span className="brand-text">fenced and traced.</span>
+              </h1>
+            </BlurFade>
+            <BlurFade delay={0.24}>
+              <p className="mt-4 mb-0 max-w-[440px] text-[15px] leading-relaxed text-muted-foreground">
+                The model proposes. TraceFence decides what it may read and do  in application code, per role, with an audit trail for every
+                call.
+              </p>
+            </BlurFade>
 
-            <ol className="mt-8 flex list-none items-center gap-0 p-0">
-              {PIPELINE.map((step, i) => (
-                <li className="flex flex-1 items-center" key={step}>
-                  <span className="flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 font-mono text-[11px] shadow-[0_1px_2px_rgba(14,18,37,.05)]">
-                    <span className={cn("size-1.5 rounded-full", i === 2 ? "bg-violet" : "bg-primary")} />
-                    {step}
-                  </span>
-                  {i < PIPELINE.length - 1 && <span className="mx-1.5 h-px flex-1 bg-gradient-to-r from-primary/40 to-violet/40" />}
-                </li>
-              ))}
-            </ol>
+            <PipelineFlow />
           </div>
 
           <div className="mt-10 grid grid-cols-3 gap-3">
-            {DEMO.map((d) => (
-              <div className="rounded-xl border bg-white/80 p-4 backdrop-blur" key={d.role}>
-                <d.icon className="size-4 text-primary" strokeWidth={1.8} />
-                <p className="mt-3 mb-0 text-sm font-medium">{d.label}</p>
-                <p className="mt-0.5 mb-0 text-xs text-muted-foreground">{d.detail}</p>
-              </div>
+            {DEMO.map((d, i) => (
+              <BlurFade delay={0.35 + i * 0.08} key={d.role}>
+                <div className="rounded-xl border bg-white/80 p-4 backdrop-blur transition-transform hover:-translate-y-0.5 hover:shadow-sm">
+                  <d.icon className="size-4 text-primary" strokeWidth={1.8} />
+                  <p className="mt-3 mb-0 text-sm font-medium">{d.label}</p>
+                  <p className="mt-0.5 mb-0 text-xs text-muted-foreground">{d.detail}</p>
+                </div>
+              </BlurFade>
             ))}
           </div>
           <p className="kicker mt-8 mb-0">NullTrace · synthetic campus data only</p>
@@ -124,7 +128,7 @@ export default function LoginPage() {
 
       {/* Sign-in */}
       <section className="flex items-center justify-center px-5 py-10 sm:px-10">
-        <div className="w-full max-w-[400px]">
+        <BlurFade className="w-full max-w-[400px]" delay={0.1} y={16}>
           <div className="mb-8 lg:hidden">
             <Logo />
           </div>
@@ -158,14 +162,18 @@ export default function LoginPage() {
                       <Label htmlFor="password">Password</Label>
                       <Input autoComplete="current-password" id="password" onChange={(e) => setPassword(e.target.value)} required type="password" value={password} />
                     </div>
-                    <Button className="mt-1 h-10 brand-gradient text-white hover:opacity-95" disabled={!!busy} type="submit">
+                    <Pressable
+                      className="mt-1 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md brand-gradient text-sm font-medium text-white hover:opacity-95 disabled:pointer-events-none disabled:opacity-50"
+                      disabled={!!busy}
+                      type="submit"
+                    >
                       {busy === "form" ? <Loader2 className="size-4 animate-spin" /> : null}
                       Sign in
                       <ArrowRight className="size-4" />
-                    </Button>
+                    </Pressable>
                   </form>
 
-                  <button
+                  <Pressable
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary/35 bg-accent/40 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-accent disabled:opacity-50"
                     disabled={!!busy}
                     onClick={async () => {
@@ -183,7 +191,7 @@ export default function LoginPage() {
                   >
                     {busy === "guest" ? <Loader2 className="size-4 animate-spin" /> : <BookOpen className="size-4" />}
                     Continue as guest · public campus info only
-                  </button>
+                  </Pressable>
 
                   <div className="my-6 flex items-center gap-3">
                     <Separator className="flex-1" />
@@ -193,11 +201,11 @@ export default function LoginPage() {
 
                   <div className="grid gap-2">
                     {DEMO.map((d) => (
-                      <button
-                        className="group flex items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent/50 disabled:opacity-50"
+                      <Pressable
+                        className="group flex w-full items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-accent/50 disabled:opacity-50"
                         disabled={!!busy}
                         key={d.role}
-                        onClick={() => signIn(d.email, DEMO_PASSWORD, d.role)}
+                        onClick={() => void signIn(d.email, DEMO_PASSWORD, d.role)}
                         type="button"
                       >
                         <span className="grid size-8 place-items-center rounded-md bg-accent text-primary">
@@ -208,7 +216,7 @@ export default function LoginPage() {
                           <span className="block truncate font-mono text-[11px] text-muted-foreground">{d.email}</span>
                         </span>
                         <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                      </button>
+                      </Pressable>
                     ))}
                   </div>
                 </TabsContent>
@@ -226,8 +234,30 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div className="grid gap-2">
+                      <Label htmlFor="orgType">Organization type</Label>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                        defaultValue="college"
+                        id="orgType"
+                        name="orgType"
+                        required
+                      >
+                        <option value="college">College / university</option>
+                        <option value="small_business">Small business</option>
+                      </select>
+                    </div>
+                    <div className="grid gap-2">
                       <Label htmlFor="su-email">Work email</Label>
                       <Input autoComplete="email" id="su-email" name="email" required type="email" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="notify">Approval notify email (optional)</Label>
+                      <Input
+                        id="notify"
+                        name="notifyEmail"
+                        placeholder="Defaults to work email"
+                        type="email"
+                      />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="su-password">Password</Label>
@@ -247,7 +277,7 @@ export default function LoginPage() {
           <p className="mt-8 text-center text-xs text-muted-foreground">
             Identity and role come from the server session. The interface never decides what you may access.
           </p>
-        </div>
+        </BlurFade>
       </section>
     </main>
   );

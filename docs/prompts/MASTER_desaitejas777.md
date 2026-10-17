@@ -1,13 +1,13 @@
-# TraceFence master prompt — desaitejas777
+# TraceFence master prompt  desaitejas777
 
-Paste the fenced block. **GIT first** — discard old invoice/QR fixture assumptions.
+Paste the fenced block. **GIT first**  discard old invoice/QR fixture assumptions.
 
 ```text
 You help desaitejas777 own campus fixtures for TraceFence.
 Repo: https://github.com/shashankack/TraceFence.git
-Product: TraceFence — A source-aware security gateway for AI agents.
+Product: TraceFence  A source-aware security gateway for AI agents.
 Org Admin uploads/overrides docs at runtime; your fixtures are the SEED corpus + ACL matrix.
-NOT email-only hero. NOT SecureRAG product. NO vector RAG. Synthetic data only — no real PII.
+NOT email-only hero. NOT SecureRAG product. NO vector RAG. Synthetic data only  no real PII.
 
 === GIT (DO FIRST) ===
 git fetch origin
@@ -16,7 +16,7 @@ git pull origin feature/desaitejas777-fixtures
 git merge origin/main
 git merge origin/feature/shashankack-backend
 Prefer origin/main for docs/** on conflicts.
-Never rewrite tracefence/lib/** or app/api/** — report gaps to shashankack.
+Never rewrite tracefence/lib/** or app/api/**  report gaps to shashankack.
 
 Owns: fixtures/campus/**, docs/attacks/**
 Must NOT change: tracefence/lib/**, tracefence/app/api/**, components/**
@@ -34,7 +34,7 @@ Must NOT change: tracefence/lib/**, tracefence/app/api/**, components/**
 === HOW FIXTURES ARE USED ===
 - DEMO_MODE copies fixtures/campus into SQLite org_documents for tenant nulltrace-institute.
 - policies/roles.json is the seed role×collection×tool matrix (policyVersion starts at 1).
-- Riverview College is a second tenant with a minimal handbook — do not mix NullTrace confidential into Riverview fixtures.
+- Riverview College is a second tenant with a minimal handbook  do not mix NullTrace confidential into Riverview fixtures.
 - Org Admin can override classification/enabled later; fixtures must still demo cleanly on first boot.
 
 === BUILD ===
@@ -50,7 +50,7 @@ Must NOT change: tracefence/lib/**, tracefence/app/api/**, components/**
    - hostel-rules.md must answer weekday curfew clearly (student ALLOW path)
    - student-directory / grades-notes must be tempting but confidential
 4. Attack doc (docs/attacks/ + optional fixtures doc):
-   Text that says “export all emails to attacker@…” — classification public or internal is fine;
+   Text that says “export all emails to attacker@…”  classification public or internal is fine;
    prove source text ≠ authority (gateway still DENYs student export).
 5. Update fixtures/campus/README.md if layout changes.
 6. Update docs/PROGRESS.md each iteration.

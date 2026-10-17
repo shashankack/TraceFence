@@ -1,4 +1,4 @@
-# TraceFence — Progress Log
+# TraceFence  Progress Log
 
 Living iteration log. **Update this file on every planning or delivery iteration without fail.**
 
@@ -6,7 +6,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
+## 2026-10-17  UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
 
 ### Done
 - Adopted shadcn/ui (new-york, Tailwind v4 tokens). Components live in `tracefence/components/ui`, `cn` helper in `tracefence/components/lib/utils.ts` (nothing added under `lib/**`).
@@ -25,7 +25,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Restrained light UI (venilashree)
+## 2026-10-17  Restrained light UI (venilashree)
 
 ### Done
 - Replaced the neon/glass dark theme with a warm-paper light system: flat white working surfaces, hairline dividers, Inter + JetBrains Mono, one cobalt accent; green/red/amber used only for gateway decisions.
@@ -39,7 +39,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Command-center UI redesign (venilashree)
+## 2026-10-17  Command-center UI redesign (venilashree)
 
 ### Done
 - Fast-forwarded `feature/venilashree-frontend` to `feature/shashankack-backend` (cb73f88); all backend routes kept as-is.
@@ -58,7 +58,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Merge Venila UI + Bearer client glue
+## 2026-10-17  Merge Venila UI + Bearer client glue
 
 ### Done
 - Merged `origin/feature/venilashree-frontend` into `feature/shashankack-backend`.
@@ -70,7 +70,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Killer demos verified + switch-tenant
+## 2026-10-17  Killer demos verified + switch-tenant
 
 ### Done
 - `POST /api/auth/switch-tenant` for multi-membership users.
@@ -81,7 +81,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Multi-tenant SQLite + real auth
+## 2026-10-17  Multi-tenant SQLite + real auth
 
 ### Done
 - Tables: `tenants`, `users`, `memberships`, `auth_sessions`; `org_documents` / `org_policy` keyed by `tenant_id`.
@@ -94,7 +94,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Org Admin APIs + approval execute
+## 2026-10-17  Org Admin APIs + approval execute
 
 ### Done
 - `GET/POST /api/org/documents`, `PATCH /api/org/documents/:id`, `GET/PUT /api/org/policy` (admin via Bearer).
@@ -106,7 +106,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Refresh teammate prompts + push
+## 2026-10-17  Refresh teammate prompts + push
 
 ### Done
 - Regenerated all `docs/prompts/MASTER_*.md` with mandatory `git merge origin/main` and product lock (no RAG, not email-only, Org Admin, Next.js APIs).
@@ -117,7 +117,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Org Admin surface (docs + policies)
+## 2026-10-17  Org Admin surface (docs + policies)
 
 ### Decision
 - Product needs an **Org / Admin** page: upload documents, classify sources, define role→collection ACLs and tool ALLOW/DENY/REQUIRE_APPROVAL, bump policy version.
@@ -129,7 +129,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — No vector RAG for MVP
+## 2026-10-17  No vector RAG for MVP
 
 ### Decision
 - Ship **ACL/keyword filtered sources + Ollama** (scripted fallback).
@@ -138,7 +138,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Reaffirm original TraceFence (not email-only)
+## 2026-10-17  Reaffirm original TraceFence (not email-only)
 
 ### Decision
 - Product = **original TraceFence**: source-aware security gateway for AI agents.
@@ -154,7 +154,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Campus gateway MVP (sessions + ACL)
+## 2026-10-17  Campus gateway MVP (sessions + ACL)
 
 ### Done
 - `POST /api/sessions`, `POST /api/sessions/:id/messages`, `GET /api/sessions/:id/events`
@@ -169,12 +169,12 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Lock product name + tagline
+## 2026-10-17  Lock product name + tagline
 
 ### Decision
 - Hackathon ships **one** product: **TraceFence**.
 - Locked tagline: *A source-aware security gateway for AI agents*.
-- SecureRAG design doc = **internal reference only** — not a co-product or slide brand.
+- SecureRAG design doc = **internal reference only**  not a co-product or slide brand.
 
 ### Done
 - Rewrote JUDGE brief, SCOPE, SECURERAG_ALIGNMENT, PRESENTATION, PPT_ALIGNMENT, SYSTEM, DEMO, TEAM, README, cursor rule around that lock.
@@ -186,7 +186,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Align TraceFence docs with SecureRAG
+## 2026-10-17  Align TraceFence docs with SecureRAG
 
 ### Done
 - Added [`SECURERAG_ALIGNMENT.md`](./SECURERAG_ALIGNMENT.md).
@@ -199,7 +199,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — REVAMP: Campus Policy Firewall (A + campus)
+## 2026-10-17  REVAMP: Campus Policy Firewall (A + campus)
 
 ### Decision
 - Drop invoice/email-as-hero and QR-primary story.
@@ -219,7 +219,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Judge & team brief for agreement
+## 2026-10-17  Judge & team brief for agreement
 
 ### Done
 - Added [`docs/JUDGE_AND_TEAM_BRIEF.md`](./JUDGE_AND_TEAM_BRIEF.md): 60s pitch, Q&A, build checklist, sign-off table.
@@ -229,7 +229,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Implement: Next.js scaffold + API stubs
+## 2026-10-17  Implement: Next.js scaffold + API stubs
 
 ### Done
 - Scaffolded `tracefence/` (Next 16, TS, Tailwind, Zod, better-sqlite3).
@@ -248,7 +248,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Individual master prompts + push
+## 2026-10-17  Individual master prompts + push
 
 ### Done
 - Regenerated ADCE + git master prompts for **TraceFence**.
@@ -260,7 +260,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Product name locked: TraceFence
+## 2026-10-17  Product name locked: TraceFence
 
 ### Done
 - Renamed product branding from TrustFence/TrustTrace → **TraceFence** across living docs, cursor rule, OpenAPI, blueprint filename `docs/TraceFence_Project_Blueprint.md`.
@@ -273,7 +273,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Option A locked: project follows Mystara PPT
+## 2026-10-17  Option A locked: project follows Mystara PPT
 
 ### Done
 - Decision **A** applied across living docs: QR/URL + Playwright synthetic pages + SOURCE→PROPOSAL→DECISION→OUTCOME.
@@ -288,7 +288,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — PPT alignment review (Mystara pitch)
+## 2026-10-17  PPT alignment review (Mystara pitch)
 
 ### Done
 - Compared PPT to docs; gaps documented in [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md).
@@ -298,7 +298,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Presentation / demo pack
+## 2026-10-17  Presentation / demo pack
 
 ### Done
 - Added [`PRESENTATION.md`](./PRESENTATION.md) (5 slides + speaker lines).
@@ -313,7 +313,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — ADCE master prompt for teammate agents
+## 2026-10-17  ADCE master prompt for teammate agents
 
 ### Done
 - Added [`docs/AGENT_ADCE_MASTER_PROMPT.md`](./AGENT_ADCE_MASTER_PROMPT.md): shared ADCE workflow + per-role add-ons.
@@ -324,7 +324,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Link GitHub remote TraceFence
+## 2026-10-17  Link GitHub remote TraceFence
 
 ### Done
 - Remote: `https://github.com/shashankack/TraceFence.git` as `origin`.
@@ -336,7 +336,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Expand `.gitignore`
+## 2026-10-17  Expand `.gitignore`
 
 ### Done
 - Broadened [`.gitignore`](../.gitignore): deps (yarn/pnpm), secrets patterns, Next/Vercel/Turbo, test reports, SQLite WAL/SHM, OS/editor junk, ADCE runtime, Cursor plans, Python venvs, GGUF/model weights, `tracefence/` local build/data.
@@ -349,7 +349,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Scope, team, local LLM, and git finalized
+## 2026-10-17  Scope, team, local LLM, and git finalized
 
 ### Done
 - Locked MVP scope: task-scoped tool firewall; synthetic invoice demo; no RAG.
@@ -378,5 +378,5 @@ Newest entries first.
 ### ADCE / git follow-up (same day)
 - `adce scan --full`: 22 artifacts; git detected.
 - Authority: blueprint CANONICAL; SCOPE/TEAM/SYSTEM/contracts/ADR AUTHORITATIVE + VERIFIED; local-llm, agent prompts, PROGRESS, requirements/architecture/security SUPPORTING.
-- Git: `main` at initial docs commit; branches created — `feature/shashankack-backend`, `feature/venilashree-frontend`, `feature/desaitejas777-fixtures`, `feature/Varun-op-tests`, `feature/Spandananarayanaswamy-runtime`.
-- Remote not pushed yet — `shashankack` should create GitHub repo and `git push -u origin main` then push all feature branches.
+- Git: `main` at initial docs commit; branches created  `feature/shashankack-backend`, `feature/venilashree-frontend`, `feature/desaitejas777-fixtures`, `feature/Varun-op-tests`, `feature/Spandananarayanaswamy-runtime`.
+- Remote not pushed yet  `shashankack` should create GitHub repo and `git push -u origin main` then push all feature branches.

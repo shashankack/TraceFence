@@ -7,6 +7,7 @@ import {
   type Classification,
 } from "./policy";
 import { deleteDocumentChunks, reindexDocument } from "./chunkIndex";
+import { stripContentPolicyClaims } from "./contentGuards";
 import type { CampusRole, Decision } from "../security/types";
 
 export interface OrgDocumentRow {
@@ -100,6 +101,8 @@ export function createOrgDocument(
     input.id?.trim() ||
     `doc_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
   const now = new Date().toISOString();
+  // Content cannot self-elevate classification or rewrite policy  admin args win.
+  const { content: safeContent } = stripContentPolicyClaims(input.content);
   getDb()
     .prepare(
       `INSERT INTO org_documents
@@ -112,13 +115,13 @@ export function createOrgDocument(
       input.title,
       input.classification,
       input.collection,
-      input.content,
+      safeContent,
       now,
     );
 
   invalidateCampusPolicyCache(tenantId);
   bumpPolicyVersion(tenantId);
-  reindexDocument(tenantId, id, input.title, input.content);
+  reindexDocument(tenantId, id, input.title, safeContent);
 
   return {
     id,
@@ -126,7 +129,7 @@ export function createOrgDocument(
     classification: input.classification,
     collection: input.collection,
     enabled: true,
-    content: input.content,
+    content: safeContent,
     source: "upload",
     updatedAt: now,
   };
@@ -152,7 +155,10 @@ export function patchOrgDocument(
   const enabled = patch.enabled ?? existing.enabled;
   const priorContent =
     getDocumentContentOverride(tenantId, id) ?? existing.content ?? "";
-  const content = patch.content ?? priorContent;
+  const rawContent = patch.content ?? priorContent;
+  const content = patch.content
+    ? stripContentPolicyClaims(rawContent).content
+    : rawContent;
   const now = new Date().toISOString();
   const source = existing.source === "upload" ? "upload" : "fixture";
 

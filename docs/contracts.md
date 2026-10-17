@@ -1,6 +1,6 @@
-# TraceFence — API / DTO Contracts
+# TraceFence  API / DTO Contracts
 
-**TraceFence** — source-aware gateway: **identity → policy → filtered retrieval → LLM → tool gateway → audit**.
+**TraceFence**  source-aware gateway: **identity → policy → filtered retrieval → LLM → tool gateway → audit**.
 
 ## Decisions
 
@@ -92,7 +92,7 @@ Retrieval APIs **must** apply ACL **and tenant scope** before returning chunks. 
 | `GET` | `/api/sessions/:id/events` | Bearer | Timeline (retrieval + tools) |
 | `GET` | `/api/approvals` | Bearer | Pending (tenant-scoped) |
 | `POST` | `/api/approvals/:id/decision` | Bearer | APPROVE \| REJECT (executes once) |
-| `GET` | `/api/audit` | — | Aggregate |
+| `GET` | `/api/audit` |  | Aggregate |
 | `GET` | `/api/org/documents` | Bearer admin | List corpus |
 | `POST` | `/api/org/documents` | Bearer admin | Upload / create doc |
 | `PATCH` | `/api/org/documents/:id` | Bearer admin | Update classification / enabled |

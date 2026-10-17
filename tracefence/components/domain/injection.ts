@@ -18,7 +18,7 @@ const PATTERNS: Array<{ label: string; re: RegExp }> = [
   { label: "Secrecy request", re: /\b(do not|don't)\s+(tell|log|mention|report)\b/gi },
 ];
 
-/** Patterns that try to subvert instructions or identity — the ones that make a flag an injection. */
+/** Patterns that try to subvert instructions or identity  the ones that make a flag an injection. */
 const INJECTION_LABELS = new Set(["Instruction override", "System impersonation", "Role escalation", "Secrecy request"]);
 
 export function isInjection(flags: InjectionFlag[]) {
@@ -33,7 +33,7 @@ export function scanForInjection(text: string): InjectionFlag[] {
   return flags;
 }
 
-/** External addresses named in untrusted input — shown as the attempted exfiltration target. */
+/** External addresses named in untrusted input  shown as the attempted exfiltration target. */
 export function externalRecipients(text: string): string[] {
   const re = PATTERNS.find((p) => p.label === "External recipient")!.re;
   return [...new Set([...text.matchAll(re)].map((m) => m[0]))];

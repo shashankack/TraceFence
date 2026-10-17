@@ -1,6 +1,6 @@
 /**
  * Extract plain text from a PDF buffer for org ingest / chunking.
- * Synthetic demo PDFs only — not a production-grade parser.
+ * Synthetic demo PDFs only  not a production-grade parser.
  */
 export async function extractPdfText(buffer: Buffer): Promise<string> {
   // pdf-parse is CJS; dynamic import keeps Next edge bundles calm.

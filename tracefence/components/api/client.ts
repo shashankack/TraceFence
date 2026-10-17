@@ -4,10 +4,14 @@ import type {
   AuthMeDTO,
   AuthTokenDTO,
   Classification,
+  CitationDTO,
   EventDTO,
   MessageResponseDTO,
+  NotificationDTO,
   OrgDocumentDTO,
   OrgPolicyDTO,
+  OrgProfileDTO,
+  OrgType,
   Role,
   SessionDTO,
 } from "./types";
@@ -65,7 +69,7 @@ export function setToken(next: string | null) {
     if (next) storage()?.setItem(TOKEN_KEY, next);
     else storage()?.removeItem(TOKEN_KEY);
   } catch {
-    /* storage unavailable — token stays in memory only */
+    /* storage unavailable  token stays in memory only */
   }
 }
 
@@ -99,15 +103,47 @@ export const api = {
     password: string;
     displayName?: string;
     tenantName?: string;
+    orgType?: OrgType;
+    notifyEmail?: string;
   }) => post<AuthTokenDTO>("/api/auth/signup", input),
-  /** Anonymous public principal — no password; public corpus only. */
+  /** Anonymous public principal  no password; public corpus only. */
   guest: () => post<AuthTokenDTO>("/api/auth/guest"),
   me: () => request<AuthMeDTO>("/api/auth/me"),
   logout: () => post<{ ok: true }>("/api/auth/logout"),
+  switchTenant: (tenantId: string) =>
+    post<AuthTokenDTO>("/api/auth/switch-tenant", { tenantId }),
 
   createSession: () => post<SessionDTO>("/api/sessions"),
+  deleteSession: (sessionId: string) =>
+    request<{ ok: true; sessionId: string }>(
+      `/api/sessions/${encodeURIComponent(sessionId)}`,
+      { method: "DELETE" },
+    ),
+  listSessions: () =>
+    request<{
+      sessions: Array<{
+        sessionId: string;
+        tenantId: string;
+        userId: string;
+        role: string;
+        policyVersion: number;
+        createdAt: string;
+        title: string;
+      }>;
+    }>("/api/sessions").then((r) => r.sessions),
   sendMessage: (sessionId: string, message: string) =>
     post<MessageResponseDTO>(`/api/sessions/${sessionId}/messages`, { message }),
+  sessionMessages: (sessionId: string) =>
+    request<{
+      session: SessionDTO;
+      messages: Array<{
+        id: string;
+        role: string;
+        content: string;
+        citations?: CitationDTO[];
+        createdAt: string;
+      }>;
+    }>(`/api/sessions/${sessionId}/messages`),
   sessionEvents: (sessionId: string) =>
     request<{ events: EventDTO[] }>(`/api/sessions/${sessionId}/events`).then(
       (r) => r.events,
@@ -126,6 +162,28 @@ export const api = {
     ),
 
   audit: () => request<AuditDTO>("/api/audit"),
+  /** Tenant-wide session evidence for admin audit (paginated by session). */
+  auditEvidence: (opts?: { page?: number; pageSize?: number }) => {
+    const page = opts?.page ?? 1;
+    const pageSize = opts?.pageSize ?? 10;
+    const q = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    return request<{
+      tenantId: string;
+      page: number;
+      pageSize: number;
+      totalSessions: number;
+      totalPages: number;
+      sessions: Array<{
+        sessionId: string;
+        role: Role;
+        userId: string;
+        events: EventDTO[];
+      }>;
+    }>(`/api/audit/evidence?${q}`);
+  },
 
   orgDocuments: () =>
     request<{ documents: OrgDocumentDTO[]; policyVersion?: number }>(
@@ -134,12 +192,22 @@ export const api = {
   createOrgDocument: (doc: {
     title: string;
     classification: Classification;
-    content: string;
+    content?: string;
+    pdfBase64?: string;
   }) =>
     post<{ document: OrgDocumentDTO }>("/api/org/documents", {
       ...doc,
       collection: doc.classification,
     }).then((r) => r.document),
+  suggestOrgDocumentTitle: (input: {
+    content?: string;
+    pdfBase64?: string;
+    fileName?: string;
+  }) =>
+    post<{ title: string; preview: string }>(
+      "/api/org/documents/suggest-title",
+      input,
+    ),
   updateOrgDocument: (
     id: string,
     patch: Partial<Pick<OrgDocumentDTO, "classification" | "enabled">>,
@@ -157,4 +225,20 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ roles: policy.roles }),
     }),
+  orgProfile: () => request<OrgProfileDTO>("/api/org/profile"),
+  updateOrgProfile: (patch: {
+    name?: string;
+    notifyEmail?: string | null;
+    orgType?: OrgType;
+    profile?: { website?: string; city?: string; sizeBand?: string };
+  }) =>
+    request<OrgProfileDTO>("/api/org/profile", {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+  orgNotifications: (limit = 30) =>
+    request<{
+      tenantId: string;
+      notifications: NotificationDTO[];
+    }>(`/api/org/notifications?limit=${limit}`),
 };

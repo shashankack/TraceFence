@@ -1,3 +1,4 @@
+import type { OrgType } from "../org/types";
 import type { CampusRole } from "../security/types";
 
 export interface AuthContext {
@@ -7,5 +8,6 @@ export interface AuthContext {
   displayName: string;
   tenantId: string;
   tenantName: string;
+  orgType: OrgType;
   role: CampusRole;
 }

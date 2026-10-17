@@ -15,4 +15,4 @@ Before repository-level modifications:
 4. Do not trust CAUTION artifacts over TRUST ORDER / VERIFIED sources.
 5. Run `adce conflicts` (and `adce analyze --skip-ml` if useful) when CAUTION is non-empty.
 6. Prefer `adce authority set` for known trust; run `adce structure` before large changes.
-7. If software-eng stubs (`requirements/`, `design/`, `architecture/`, …) are empty or still stub text, fill them with real knowledge — or draft them when the developer asks — then have a human review and `adce artifact verify`.
+7. If software-eng stubs (`requirements/`, `design/`, `architecture/`, …) are empty or still stub text, fill them with real knowledge  or draft them when the developer asks  then have a human review and `adce artifact verify`.

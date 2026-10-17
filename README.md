@@ -2,11 +2,11 @@
 
 **NullTrace** · *A source-aware security gateway for AI agents*
 
-Original product: decide what agents may **read** and **do** — not an email-only tool.  
+Original product: decide what agents may **read** and **do**  not an email-only tool.  
 Hackathon demo: campus chat (“NullTrace Institute”) with:
 
 1. **Permission-filtered sources** (role ACLs before context)  
-2. **Multi-tool gateway** — search, read, export, optional notify — ALLOW / DENY / REQUIRE_APPROVAL  
+2. **Multi-tool gateway**  search, read, export, optional notify  ALLOW / DENY / REQUIRE_APPROVAL  
 3. **Audit / decision rail** (SOURCE → PROPOSAL → DECISION → OUTCOME)
 
 Scope: [`docs/SCOPE_AND_RULES.md`](docs/SCOPE_AND_RULES.md)  

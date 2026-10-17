@@ -9,7 +9,7 @@ This repository is **TraceFence**, a source-aware security gateway for AI agents
 
 **Tagline:** A source-aware security gateway for AI agents.
 
-**Pitch:** Inspect and filter what the agent may read; enforce every tool call in application code, not by the model. **Not email-only** — notify/email is one tool among several. Campus chat is the hackathon demo domain.
+**Pitch:** Inspect and filter what the agent may read; enforce every tool call in application code, not by the model. **Not email-only**  notify/email is one tool among several. Campus chat is the hackathon demo domain.
 
 **Decisions:** `ALLOW`, `DENY`, `REQUIRE_APPROVAL`. Default deny. Approvals bind to exact tool, canonical arguments, task/session, caller, and expiry, and are single-use. Timeline links **SOURCE → PROPOSAL → DECISION → OUTCOME**.
 

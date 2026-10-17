@@ -1,7 +1,13 @@
 import { randomUUID } from "crypto";
 import { getDb } from "../db/client";
 import type { CampusRole } from "../security/types";
-import { seedPolicyForTenant } from "../campus/tenantBootstrap";
+import { seedBusinessDocumentsForTenant } from "../campus/businessSeed";
+import {
+  seedFixtureDocumentsForTenant,
+  seedPolicyForTenant,
+} from "../campus/tenantBootstrap";
+import type { OrgType } from "../org/types";
+import { isOrgType } from "../org/types";
 import { hashPassword, verifyPassword } from "./password";
 import { createAuthSession, revokeAuthSession } from "./session";
 
@@ -21,6 +27,8 @@ export function signup(input: {
   password: string;
   displayName?: string;
   tenantName?: string;
+  orgType?: OrgType;
+  notifyEmail?: string;
 }):
   | {
       ok: true;
@@ -52,6 +60,9 @@ export function signup(input: {
   const displayName = input.displayName?.trim() || email.split("@")[0];
   const now = new Date().toISOString();
   const passwordHash = hashPassword(input.password);
+  const orgType: OrgType = isOrgType(input.orgType) ? input.orgType : "college";
+  const notifyEmail =
+    input.notifyEmail?.trim().toLowerCase() || email;
 
   let tenantId = DEFAULT_TENANT;
   let role: CampusRole = "student";
@@ -71,16 +82,29 @@ export function signup(input: {
         tenantId = `${tenantId}-${randomUUID().slice(0, 6)}`;
       }
       db.prepare(
-        `INSERT INTO tenants (id, name, created_at) VALUES (?, ?, ?)`,
-      ).run(tenantId, input.tenantName.trim(), now);
+        `INSERT INTO tenants (id, name, org_type, notify_email, profile_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      ).run(
+        tenantId,
+        input.tenantName.trim(),
+        orgType,
+        notifyEmail,
+        JSON.stringify({}),
+        now,
+      );
       role = "admin";
       seedPolicyForTenant(tenantId);
+      if (orgType === "small_business") {
+        seedBusinessDocumentsForTenant(tenantId);
+      } else {
+        seedFixtureDocumentsForTenant(tenantId);
+      }
     } else {
       const tenant = db
         .prepare(`SELECT id FROM tenants WHERE id = ?`)
         .get(DEFAULT_TENANT);
       if (!tenant) {
-        throw new Error("Default tenant missing — run seed first");
+        throw new Error("Default tenant missing  run seed first");
       }
       role = "student";
     }

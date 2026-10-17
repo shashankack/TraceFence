@@ -13,7 +13,7 @@ This repository uses ADCE. Run before meaningful changes:
 7) Never commit .adce/cache, logs, metrics, state.db
 
 Before any work: git fetch && merge origin/main into your feature branch.
-Stale invoice/QR/SecureRAG dual-brand chat memory is invalid — re-read SCOPE from disk.
+Stale invoice/QR/SecureRAG dual-brand chat memory is invalid  re-read SCOPE from disk.
 
 TRUST ORDER:
 - AUTHORITATIVE: docs/SCOPE_AND_RULES.md, docs/JUDGE_AND_TEAM_BRIEF.md, docs/SYSTEM_OVERVIEW.md, docs/contracts.md, docs/TEAM_AND_GIT.md, design/overview.md

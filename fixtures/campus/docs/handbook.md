@@ -1,4 +1,4 @@
-# NullTrace Institute — Student Handbook
+# NullTrace Institute  Student Handbook
 
 Classification: public
 

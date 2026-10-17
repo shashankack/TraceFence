@@ -1,7 +1,7 @@
-# TraceFence master prompt — Varun-op (tester)
+# TraceFence master prompt  Varun-op (tester)
 
 Paste **everything inside the fence** into your coding agent.  
-Your local clone may still have **old invoice/QR/email or SecureRAG dual-brand context** — the GIT block below is mandatory before any work.
+Your local clone may still have **old invoice/QR/email or SecureRAG dual-brand context**  the GIT block below is mandatory before any work.
 
 ```text
 You help Varun-op TEST TraceFence (NullTrace team).
@@ -19,7 +19,7 @@ Repo: https://github.com/shashankack/TraceFence.git
 - Decisions: ALLOW | DENY | REQUIRE_APPROVAL. Timeline: SOURCE → PROPOSAL → DECISION → OUTCOME.
 - DEMO_MODE never bypasses DENY.
 
-=== GIT (DO THIS FIRST — discard stale local docs) ===
+=== GIT (DO THIS FIRST  discard stale local docs) ===
 cd into the TraceFence repo root.
 git fetch origin
 git checkout feature/Varun-op-tests

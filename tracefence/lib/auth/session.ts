@@ -39,7 +39,7 @@ export function resolveAuthToken(token: string): AuthContext | null {
       `SELECT a.token, a.user_id as userId, a.tenant_id as tenantId, a.role,
               a.expires_at as expiresAt,
               u.email, u.display_name as displayName,
-              t.name as tenantName
+              t.name as tenantName, t.org_type as orgType
        FROM auth_sessions a
        JOIN users u ON u.id = a.user_id
        JOIN tenants t ON t.id = a.tenant_id
@@ -55,6 +55,7 @@ export function resolveAuthToken(token: string): AuthContext | null {
         email: string;
         displayName: string;
         tenantName: string;
+        orgType: string | null;
       }
     | undefined;
 
@@ -71,6 +72,7 @@ export function resolveAuthToken(token: string): AuthContext | null {
     displayName: row.displayName,
     tenantId: row.tenantId,
     tenantName: row.tenantName,
+    orgType: row.orgType === "small_business" ? "small_business" : "college",
     role: row.role,
   };
 }

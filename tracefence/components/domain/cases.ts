@@ -9,7 +9,7 @@ export interface EvidenceCase {
   fenced: string[];
 }
 
-/** Walks each session in order and pairs every tool decision with the context the ACL built for it. */
+/** Walks each session in order and pairs every gateway decision with the ACL context for that turn. */
 export function buildCases(sessions: Array<{ sessionId: string; role: Role; events: EventDTO[] }>): EvidenceCase[] {
   const raw: Omit<EvidenceCase, "ref">[] = [];
   for (const s of sessions) {
@@ -17,14 +17,35 @@ export function buildCases(sessions: Array<{ sessionId: string; role: Role; even
     let fenced: string[] = [];
     for (const e of [...s.events].sort((a, b) => (a.ts ?? "").localeCompare(b.ts ?? ""))) {
       if (e.reasonCode === "RETRIEVAL_FILTERED") {
-        fenced = Array.isArray(e.argsPreview?.filteredOut) ? (e.argsPreview.filteredOut as string[]) : [];
+        fenced = Array.isArray(e.argsPreview?.filteredOut)
+          ? (e.argsPreview.filteredOut as string[])
+          : [];
         continue;
       }
       if (e.tool === "search_docs") {
         inContext = e.docIds ?? [];
         fenced = [];
       }
-      if (e.tool) raw.push({ event: e, role: s.role, sessionId: s.sessionId, inContext, fenced });
+      // Include tool calls and decision-only rows (e.g. INJECTION_IGNORED has no tool).
+      if (e.tool || e.decision) {
+        raw.push({
+          event: e.tool
+            ? e
+            : {
+                ...e,
+                tool:
+                  e.reasonCode === "INJECTION_IGNORED" ||
+                  e.reasonCode === "SCOPE_REFUSED" ||
+                  e.reasonCode === "DENIED_SCOPE"
+                    ? "policy_guard"
+                    : "gateway",
+              },
+          role: s.role,
+          sessionId: s.sessionId,
+          inContext,
+          fenced,
+        });
+      }
     }
   }
   raw.sort((a, b) => (a.event.ts ?? "").localeCompare(b.event.ts ?? ""));

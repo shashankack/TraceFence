@@ -1,6 +1,9 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/components/lib/utils";
+import { useSpotlight } from "@/components/ui/motion/spotlight";
 
 /** Bento grid: 12 columns on desktop, single column on phones. Tiles choose their own span. */
 export function BentoGrid({ className, children }: { className?: string; children: ReactNode }) {
@@ -27,13 +30,21 @@ export function BentoTile({
   children: ReactNode;
   tone?: "default" | "brand";
 }) {
+  const { spotlightProps } = useSpotlight({ size: 320 });
   return (
     <section
+      {...spotlightProps}
       className={cn(
-        "flex min-w-0 flex-col overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgba(14,18,37,0.04)]",
-        tone === "brand" && "border-transparent text-white brand-gradient",
+        spotlightProps.className,
+        "flex min-w-0 flex-col overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgba(14,18,37,0.04)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(14,18,37,0.08)]",
+        tone === "brand" && "tf-spotlight-brand border-transparent text-white brand-gradient",
         className,
       )}
+      style={
+        {
+          ["--spot-size" as string]: "320px",
+        } as CSSProperties
+      }
     >
       {(title || kicker) && (
         <header className={cn("flex items-start gap-3 px-5 pt-4 pb-3", tone === "default" && "border-b border-border/70")}>
@@ -75,6 +86,7 @@ export function StatTile({
   icon?: LucideIcon;
   className?: string;
 }) {
+  const { spotlightProps } = useSpotlight({ size: 220 });
   const color = {
     default: "text-foreground",
     allow: "text-allow",
@@ -83,7 +95,14 @@ export function StatTile({
     brand: "brand-text",
   }[tone];
   return (
-    <div className={cn("flex min-w-0 flex-col justify-between rounded-xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(14,18,37,0.04)]", className)}>
+    <div
+      {...spotlightProps}
+      className={cn(
+        spotlightProps.className,
+        "flex min-w-0 flex-col justify-between rounded-xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgba(14,18,37,0.04)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(14,18,37,0.07)]",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="kicker">{label}</span>
         {Icon && <Icon className="size-4 text-muted-foreground" strokeWidth={1.8} />}

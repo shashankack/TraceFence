@@ -3,7 +3,7 @@
 Owner: `Varun-op`  
 Branch: `feature/Varun-op-tests`
 
-Product under test: **TraceFence** — source-aware security gateway (not email-only, no vector RAG).  
+Product under test: **TraceFence**  source-aware security gateway (not email-only, no vector RAG).  
 Primary APIs: `/api/sessions`, `/api/sessions/:id/messages`, `/api/sessions/:id/events`, `/api/approvals`, `/api/org/*` (when shipped).
 
 ## Acceptance matrix
@@ -23,7 +23,7 @@ Primary APIs: `/api/sessions`, `/api/sessions/:id/messages`, `/api/sessions/:id/
 
 1. `cd tracefence && npm run dev`  
 2. API smoke via curl/http against sessions (see DEMO_SCRIPT)  
-3. Automate under `tests/` (node/vitest or similar — choose one and document here)
+3. Automate under `tests/` (node/vitest or similar  choose one and document here)
 
 ## Non-goals
 

@@ -1,4 +1,4 @@
-# Attack narrative — QR supplier page
+# Attack narrative  QR supplier page
 
 Owner: **desaitejas777**  
 Demo path: Mystara PPT slide “Live Attack Demonstration”.

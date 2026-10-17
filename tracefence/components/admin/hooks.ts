@@ -2,12 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/components/api/client";
-import type { ApprovalDTO, AuditDTO, EventDTO, OrgDocumentDTO, OrgPolicyDTO, Role } from "@/components/api/types";
-import { forgetSessions, readSessions } from "@/components/workspace/registry";
+import type {
+  ApprovalDTO,
+  AuditDTO,
+  EventDTO,
+  OrgDocumentDTO,
+  OrgPolicyDTO,
+  Role,
+} from "@/components/api/types";
 
-type Load<T> = { data: T | null; error: string | null; loading: boolean; reload: () => void };
+type Load<T> = {
+  data: T | null;
+  error: string | null;
+  loading: boolean;
+  reload: () => void;
+};
 
-function usePolled<T>(fetcher: () => Promise<T>, intervalMs: number | null): Load<T> {
+function usePolled<T>(
+  fetcher: () => Promise<T>,
+  intervalMs: number | null,
+  deps: unknown[] = [],
+): Load<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +31,7 @@ function usePolled<T>(fetcher: () => Promise<T>, intervalMs: number | null): Loa
 
   useEffect(() => {
     let alive = true;
+    setLoading(true);
     const run = () =>
       fetcher()
         .then((d) => {
@@ -23,7 +39,11 @@ function usePolled<T>(fetcher: () => Promise<T>, intervalMs: number | null): Loa
           setData(d);
           setError(null);
         })
-        .catch((e) => alive && setError(e instanceof ApiError ? e.message : "Request failed"))
+        .catch(
+          (e) =>
+            alive &&
+            setError(e instanceof ApiError ? e.message : "Request failed"),
+        )
         .finally(() => alive && setLoading(false));
     run();
     const t = intervalMs ? setInterval(run, intervalMs) : null;
@@ -31,17 +51,18 @@ function usePolled<T>(fetcher: () => Promise<T>, intervalMs: number | null): Loa
       alive = false;
       if (t) clearInterval(t);
     };
-    // fetcher identity is stable per call site; tick forces a manual refresh
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick, intervalMs]);
+  }, [tick, intervalMs, ...deps]);
 
   return { data, error, loading, reload };
 }
 
 export const useAudit = () => usePolled<AuditDTO>(api.audit, 8000);
-export const useApprovals = () => usePolled<ApprovalDTO[]>(() => api.approvals(), 5000);
+export const useApprovals = () =>
+  usePolled<ApprovalDTO[]>(() => api.approvals(), 5000);
 export const usePolicy = () => usePolled<OrgPolicyDTO>(api.orgPolicy, null);
-export const useDocuments = () => usePolled<OrgDocumentDTO[]>(api.orgDocuments, null);
+export const useDocuments = () =>
+  usePolled<OrgDocumentDTO[]>(api.orgDocuments, null);
 
 export interface SessionEvidence {
   sessionId: string;
@@ -50,25 +71,34 @@ export interface SessionEvidence {
   events: EventDTO[];
 }
 
+export interface EvidencePage {
+  sessions: SessionEvidence[];
+  page: number;
+  pageSize: number;
+  totalSessions: number;
+  totalPages: number;
+}
+
 /**
- * Re-fetches, from the server, the events of every session opened in this browser.
- * The admin is in the same tenant, so GET /api/sessions/:id/events authorizes the read.
+ * Tenant-wide gateway evidence for the admin audit console (server-paginated).
  */
-export function useEvidence(intervalMs = 8000) {
-  return usePolled<SessionEvidence[]>(async () => {
-    const known = readSessions();
-    const results = await Promise.all(
-      known.map(async (s) => {
-        try {
-          return { ...s, events: await api.sessionEvents(s.sessionId) };
-        } catch (e) {
-          if (e instanceof ApiError && (e.status === 404 || e.status === 403)) return { ...s, events: null };
-          throw e;
-        }
-      }),
-    );
-    const gone = results.filter((r) => r.events === null).map((r) => r.sessionId);
-    if (gone.length) forgetSessions(gone);
-    return results.filter((r): r is SessionEvidence & { createdAt: string } => r.events !== null && r.events.length > 0);
-  }, intervalMs);
+export function useEvidence(
+  opts: { page?: number; pageSize?: number; pollMs?: number | null } = {},
+) {
+  const page = opts.page ?? 1;
+  const pageSize = opts.pageSize ?? 10;
+  const pollMs = opts.pollMs === undefined ? 8000 : opts.pollMs;
+
+  return usePolled<EvidencePage>(
+    () =>
+      api.auditEvidence({ page, pageSize }).then((r) => ({
+        sessions: r.sessions,
+        page: r.page,
+        pageSize: r.pageSize,
+        totalSessions: r.totalSessions,
+        totalPages: r.totalPages,
+      })),
+    pollMs,
+    [page, pageSize],
+  );
 }

@@ -3,7 +3,7 @@
 import { Ban, CircleCheck, Filter, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { forbiddenExecutions } from "@/components/domain/evidence";
-import { ROLE_LABEL } from "@/components/shell/nav";
+import { roleLabelFor } from "@/components/shell/nav";
 import { BentoTile, StatTile } from "@/components/ui/bento";
 import { useWorkspace } from "./WorkspaceProvider";
 
@@ -20,7 +20,7 @@ export function WelcomeTile({ className }: { className?: string }) {
   if (!user) return null;
   const first = user.displayName ?? user.email.split("@")[0];
   return (
-    <BentoTile className={className} kicker={`${ROLE_LABEL[user.role]} · ${user.tenantName ?? user.tenantId}`} title={`Hello, ${first}`} tone="brand">
+    <BentoTile className={className} kicker={`${roleLabelFor(user.role, user.orgType)} · ${user.tenantName ?? user.tenantId}`} title={`Hello, ${first}`} tone="brand">
       <div className="flex flex-1 flex-col justify-between gap-4 px-5 pb-5">
         <p className="m-0 text-sm leading-relaxed text-white/85">{ROLE_BLURB[user.role]}</p>
         <dl className="m-0 grid grid-cols-2 gap-3 font-mono text-[11px]">
@@ -38,7 +38,7 @@ export function WelcomeTile({ className }: { className?: string }) {
   );
 }
 
-/** Session-scoped figures — computed only from events this session's gateway returned. */
+/** Session-scoped figures  computed only from events this session's gateway returned. */
 export function SessionStats() {
   const { events } = useWorkspace();
   const decisions = events.filter((e) => e.reasonCode !== "RETRIEVAL_FILTERED");

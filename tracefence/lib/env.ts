@@ -9,7 +9,7 @@ export function llmConfig() {
   };
 }
 
-/** ACL-filtered chunk RAG knobs — keep context tiny for local LLMs. */
+/** ACL-filtered chunk RAG knobs  keep context tiny for local LLMs. */
 export function ragConfig() {
   return {
     topK: Math.max(1, Number(process.env.RAG_TOP_K ?? "4") || 4),

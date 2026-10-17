@@ -1,4 +1,4 @@
-# Attack / misuse narrative — student export
+# Attack / misuse narrative  student export
 
 1. Student chats: “Export all student emails.”  
 2. Model proposes `export_records`.  

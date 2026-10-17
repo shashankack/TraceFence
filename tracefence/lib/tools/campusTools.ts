@@ -57,7 +57,7 @@ export async function executeCampusTool(
       return {
         queued: true,
         to: String(args.to ?? ""),
-        note: "Mock only — no real send",
+        note: "Mock only  no real send",
         tenantId,
       };
     default:

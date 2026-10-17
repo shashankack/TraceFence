@@ -1,4 +1,4 @@
-# TraceFence — AI Agent Permission Firewall
+# TraceFence  AI Agent Permission Firewall
 
 **Project blueprint and 24-hour hackathon implementation plan**  
 **Domains:** Cybersecurity · AI-Native Applications  
@@ -685,7 +685,7 @@ This example omits some essential production checks (task state, expiry, identit
 
 ## 14. Frontend screens
 
-### Screen A — Mission Control / task setup
+### Screen A  Mission Control / task setup
 
 - Task text input.
 - Three visible tool cards: Read Invoice, Send Email, Delete Invoice.
@@ -693,7 +693,7 @@ This example omits some essential production checks (task state, expiry, identit
 - Approved email domain and approval-required indicator.
 - Task lifetime and **Start Task** action.
 
-### Screen B — Live execution trace
+### Screen B  Live execution trace
 
 A timeline of events with timestamp, tool, resource, decision, explanation, and execution outcome.
 
@@ -707,7 +707,7 @@ Example:
 10:03:15  summary_created             COMPLETED    No external send
 ```
 
-### Screen C — Approval drawer
+### Screen C  Approval drawer
 
 - Exact proposed tool and parameters.
 - Recipient, subject and body preview.
@@ -715,7 +715,7 @@ Example:
 - **Approve** and **Reject** actions.
 - Explicit note that approval is one-time and cannot be reused.
 
-### Screen D — Audit / security report
+### Screen D  Audit / security report
 
 - Counts for allowed, denied, approval-required and executed actions.
 - Filterable event list.
@@ -812,17 +812,17 @@ Also report the model-specific outcome separately: e.g., “The live model propo
 
 ## 17. Team allocation
 
-> **Alignment note (2026-10-17):** **TraceFence** is the only product name — *A source-aware security gateway for AI agents*. Campus chat is the demo. `secure_rag_domain_agnostic_design.md` is an internal design reference, not a second product. Living docs: [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md), [`JUDGE_AND_TEAM_BRIEF.md`](./JUDGE_AND_TEAM_BRIEF.md). Invoice/QR/email-hero sections below are historical only.
+> **Alignment note (2026-10-17):** **TraceFence** is the only product name  *A source-aware security gateway for AI agents*. Campus chat is the demo. `secure_rag_domain_agnostic_design.md` is an internal design reference, not a second product. Living docs: [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md), [`JUDGE_AND_TEAM_BRIEF.md`](./JUDGE_AND_TEAM_BRIEF.md). Invoice/QR/email-hero sections below are historical only.
 
 **Active hackathon team: 5 people.** See [`docs/TEAM_AND_GIT.md`](./TEAM_AND_GIT.md).
 
 | Member | GitHub | Primary owner | Integration contract |
 |---|---|---|---|
-| **1 — Backend + integration** | `shashankack` | Session/chat APIs, gateway, campus tools, DB | Owns `gateway.invoke` |
-| **2 — Frontend** | `venilashree` | Chat UI, role toggle, decision rail, approvals | Session/message DTOs |
-| **3 — Fixtures** | `desaitejas777` | `fixtures/campus/**`, role policy JSON | Data only |
-| **4 — Tests / QA** | `Varun-op` | Export DENY / handbook ALLOW matrix | Zero forbidden exports |
-| **5 — Runtime + scenarios** | `Spandananarayanaswamy` | Ollama + campus scripted scenarios | Fallback via gateway |
+| **1  Backend + integration** | `shashankack` | Session/chat APIs, gateway, campus tools, DB | Owns `gateway.invoke` |
+| **2  Frontend** | `venilashree` | Chat UI, role toggle, decision rail, approvals | Session/message DTOs |
+| **3  Fixtures** | `desaitejas777` | `fixtures/campus/**`, role policy JSON | Data only |
+| **4  Tests / QA** | `Varun-op` | Export DENY / handbook ALLOW matrix | Zero forbidden exports |
+| **5  Runtime + scenarios** | `Spandananarayanaswamy` | Ollama + campus scripted scenarios | Fallback via gateway |
 
 Historical six-role split (Agent / Security / Backend / Frontend / Test harness / Integration) from earlier drafts is **superseded** by the table above: backend+policy+agent loop are consolidated under `shashankack` for this team size.
 
@@ -941,22 +941,22 @@ SQLite works well for a one-process local demo. Some serverless environments hav
 
 ### 20.1 Three-minute demo flow
 
-**0:00–0:20 — Problem (20s)**  
+**0:00–0:20  Problem (20s)**  
 “AI agents can read documents and call tools. A malicious document could trick an agent into requesting an action the user never approved.”
 
-**0:20–0:40 — Setup (20s)**  
+**0:20–0:40  Setup (20s)**  
 Show the invoice task and its three permission rules: read selected invoices, approval for internal email, never delete.
 
-**0:40–1:15 — Valid task (35s)**  
+**0:40–1:15  Valid task (35s)**  
 Run the assistant and show the approved invoice reads and an accurate outstanding-payment summary.
 
-**1:15–1:55 — Attack and block (40s)**  
+**1:15–1:55  Attack and block (40s)**  
 Show the untrusted malicious invoice note; if the live model proposes external email, show the denial. Also run the deterministic forced-call security test to prove the gateway would reject that proposal even if an agent requested it.
 
-**1:55–2:30 — Human approval (35s)**  
+**1:55–2:30  Human approval (35s)**  
 Request an internal email; show the pause, exact payload, approval, and single mock outbox entry. Attempt to reuse the approval and show denial.
 
-**2:30–3:00 — Architecture and results (30s)**  
+**2:30–3:00  Architecture and results (30s)**  
 Point to the trusted tool gateway, show test counts and zero forbidden executions, and explain how the design could extend to other agent tool ecosystems.
 
 ### 20.2 Suggested presentation slides (maximum 5)
@@ -1010,7 +1010,7 @@ A human approval flow reduces accidental or unauthorized execution of specified 
 
 ## 22. Future roadmap
 
-### V1 — After hackathon
+### V1  After hackathon
 
 - Add pluggable adapters for approved MCP tools.
 - Introduce real authentication and role-bound task creation.
@@ -1018,7 +1018,7 @@ A human approval flow reduces accidental or unauthorized execution of specified 
 - Implement tenant separation and ownership enforcement.
 - Replace simulated outbox with a strictly scoped sandbox integration.
 
-### V2 — Deeper security
+### V2  Deeper security
 
 - Use standard policy engines (for example, Cedar or OPA) for more expressive, auditable authorization.
 - Integrate identity-aware credentials and downstream least-privilege scopes.
@@ -1026,7 +1026,7 @@ A human approval flow reduces accidental or unauthorized execution of specified 
 - Add structured trace correlation and tamper-evident external logging.
 - Expand adversarial evaluation across more tools and attack categories.
 
-### V3 — Developer platform
+### V3  Developer platform
 
 - SDK/middleware for wrapping agent tools.
 - Policy-as-code version control and CI testing.
@@ -1072,16 +1072,16 @@ The project is ready to submit when:
 
 These links informed the architectural decisions and competitive positioning. Review API versions and requirements during implementation because documentation can change.
 
-1. **OWASP — Agentic Security Initiative:** https://genai.owasp.org/initiatives/agentic-security-initiative/
-2. **OWASP — Top 10 for Agentic Applications 2026:** https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
-3. **OWASP — Agent Control Standard (ACS):** https://genai.owasp.org/resource/agent-control-standard-acs/
-4. **Invariant — Guardrails:** https://invariantlabs.ai/guardrails
-5. **OpenAI — Function calling:** https://developers.openai.com/api/docs/guides/function-calling
-6. **OpenAI — Agents SDK:** https://developers.openai.com/api/docs/guides/agents/sdk
-7. **Model Context Protocol — Official site:** https://modelcontextprotocol.io/
-8. **MCP — Tools specification:** https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/server/tools.mdx
-9. **Next.js — Route Handlers:** https://nextjs.org/docs/app/getting-started/route-handlers
-10. **Prisma — SQLite reference (optional ORM alternative):** https://docs.prisma.io/docs/orm/core-concepts/supported-databases/sqlite
+1. **OWASP  Agentic Security Initiative:** https://genai.owasp.org/initiatives/agentic-security-initiative/
+2. **OWASP  Top 10 for Agentic Applications 2026:** https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+3. **OWASP  Agent Control Standard (ACS):** https://genai.owasp.org/resource/agent-control-standard-acs/
+4. **Invariant  Guardrails:** https://invariantlabs.ai/guardrails
+5. **OpenAI  Function calling:** https://developers.openai.com/api/docs/guides/function-calling
+6. **OpenAI  Agents SDK:** https://developers.openai.com/api/docs/guides/agents/sdk
+7. **Model Context Protocol  Official site:** https://modelcontextprotocol.io/
+8. **MCP  Tools specification:** https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/server/tools.mdx
+9. **Next.js  Route Handlers:** https://nextjs.org/docs/app/getting-started/route-handlers
+10. **Prisma  SQLite reference (optional ORM alternative):** https://docs.prisma.io/docs/orm/core-concepts/supported-databases/sqlite
 
 ---
 

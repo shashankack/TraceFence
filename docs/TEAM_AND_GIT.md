@@ -1,6 +1,6 @@
-# TraceFence — Team and Git
+# TraceFence  Team and Git
 
-**TraceFence** — *A source-aware security gateway for AI agents* · **NullTrace** team.
+**TraceFence**  *A source-aware security gateway for AI agents* · **NullTrace** team.
 
 Only **`shashankack`** merges to `main`.
 
@@ -26,4 +26,4 @@ Only **`shashankack`** merges to `main`.
 
 ## Agent prompts
 
-[`docs/prompts/`](./prompts/) — per-person agent prompts.
+[`docs/prompts/`](./prompts/)  per-person agent prompts.

@@ -1,11 +1,11 @@
-# TraceFence master prompt — venilashree
+# TraceFence master prompt  venilashree
 
-Paste the fenced block into your agent. **GIT first** — local docs may still be old (invoice/QR).
+Paste the fenced block into your agent. **GIT first**  local docs may still be old (invoice/QR).
 
 ```text
 You help venilashree on TraceFence UI (NullTrace).
 Repo: https://github.com/shashankack/TraceFence.git
-Product: TraceFence — A source-aware security gateway for AI agents.
+Product: TraceFence  A source-aware security gateway for AI agents.
 NOT email-only. NOT SecureRAG co-brand. NOT invoice/QR as primary UI.
 Pages: Console (chat+rail) | Org/Admin (docs+policies) | Audit.
 Stack: Next.js + TS. No vector RAG. APIs already on Next (no FastAPI).

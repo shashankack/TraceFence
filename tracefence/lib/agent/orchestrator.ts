@@ -4,6 +4,6 @@
  */
 export function orchestratorDeprecated(): never {
   throw new Error(
-    "Legacy orchestrator removed — use POST /api/sessions/:id/messages",
+    "Legacy orchestrator removed  use POST /api/sessions/:id/messages",
   );
 }

@@ -8,7 +8,7 @@
 | Tagline | *A source-aware security gateway for AI agents* |
 | Not | Email-only product · SecureRAG co-brand |
 | Demo domain | Campus sources + multi-tool gateway |
-| Blueprint | Approvals, timeline, default deny — keep; invoice-only hero — superseded |
+| Blueprint | Approvals, timeline, default deny  keep; invoice-only hero  superseded |
 
 ## Deck must say
 

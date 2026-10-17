@@ -356,7 +356,7 @@ function ChatMessage({ message }: { message: Message }) {
           {message.blocked && <span><Icon name="lock" size={11} />Gateway enforced</span>}
         </div>
         <p>{message.text}</p>
-        {message.blocked && <small>Enforced by TraceFence gateway — not by the model.</small>}
+        {message.blocked && <small>Enforced by TraceFence gateway  not by the model.</small>}
         {message.citations && <CitationList citations={message.citations} />}
       </div>
     </div>
@@ -652,7 +652,7 @@ function OrgPage() {
     ]);
     setDraftTitle("");
     setDirty(true);
-    setToast("Document added — publish policy to bump version");
+    setToast("Document added  publish policy to bump version");
   };
 
   const publish = () => {

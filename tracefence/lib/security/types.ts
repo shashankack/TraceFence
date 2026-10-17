@@ -15,7 +15,7 @@ export type TimelinePhase = "SOURCE" | "PROPOSAL" | "DECISION" | "OUTCOME";
 
 export type PolicyAction = Decision;
 
-/** @deprecated Legacy invoice task rules — prefer role tool matrix. */
+/** @deprecated Legacy invoice task rules  prefer role tool matrix. */
 export interface PolicyRule {
   tool: string;
   action: PolicyAction;

@@ -5,6 +5,7 @@
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
 export type Role = "guest" | "student" | "faculty" | "admin";
+export type OrgType = "college" | "small_business";
 export type Classification = "public" | "internal" | "confidential";
 export type Phase = "SOURCE" | "PROPOSAL" | "DECISION" | "OUTCOME";
 export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED" | "CONSUMED";
@@ -35,8 +36,28 @@ export interface AuthMeDTO {
   displayName?: string | null;
   tenantId: string;
   tenantName?: string | null;
+  orgType?: OrgType;
   role: Role;
   memberships: Array<{ tenantId: string; tenantName: string; role: Role }>;
+}
+
+export interface OrgProfileDTO {
+  id: string;
+  name: string;
+  orgType: OrgType;
+  notifyEmail: string | null;
+  profile: { website?: string; city?: string; sizeBand?: string };
+  createdAt: string;
+}
+
+export interface NotificationDTO {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  kind: string | null;
+  taskId: string | null;
+  createdAt: string;
 }
 
 export interface SessionDTO {
@@ -70,7 +91,7 @@ export interface MessageResponseDTO {
   citations: CitationDTO[];
   events: EventDTO[];
   pendingApprovalId?: string;
-  /** Guest asked for non-public / privileged action — open login. */
+  /** Guest asked for non-public / privileged action  open login. */
   authRequired?: boolean;
 }
 

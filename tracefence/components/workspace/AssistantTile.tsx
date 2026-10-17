@@ -9,6 +9,7 @@ import { BentoTile } from "@/components/ui/bento";
 import { Button } from "@/components/ui/button";
 import { ClassLabel } from "@/components/ui/decision-badge";
 import { Textarea } from "@/components/ui/textarea";
+import { StatusCycle, THINKING_PHRASES } from "@/components/ui/motion/status-cycle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SCENARIOS } from "./format";
 import { useWorkspace, type ChatMessage } from "./WorkspaceProvider";
@@ -85,9 +86,9 @@ export function AssistantTile({ role, className }: { role: Exclude<Role, "admin"
               <Message key={m.id} message={m} />
             ))}
             {sending && (
-              <li className="flex items-center gap-2 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2.5">
                 <Loader2 className="size-3.5 animate-spin text-primary" />
-                Gateway is authorizing sources and tools…
+                <StatusCycle className="text-xs" phrases={THINKING_PHRASES} />
               </li>
             )}
           </ol>

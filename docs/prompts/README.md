@@ -1,7 +1,7 @@
-# Agent master prompts — TraceFence
+# Agent master prompts  TraceFence
 
 **Everyone:** `git fetch && git checkout <branch> && git pull && git merge origin/main` before work.  
-Old invoice/QR/SecureRAG dual-brand context on feature branches is stale — **main wins for docs/**.
+Old invoice/QR/SecureRAG dual-brand context on feature branches is stale  **main wins for docs/**.
 
 | Person | File | Branch |
 |---|---|---|

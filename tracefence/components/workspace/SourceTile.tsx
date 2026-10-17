@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Lock, ScanSearch, TriangleAlert } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import type { Decision } from "@/components/api/types";
 import { SEED_DOCUMENTS, docTitle } from "@/components/domain/catalog";
 import { externalRecipients, highlightSegments, isInjection, scanForInjection } from "@/components/domain/injection";
@@ -29,6 +30,7 @@ function wrapLines(text: string, width = 60) {
 /** The latest untrusted input, any instructions embedded in it, and the context fence the ACL built. */
 export function SourceTile({ className }: { className?: string }) {
   const { messages, events, turnFrom } = useWorkspace();
+  const reduce = useReducedMotion();
   const userTurns = messages.filter((m) => m.from === "user");
   const lastUser = userTurns[userTurns.length - 1];
   const lastAssistant = [...messages].reverse().find((m) => m.from === "assistant");
@@ -100,7 +102,7 @@ export function SourceTile({ className }: { className?: string }) {
                 </div>
                 <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-foreground/80">
                   {injected
-                    ? "This text tries to override instructions or claim authority. It reaches the model as data only — any tool call it induces is still checked against your real role."
+                    ? "This text tries to override instructions or claim authority. It reaches the model as data only  any tool call it induces is still checked against your real role."
                     : "This touches bulk or external data. The gateway decides whether it runs, not the wording."}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -130,19 +132,31 @@ export function SourceTile({ className }: { className?: string }) {
               <p className="m-0 px-5 text-sm text-muted-foreground">No documents matched.</p>
             ) : (
               <ul className="m-0 list-none px-3 pb-2">
-                {entered.map((d) => (
-                  <li className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm" key={`in-${d.id}`}>
+                {entered.map((d, i) => (
+                  <motion.li
+                    className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm"
+                    initial={reduce ? false : { opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    key={`in-${d.id}`}
+                  >
                     <FileText className="size-3.5 text-primary" />
                     <span className="min-w-0 flex-1 truncate">{docTitle(d.id)}</span>
                     <ClassLabel value={d.classification} />
-                  </li>
+                  </motion.li>
                 ))}
-                {fenced.map((id) => (
-                  <li className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm" key={`out-${id}`}>
+                {fenced.map((id, i) => (
+                  <motion.li
+                    className="flex items-center gap-2.5 rounded-md border border-violet/15 bg-violet/5 px-2 py-1.5 text-sm"
+                    initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.08 + i * 0.05, type: "spring", stiffness: 360, damping: 22 }}
+                    key={`out-${id}`}
+                  >
                     <Lock className="size-3.5 text-violet" />
                     <span className="min-w-0 flex-1 truncate text-muted-foreground line-through decoration-muted-foreground/40">{docTitle(id)}</span>
                     <span className="font-mono text-[11px] text-violet">fenced</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             )}

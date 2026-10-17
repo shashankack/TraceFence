@@ -1,6 +1,9 @@
+"use client";
+
 import { Check, Clock3, Filter, X } from "lucide-react";
 import type { Decision } from "@/components/api/types";
 import { cn } from "@/components/lib/utils";
+import { DecisionPop } from "@/components/ui/motion/decision-pop";
 
 const TONE: Record<Decision, { label: string; className: string; Icon: typeof Check }> = {
   ALLOW: { label: "Allowed", className: "bg-allow-soft text-allow border-allow/20", Icon: Check },
@@ -11,13 +14,19 @@ const TONE: Record<Decision, { label: string; className: string; Icon: typeof Ch
 export function DecisionBadge({ decision, className }: { decision: Decision; className?: string }) {
   const t = TONE[decision];
   return (
-    <span
-      className={cn("inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11.5px] font-medium whitespace-nowrap", t.className, className)}
-      title={decision}
-    >
-      <t.Icon className="size-3" strokeWidth={2.4} />
-      {t.label}
-    </span>
+    <DecisionPop decision={decision}>
+      <span
+        className={cn(
+          "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11.5px] font-medium whitespace-nowrap",
+          t.className,
+          className,
+        )}
+        title={decision}
+      >
+        <t.Icon className="size-3" strokeWidth={2.4} />
+        {t.label}
+      </span>
+    </DecisionPop>
   );
 }
 

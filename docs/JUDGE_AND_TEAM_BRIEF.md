@@ -1,9 +1,9 @@
-# TraceFence — Judge & team brief
+# TraceFence  Judge & team brief
 
 **Product:** TraceFence · **Team:** NullTrace  
 **Tagline:** *A source-aware security gateway for AI agents*
 
-**Demo:** Campus sources + multi-tool gateway + **org admin** (upload docs / define policies) — **not** an email-only product.
+**Demo:** Campus sources + multi-tool gateway + **org admin** (upload docs / define policies)  **not** an email-only product.
 
 ---
 
@@ -13,7 +13,7 @@
 >  
 > **TraceFence** is a source-aware security gateway: the org uploads documents and defines who may read what and which tools are ALLOW / DENY / REQUIRE_APPROVAL. We filter what may enter context, and every consequential tool hits policy in application code. Timeline: **SOURCE → PROPOSAL → DECISION → OUTCOME**.  
 >  
-> Live demo: show Org admin corpus + policy matrix, then campus chat — a student gets hostel curfew from public sources only; cannot pull confidential directory into context; cannot export records — **DENY**. Faculty export needs one exact approval. Document text cannot rewrite permissions.  
+> Live demo: show Org admin corpus + policy matrix, then campus chat  a student gets hostel curfew from public sources only; cannot pull confidential directory into context; cannot export records  **DENY**. Faculty export needs one exact approval. Document text cannot rewrite permissions.  
 >  
 > We are not claiming perfect prompt-injection immunity. We are showing inspectable, enforceable agent permissions.
 
@@ -32,7 +32,7 @@
 | Q | A |
 |---|---|
 | What is TraceFence? | A source-aware security gateway for AI agents. |
-| Is this just blocking email? | No — email/notify is one tool. We also filter reads and gate exports and other actions. |
+| Is this just blocking email? | No  email/notify is one tool. We also filter reads and gate exports and other actions. |
 | Why campus? | Clear public vs confidential sources so judges see the gateway in 3 minutes. |
 | What if the model ignores policy? | Bad sources never enter context; tools still denied by the gateway. |
 

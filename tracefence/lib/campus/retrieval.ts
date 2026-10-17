@@ -17,7 +17,7 @@ export interface RetrievedDoc {
   classification: string;
   collection: string;
   excerpt: string;
-  /** Chunk text for LLM context — not the full document. */
+  /** Chunk text for LLM context  not the full document. */
   content: string;
   chunkIndex?: number;
   page?: number | null;
@@ -40,7 +40,7 @@ function readDocContent(tenantId: string, docId: string): string | null {
 
 /**
  * Permission-filtered chunk RAG. Unauthorized docs never appear in hits.
- * Returns top chunks only — full PDFs/policies never enter the LLM prompt.
+ * Returns top chunks only  full PDFs/policies never enter the LLM prompt.
  */
 export function searchDocs(
   tenantId: string,
