@@ -1,6 +1,39 @@
 /** SQL DDL for TraceFence SQLite. Applied on first getDb(). */
 
 export const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  policy_version INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS session_events (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  ts TEXT NOT NULL,
+  phase TEXT,
+  tool TEXT,
+  args_preview_json TEXT,
+  decision TEXT,
+  reason_code TEXT,
+  outcome TEXT,
+  doc_ids_json TEXT,
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
+CREATE TABLE IF NOT EXISTS session_messages (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  content TEXT NOT NULL,
+  citations_json TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
 CREATE TABLE IF NOT EXISTS sources (
   id TEXT PRIMARY KEY,
   url TEXT NOT NULL,
@@ -52,8 +85,7 @@ CREATE TABLE IF NOT EXISTS approvals (
   expires_at TEXT NOT NULL,
   approved_by TEXT,
   consumed_at TEXT,
-  created_at TEXT NOT NULL,
-  FOREIGN KEY (task_id) REFERENCES tasks(id)
+  created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS mock_email_outbox (

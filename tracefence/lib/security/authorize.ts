@@ -1,20 +1,33 @@
+import { toolDecisionForRole } from "../campus/policy";
 import { ReasonCode } from "./reasonCodes";
-import type { AuthorizeInput, AuthorizeResult, PolicyRule } from "./types";
+import type {
+  AuthorizeInput,
+  AuthorizeResult,
+  CampusRole,
+  PolicyRule,
+} from "./types";
+
+const CAMPUS_TOOLS = new Set([
+  "search_docs",
+  "read_document",
+  "export_records",
+  "post_announcement",
+  "notify_external",
+]);
 
 /**
- * Pure policy evaluation stub.
- * Full rule matching lands in the next backend slice; default deny holds.
+ * Role-aware policy evaluation. Default deny. DEMO_MODE must never bypass DENY.
  */
 export function authorize(
   input: AuthorizeInput,
-  rules: PolicyRule[] = [],
+  _rules: PolicyRule[] = [],
   opts: { taskActive?: boolean; expiresAt?: string | null } = {},
 ): AuthorizeResult {
   if (opts.taskActive === false) {
     return {
       decision: "DENY",
       reasonCode: ReasonCode.DENIED_TASK_INACTIVE,
-      message: "Task is not active",
+      message: "Session is not active",
     };
   }
 
@@ -22,12 +35,11 @@ export function authorize(
     return {
       decision: "DENY",
       reasonCode: ReasonCode.DENIED_TASK_EXPIRED,
-      message: "Task has expired",
+      message: "Session has expired",
     };
   }
 
-  const known = new Set(["read_invoice", "send_email", "delete_invoice"]);
-  if (!known.has(input.tool)) {
+  if (!CAMPUS_TOOLS.has(input.tool)) {
     return {
       decision: "DENY",
       reasonCode: ReasonCode.DENIED_TOOL_UNKNOWN,
@@ -35,8 +47,17 @@ export function authorize(
     };
   }
 
-  const rule = rules.find((r) => r.tool === input.tool);
-  if (!rule) {
+  const role = input.role as CampusRole | undefined;
+  if (!role) {
+    return {
+      decision: "DENY",
+      reasonCode: ReasonCode.DENIED_ROLE,
+      message: "Missing trusted role on authorize input",
+    };
+  }
+
+  const action = toolDecisionForRole(role, input.tool);
+  if (!action) {
     return {
       decision: "DENY",
       reasonCode: ReasonCode.DENIED_DEFAULT,
@@ -44,53 +65,22 @@ export function authorize(
     };
   }
 
-  if (rule.action === "DENY") {
+  if (action === "DENY") {
     return {
       decision: "DENY",
-      reasonCode: ReasonCode.DENIED_DEFAULT,
-      message: `Tool ${input.tool} is denied by policy`,
+      reasonCode:
+        input.tool === "export_records"
+          ? ReasonCode.DENIED_EXPORT
+          : ReasonCode.DENIED_ROLE,
+      message: `Tool ${input.tool} denied for role ${role}`,
     };
   }
 
-  if (input.tool === "read_invoice") {
-    const id = String(input.args.invoice_id ?? "");
-    const allowed = rule.allowedInvoiceIds ?? [];
-    if (!allowed.includes(id)) {
-      return {
-        decision: "DENY",
-        reasonCode: ReasonCode.DENIED_SCOPE,
-        message: `Invoice ${id} outside task scope`,
-      };
-    }
-  }
-
-  if (input.tool === "send_email") {
-    const to = String(input.args.to ?? "");
-    const domain = to.includes("@") ? to.split("@").pop()!.toLowerCase() : "";
-    const allowedDomains = (rule.allowedRecipientDomains ?? []).map((d) =>
-      d.toLowerCase(),
-    );
-    if (!domain || !allowedDomains.includes(domain)) {
-      return {
-        decision: "DENY",
-        reasonCode: ReasonCode.DENIED_RECIPIENT,
-        message: `Recipient domain not eligible: ${domain || "(empty)"}`,
-      };
-    }
-    if (rule.action === "REQUIRE_APPROVAL") {
-      return {
-        decision: "REQUIRE_APPROVAL",
-        reasonCode: ReasonCode.REQUIRES_APPROVAL,
-        message: "Email requires exact-action human approval",
-      };
-    }
-  }
-
-  if (rule.action === "REQUIRE_APPROVAL") {
+  if (action === "REQUIRE_APPROVAL") {
     return {
       decision: "REQUIRE_APPROVAL",
       reasonCode: ReasonCode.REQUIRES_APPROVAL,
-      message: "Action requires approval",
+      message: `Tool ${input.tool} requires exact-action approval`,
     };
   }
 

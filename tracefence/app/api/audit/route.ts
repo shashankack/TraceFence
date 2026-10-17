@@ -4,29 +4,33 @@ import { getDb } from "@/lib/db/client";
 export async function GET() {
   const db = getDb();
 
-  const decisions = db
+  const sessionDecisions = db
+    .prepare(
+      `SELECT decision, COUNT(*) as count FROM session_events
+       WHERE decision IS NOT NULL GROUP BY decision`,
+    )
+    .all();
+
+  const legacyDecisions = db
     .prepare(
       `SELECT decision, COUNT(*) as count FROM events
        WHERE decision IS NOT NULL GROUP BY decision`,
     )
     .all();
 
-  const outbox = db
-    .prepare(`SELECT COUNT(*) as count FROM mock_email_outbox`)
+  const sessions = db
+    .prepare(`SELECT COUNT(*) as count FROM sessions`)
     .get() as { count: number };
 
-  const forbiddenOutbox = db
-    .prepare(
-      `SELECT COUNT(*) as count FROM mock_email_outbox
-       WHERE to_addr LIKE '%@external.example'
-          OR to_addr LIKE '%@attacker.example'`,
-    )
+  const pendingApprovals = db
+    .prepare(`SELECT COUNT(*) as count FROM approvals WHERE status = 'PENDING'`)
     .get() as { count: number };
 
   return NextResponse.json({
-    decisions,
-    mockOutboxCount: outbox.count,
-    forbiddenOutboxCount: forbiddenOutbox.count,
-    note: "DEMO_MODE audit aggregate — forbidden outbox must stay 0 for attack demos",
+    sessions: sessions.count,
+    sessionDecisions,
+    legacyDecisions,
+    pendingApprovals: pendingApprovals.count,
+    note: "TraceFence campus audit — DEMO_MODE never bypasses DENY",
   });
 }

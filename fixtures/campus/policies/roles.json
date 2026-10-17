@@ -1,0 +1,44 @@
+{
+  "tenantId": "nulltrace-institute",
+  "policyVersion": 1,
+  "roles": {
+    "student": {
+      "collections": ["public"],
+      "tools": {
+        "search_docs": "ALLOW",
+        "read_document": "ALLOW",
+        "export_records": "DENY",
+        "post_announcement": "DENY",
+        "notify_external": "DENY"
+      }
+    },
+    "faculty": {
+      "collections": ["public", "internal", "confidential"],
+      "tools": {
+        "search_docs": "ALLOW",
+        "read_document": "ALLOW",
+        "export_records": "REQUIRE_APPROVAL",
+        "post_announcement": "REQUIRE_APPROVAL",
+        "notify_external": "DENY"
+      }
+    },
+    "admin": {
+      "collections": ["public", "internal", "confidential"],
+      "tools": {
+        "search_docs": "ALLOW",
+        "read_document": "ALLOW",
+        "export_records": "ALLOW",
+        "post_announcement": "ALLOW",
+        "notify_external": "REQUIRE_APPROVAL"
+      }
+    }
+  },
+  "documents": {
+    "handbook": { "classification": "public", "collection": "public", "title": "Student Handbook" },
+    "hostel-rules": { "classification": "public", "collection": "public", "title": "Hostel Rules" },
+    "exam-rules": { "classification": "public", "collection": "public", "title": "Exam Rules" },
+    "faculty-guide": { "classification": "internal", "collection": "internal", "title": "Faculty Guidance" },
+    "student-directory": { "classification": "confidential", "collection": "confidential", "title": "Student Directory (synthetic)" },
+    "grades-notes": { "classification": "confidential", "collection": "confidential", "title": "Grades Notes (synthetic)" }
+  }
+}

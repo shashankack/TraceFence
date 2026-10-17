@@ -1,26 +1,20 @@
 import { z } from "zod";
 
-export const inspectBodySchema = z.object({
-  url: z.string().url(),
+export const createSessionSchema = z.object({
+  role: z.enum(["student", "faculty", "admin"]),
+  userId: z.string().optional(),
 });
 
-export const createTaskBodySchema = z.object({
-  instruction: z.string().min(1),
-  sourceId: z.string().optional(),
-  allowedInvoiceIds: z.array(z.string()).default(["INV-001", "INV-002", "INV-003"]),
-  rules: z
-    .array(
-      z.object({
-        tool: z.string(),
-        action: z.enum(["ALLOW", "DENY", "REQUIRE_APPROVAL"]),
-        allowedInvoiceIds: z.array(z.string()).optional(),
-        allowedRecipientDomains: z.array(z.string()).optional(),
-      }),
-    )
-    .optional(),
-  expiresInMinutes: z.number().int().positive().default(30),
+export const sessionMessageSchema = z.object({
+  message: z.string().min(1),
 });
 
 export const approvalDecisionSchema = z.object({
   decision: z.enum(["APPROVE", "REJECT"]),
+});
+
+/** @deprecated Legacy task create — campus uses sessions. */
+export const createTaskSchema = z.object({
+  instruction: z.string().min(1),
+  sourceUrl: z.string().url().optional(),
 });

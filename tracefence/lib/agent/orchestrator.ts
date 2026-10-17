@@ -1,23 +1,9 @@
 /**
- * Agent loop stub. Will call Ollama + gateway + scripted scenario fallback.
- * Do not bypass gateway.invoke when wiring the live loop.
+ * Campus chat orchestration lives in lib/campus/chat.ts.
+ * Legacy task/invoice run loop is deprecated.
  */
-export type RunTaskResult = {
-  status: "NOT_IMPLEMENTED" | "COMPLETED" | "FAILED";
-  message: string;
-};
-
-export async function runTask(_taskId: string): Promise<RunTaskResult> {
-  return {
-    status: "NOT_IMPLEMENTED",
-    message:
-      "Orchestrator stub: wire Ollama tool loop + scenarios/ fallback next",
-  };
-}
-
-export async function stopTask(_taskId: string): Promise<RunTaskResult> {
-  return {
-    status: "NOT_IMPLEMENTED",
-    message: "Stop stub: mark task STOPPED in DB on next slice",
-  };
+export function orchestratorDeprecated(): never {
+  throw new Error(
+    "Legacy orchestrator removed — use POST /api/sessions/:id/messages",
+  );
 }

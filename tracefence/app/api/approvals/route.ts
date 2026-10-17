@@ -3,22 +3,23 @@ import { getDb } from "@/lib/db/client";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const taskId = url.searchParams.get("taskId");
+  const sessionId =
+    url.searchParams.get("sessionId") ?? url.searchParams.get("taskId");
   const db = getDb();
 
-  const rows = taskId
+  const rows = sessionId
     ? db
         .prepare(
-          `SELECT id, task_id as taskId, user_id as userId, tool_name as toolName,
+          `SELECT id, task_id as sessionId, user_id as userId, tool_name as toolName,
                   args_json as argsJson, canonical_args_hash as canonicalArgsHash,
                   policy_version as policyVersion, status, expires_at as expiresAt,
                   approved_by as approvedBy, consumed_at as consumedAt, created_at as createdAt
            FROM approvals WHERE task_id = ? ORDER BY created_at DESC`,
         )
-        .all(taskId)
+        .all(sessionId)
     : db
         .prepare(
-          `SELECT id, task_id as taskId, user_id as userId, tool_name as toolName,
+          `SELECT id, task_id as sessionId, user_id as userId, tool_name as toolName,
                   args_json as argsJson, canonical_args_hash as canonicalArgsHash,
                   policy_version as policyVersion, status, expires_at as expiresAt,
                   approved_by as approvedBy, consumed_at as consumedAt, created_at as createdAt

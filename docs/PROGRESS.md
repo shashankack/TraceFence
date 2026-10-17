@@ -6,6 +6,21 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Campus gateway MVP (sessions + ACL)
+
+### Done
+- `POST /api/sessions`, `POST /api/sessions/:id/messages`, `GET /api/sessions/:id/events`
+- Role ACL retrieval (`fixtures/campus`); confidential docs never enter student context
+- Gateway: student `export_records` DENY; faculty REQUIRE_APPROVAL + pending approvals
+- Scripted answers + optional Ollama; legacy `/api/tasks` returns 410
+- Smoke: curfew ALLOW, student export DENY, faculty approval PENDING
+
+### Next
+- Frontend chat UI (venilashree); fixture polish (desaitejas); tests (Varun); scenarios (Spandana)
+- Consume approved export on retry; richer chat UX
+
+---
+
 ## 2026-10-17 — Lock product name + tagline
 
 ### Decision
@@ -19,8 +34,7 @@ Newest entries first.
 - Commit + push to `main` so teammates can pull.
 
 ### Next
-- `implement` sessions + ACL retrieval + campus tools on `feature/shashankack-backend`.
-- Teammates: merge `origin/main` into their feature branches; paste their MASTER prompt.
+- Teammates: `git pull` their feature branch; paste their MASTER prompt.
 
 ---
 

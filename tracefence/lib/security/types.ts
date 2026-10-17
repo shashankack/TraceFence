@@ -2,13 +2,7 @@ import type { ReasonCode } from "./reasonCodes";
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
 
-export type TaskStatus =
-  | "CREATED"
-  | "RUNNING"
-  | "AWAITING_APPROVAL"
-  | "COMPLETED"
-  | "STOPPED"
-  | "FAILED";
+export type CampusRole = "student" | "faculty" | "admin";
 
 export type ApprovalStatus =
   | "PENDING"
@@ -21,6 +15,7 @@ export type TimelinePhase = "SOURCE" | "PROPOSAL" | "DECISION" | "OUTCOME";
 
 export type PolicyAction = Decision;
 
+/** @deprecated Legacy invoice task rules — prefer role tool matrix. */
 export interface PolicyRule {
   tool: string;
   action: PolicyAction;
@@ -30,7 +25,9 @@ export interface PolicyRule {
 
 export interface AuthorizeInput {
   userId: string;
+  /** Session id for campus (legacy field name taskId kept for approvals binding). */
   taskId: string;
+  role?: CampusRole;
   policyVersion: number;
   tool: string;
   args: Record<string, unknown>;

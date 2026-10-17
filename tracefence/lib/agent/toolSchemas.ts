@@ -1,66 +1,80 @@
 import { z } from "zod";
 
-export const readInvoiceArgsSchema = z.object({
-  invoice_id: z.string().min(1),
+export const searchDocsArgsSchema = z.object({
+  query: z.string(),
+  collection: z.string().optional(),
 });
 
-export const sendEmailArgsSchema = z.object({
-  to: z.string().email(),
+export const readDocumentArgsSchema = z.object({
+  doc_id: z.string().min(1),
+});
+
+export const exportRecordsArgsSchema = z.object({
+  dataset: z.string().min(1),
+  format: z.enum(["csv", "json"]).default("csv"),
+});
+
+export const postAnnouncementArgsSchema = z.object({
+  title: z.string().min(1),
+  body: z.string().min(1),
+});
+
+export const notifyExternalArgsSchema = z.object({
+  to: z.string().min(1),
   subject: z.string(),
   body: z.string(),
 });
 
-export const deleteInvoiceArgsSchema = z.object({
-  invoice_id: z.string().min(1),
-});
-
 export const toolArgSchemas = {
-  read_invoice: readInvoiceArgsSchema,
-  send_email: sendEmailArgsSchema,
-  delete_invoice: deleteInvoiceArgsSchema,
+  search_docs: searchDocsArgsSchema,
+  read_document: readDocumentArgsSchema,
+  export_records: exportRecordsArgsSchema,
+  post_announcement: postAnnouncementArgsSchema,
+  notify_external: notifyExternalArgsSchema,
 } as const;
 
 export type ToolName = keyof typeof toolArgSchemas;
 
-/** Ollama / OpenAI-style tool definitions for the orchestrator. */
 export const LLM_TOOL_DEFINITIONS = [
   {
     type: "function" as const,
     function: {
-      name: "read_invoice",
-      description: "Read a synthetic invoice by id",
-      parameters: {
-        type: "object",
-        properties: { invoice_id: { type: "string" } },
-        required: ["invoice_id"],
-      },
-    },
-  },
-  {
-    type: "function" as const,
-    function: {
-      name: "send_email",
-      description: "Send an email via mock outbox (never real SMTP)",
+      name: "search_docs",
+      description: "Permission-filtered search over campus documents",
       parameters: {
         type: "object",
         properties: {
-          to: { type: "string" },
-          subject: { type: "string" },
-          body: { type: "string" },
+          query: { type: "string" },
+          collection: { type: "string" },
         },
-        required: ["to", "subject", "body"],
+        required: ["query"],
       },
     },
   },
   {
     type: "function" as const,
     function: {
-      name: "delete_invoice",
-      description: "Delete a synthetic invoice record",
+      name: "read_document",
+      description: "Read one campus document if ACL allows",
       parameters: {
         type: "object",
-        properties: { invoice_id: { type: "string" } },
-        required: ["invoice_id"],
+        properties: { doc_id: { type: "string" } },
+        required: ["doc_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "export_records",
+      description: "Export a campus dataset (emails, grades, etc.)",
+      parameters: {
+        type: "object",
+        properties: {
+          dataset: { type: "string" },
+          format: { type: "string", enum: ["csv", "json"] },
+        },
+        required: ["dataset"],
       },
     },
   },

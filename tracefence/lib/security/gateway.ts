@@ -26,7 +26,6 @@ export async function invoke(
   return { authz };
 }
 
-/** Placeholder until approval + DB wiring is complete. */
 export function gatewayNotReady(): AuthorizeResult {
   return {
     decision: "DENY",
