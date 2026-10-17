@@ -35,11 +35,21 @@ function wantsExport(message: string): boolean {
   );
 }
 
+function isGreeting(message: string): boolean {
+  const m = message.toLowerCase().trim().replace(/[!?.]+$/g, "");
+  return /^(hi|hello|hey|yo|sup|good (morning|afternoon|evening)|howdy)(\s+there)?$/.test(
+    m,
+  );
+}
+
 function scriptedAnswer(
   message: string,
   retrieval: RetrievalResult | undefined,
 ): string {
   const m = message.toLowerCase();
+  if (isGreeting(m)) {
+    return "Hi! Ask me about hostel curfew, library hours, or exam rules — I only answer from documents your role is allowed to see.";
+  }
   if (retrieval?.hits.length) {
     const top = retrieval.hits[0];
     if (m.includes("curfew") || m.includes("hostel")) {
@@ -69,6 +79,12 @@ function scriptedAnswer(
   return "I could not find an allowed campus document for that question. Try asking about hostel curfew, library hours, or exam rules.";
 }
 
+function stripThinkTags(text: string): string {
+  return text
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/^\s+|\s+$/g, "");
+}
+
 async function tryOllama(
   message: string,
   context: string,
@@ -81,11 +97,13 @@ async function tryOllama(
       body: JSON.stringify({
         model,
         stream: false,
+        // qwen3 is a thinking model; disable for snappy campus replies
+        think: false,
         messages: [
           {
             role: "system",
             content:
-              "You are TraceFence campus assistant. Answer ONLY from the allowed context. If context is empty, say you lack permitted sources. Never invent confidential data.",
+              "You are TraceFence campus assistant. For greetings, reply briefly and offer to help with campus docs. For questions, answer ONLY from the allowed context. If context is empty, say you lack permitted sources. Never invent confidential data.",
           },
           {
             role: "user",
@@ -93,13 +111,16 @@ async function tryOllama(
           },
         ],
       }),
-      signal: AbortSignal.timeout(8000),
+      // Cold load + 8B can exceed 8s; keep fallback for real outages only
+      signal: AbortSignal.timeout(60000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as {
       message?: { content?: string };
     };
-    return data.message?.content?.trim() || null;
+    const raw = data.message?.content?.trim() || "";
+    const cleaned = stripThinkTags(raw);
+    return cleaned || null;
   } catch {
     return null;
   }
@@ -151,8 +172,11 @@ export async function handleChatTurn(input: {
     now: new Date(),
   };
 
-  // Always attempt filtered search for grounding (unless pure export ask).
-  if (!wantsExport(input.message) || input.message.length > 20) {
+  // Filtered search for grounding — skip pure export prompts and greetings.
+  if (
+    !isGreeting(input.message) &&
+    (!wantsExport(input.message) || input.message.length > 20)
+  ) {
     const searchArgs = { query: input.message };
     const { authz, result } = await invoke(
       { ...baseAuth, tool: "search_docs", args: searchArgs },

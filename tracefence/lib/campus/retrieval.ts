@@ -35,14 +35,25 @@ function readDocContent(tenantId: string, docId: string): string | null {
   return fs.readFileSync(file, "utf8");
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Whole-word scoring. Substring match was wrong: query "hi" hit "within"
+ * inside Exam Rules and the scripted fallback then dumped that doc.
+ */
 function scoreDoc(query: string, content: string, meta: DocMeta): number {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().trim();
+  if (!q) return 0;
   const hay = `${meta.title}\n${content}`.toLowerCase();
-  if (!q.trim()) return 0;
-  const terms = q.split(/\s+/).filter(Boolean);
+  // Drop ultra-short tokens (hi, ok, a) — they match noise inside longer words.
+  const terms = q.split(/\s+/).filter((t) => t.length >= 3);
+  if (!terms.length) return 0;
   let score = 0;
   for (const t of terms) {
-    if (hay.includes(t)) score += 1;
+    const re = new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(t)}(?:[^a-z0-9]|$)`);
+    if (re.test(hay)) score += 1;
   }
   return score;
 }
