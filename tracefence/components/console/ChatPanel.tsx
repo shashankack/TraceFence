@@ -25,13 +25,17 @@ export function ChatPanel() {
   };
 
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-white/95 shadow-[0_7px_24px_rgba(26,58,61,.05)]">
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-[0_10px_28px_rgba(18,22,28,.06)]">
       <div className="flex min-h-[64px] items-center justify-between border-b border-line px-4 py-3">
         <div>
-          <span className="block text-[10px] font-extrabold uppercase tracking-[.75px] text-teal">Campus assistant</span>
-          <h1 className="mt-0.5 font-display text-xl font-bold tracking-tight">NullTrace Institute</h1>
+          <span className="block text-[10px] font-extrabold uppercase tracking-[.85px] text-teal">
+            Campus assistant
+          </span>
+          <h1 className="mt-0.5 font-display text-xl font-bold tracking-tight text-ink">
+            NullTrace Institute
+          </h1>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full bg-allow-soft px-2.5 py-1.5 text-[11px] font-bold text-allow">
+        <span className="flex items-center gap-1.5 rounded-md bg-allow-soft px-2.5 py-1.5 text-[11px] font-bold text-allow">
           <StatusDot />
           {mode === "live" ? "Gateway active" : "Replay gateway"}
         </span>
@@ -50,11 +54,11 @@ export function ChatPanel() {
         )}
       </div>
 
-      <div className="border-t border-line bg-[#fbfcfc] px-3.5 pt-2.5 pb-2">
-        <div className="flex min-h-[58px] items-end gap-2 rounded-[10px] border border-line-strong bg-white p-2 shadow-[0_2px_7px_rgba(24,52,54,.05)] transition-shadow focus-within:border-[#70aaa2] focus-within:shadow-[0_0_0_3px_var(--color-teal-soft)]">
+      <div className="border-t border-line bg-surface-soft px-3.5 pt-2.5 pb-2">
+        <div className="flex min-h-[58px] items-end gap-2 rounded-[10px] border border-line-strong bg-surface p-2 shadow-[0_2px_8px_rgba(18,22,28,.04)] transition-shadow focus-within:border-teal/45 focus-within:shadow-[0_0_0_3px_var(--color-teal-soft)]">
           <textarea
             aria-label="Message"
-            className="min-h-[40px] flex-1 resize-none border-0 bg-transparent px-1.5 py-1 text-sm leading-relaxed text-ink outline-none placeholder:text-[#9ca8aa]"
+            className="min-h-[40px] flex-1 resize-none border-0 bg-transparent px-1.5 py-1 text-sm leading-relaxed text-ink outline-none placeholder:text-faint"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -131,7 +135,7 @@ function Message({ message, onRetry }: { message: ChatMessage; onRetry: (text: s
             </span>
           )}
         </div>
-        <p className="mt-1 max-w-[700px] text-sm leading-relaxed whitespace-pre-line text-[#3c4b4e]">
+        <p className="mt-1 max-w-[700px] text-sm leading-relaxed whitespace-pre-line text-muted">
           <InlineMarkdown text={message.text} />
         </p>
         {message.blocked && (

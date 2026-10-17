@@ -24,7 +24,7 @@ export function DecisionChip({ decision, pulse = false }: { decision: Decision; 
           ? { boxShadow: ["0 0 0 0 rgba(200,52,52,0)", "0 0 0 5px rgba(200,52,52,0.12)", "0 0 0 0 rgba(200,52,52,0)"] }
           : undefined
       }
-      className={`inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 font-mono text-[10px] font-bold ${tone.text} ${tone.bg}`}
+      className={`inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 font-mono text-[10px] font-bold ${tone.text} ${tone.bg}`}
       initial={{ scale: 0.8, opacity: 0 }}
       transition={pulse ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : { type: "spring", stiffness: 500, damping: 25 }}
       whileInView={{ scale: 1, opacity: 1 }}

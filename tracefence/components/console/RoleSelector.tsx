@@ -50,7 +50,7 @@ export function RoleSelector({ layoutGroup = "console" }: { layoutGroup?: string
 
 export function RoleTabs({ value, onChange, layoutGroup }: { value: Role; onChange: (r: Role) => void; layoutGroup: string }) {
   return (
-    <div className="flex gap-[3px] rounded-lg bg-[#e8efed] p-[3px]" role="tablist">
+    <div className="flex gap-[3px] rounded-lg bg-surface-soft p-[3px]" role="tablist">
       {ROLES.map((r) => (
         <button
           aria-selected={value === r}
@@ -62,7 +62,7 @@ export function RoleTabs({ value, onChange, layoutGroup }: { value: Role; onChan
         >
           {value === r && (
             <motion.span
-              className="absolute inset-0 rounded-md bg-white shadow-[0_1px_4px_rgba(27,65,66,.12)]"
+              className="absolute inset-0 rounded-md bg-surface shadow-[0_1px_3px_rgba(18,22,28,.08)]"
               layoutId={`role-pill-${layoutGroup}`}
               transition={{ type: "spring", stiffness: 500, damping: 35 }}
             />

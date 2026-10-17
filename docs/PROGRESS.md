@@ -6,6 +6,18 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Merge Venila UI + Bearer client glue
+
+### Done
+- Merged `origin/feature/venilashree-frontend` into `feature/shashankack-backend`.
+- Wired `components/api/client.ts` to demo login + Bearer (role tabs → `*@nulltrace.demo` / `demo1234`).
+- Live Console curfew ALLOW verified in browser; Org page loads live docs + policy matrices.
+
+### Next
+- Faculty approval path in UI; push merge + client glue; Venila polish login UX if desired.
+
+---
+
 ## 2026-10-17 — Killer demos verified + switch-tenant
 
 ### Done

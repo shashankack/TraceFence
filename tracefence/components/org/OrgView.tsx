@@ -112,8 +112,12 @@ export function OrgView() {
     <main className="mx-auto max-w-[1366px] px-6 pt-7 pb-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="block text-[10px] font-extrabold uppercase tracking-[.75px] text-teal">Organization fence</span>
-          <h1 className="mt-0.5 font-display text-[28px] font-bold tracking-tight">NullTrace Institute</h1>
+          <span className="block text-[10px] font-extrabold uppercase tracking-[.85px] text-teal">
+            Organization fence
+          </span>
+          <h1 className="mt-0.5 font-display text-[28px] font-bold tracking-tight text-ink">
+            NullTrace Institute
+          </h1>
           <p className="mt-1 max-w-[600px] text-sm leading-normal text-muted">
             Upload sources and define who may read them and which tools are ALLOW / DENY / REQUIRE_APPROVAL.
           </p>

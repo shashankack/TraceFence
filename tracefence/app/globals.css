@@ -1,30 +1,49 @@
 @import "tailwindcss";
 
+/*
+  TraceFence visual system — "workspace + fence"
+  Light instrument workspace; deep slate for brand/gateway surfaces.
+  Avoids purple gradients, cream+terracotta, and full-page dark mode.
+*/
 @theme {
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex), ui-monospace, monospace;
 
-  --color-ink: #172326;
-  --color-muted: #647276;
-  --color-faint: #8b989b;
-  --color-line: #dbe4e2;
-  --color-line-strong: #c9d6d3;
+  --color-ink: #12161c;
+  --color-muted: #5a6472;
+  --color-faint: #8a93a0;
+  --color-line: #dde1e8;
+  --color-line-strong: #c8ced8;
   --color-surface: #ffffff;
-  --color-surface-soft: #f7faf9;
-  --color-canvas: #f3f7f6;
-  --color-navy: #132f35;
-  --color-teal: #0d7b72;
-  --color-teal-strong: #096860;
-  --color-teal-soft: #e3f3f0;
-  --color-allow: #16834b;
-  --color-allow-soft: #e5f5eb;
-  --color-deny: #c83434;
-  --color-deny-soft: #fceaea;
-  --color-approval: #aa6208;
-  --color-approval-soft: #fff2dc;
-  --color-internal: #3559c7;
-  --color-internal-soft: #e9edfb;
+  --color-surface-soft: #f3f4f7;
+  --color-canvas: #e6e8ee;
+
+  /* Brand / primary action — forest fence */
+  --color-navy: #151a22;
+  --color-teal: #0f6b52;
+  --color-teal-strong: #0a4f3d;
+  --color-teal-soft: #d8eee6;
+
+  /* Decisions */
+  --color-allow: #157a45;
+  --color-allow-soft: #e1f4ea;
+  --color-deny: #c23030;
+  --color-deny-soft: #fce8e8;
+  --color-approval: #9a5b12;
+  --color-approval-soft: #f8ecd8;
+
+  /* Classification */
+  --color-internal: #2c5f8a;
+  --color-internal-soft: #e4eef6;
+
+  /* Gateway rail (decision panel) */
+  --color-rail: #151a22;
+  --color-rail-elevated: #1c2330;
+  --color-rail-line: #2a3344;
+  --color-rail-text: #eef0f4;
+  --color-rail-muted: #9aa3b2;
+  --color-rail-faint: #6b7585;
 }
 
 html,
@@ -36,12 +55,13 @@ body {
   margin: 0;
   color: var(--color-ink);
   font-family: var(--font-sans);
-  background:
-    radial-gradient(circle at 7% 2%, rgba(74, 163, 151, 0.1), transparent 27%),
-    linear-gradient(rgba(27, 67, 66, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(27, 67, 66, 0.025) 1px, transparent 1px),
-    var(--color-canvas);
-  background-size: auto, 28px 28px, 28px 28px, auto;
+  background-color: var(--color-canvas);
+  background-image:
+    radial-gradient(ellipse 90% 55% at 8% -10%, rgba(15, 107, 82, 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(21, 26, 34, 0.06), transparent 50%),
+    linear-gradient(rgba(18, 22, 28, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 22, 28, 0.022) 1px, transparent 1px);
+  background-size: auto, auto, 36px 36px, 36px 36px;
 }
 
 button {
@@ -60,4 +80,9 @@ button:disabled {
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
+}
+
+.scroll-rail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rail-line) transparent;
 }

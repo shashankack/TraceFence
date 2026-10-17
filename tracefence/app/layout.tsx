@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
-import { DM_Sans, Manrope, Roboto_Mono } from "next/font/google";
+import { Figtree, IBM_Plex_Mono, Syne } from "next/font/google";
 import { AppShell } from "@/components/shell/AppShell";
 import "./globals.css";
 
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
-const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto-mono" });
+const figtree = Figtree({
+  subsets: ["latin"],
+  variable: "--font-figtree",
+});
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+});
+const plex = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex",
+});
 
 export const metadata: Metadata = {
   title: "TraceFence",
@@ -18,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={`${dmSans.variable} ${manrope.variable} ${robotoMono.variable}`} lang="en">
+    <html
+      className={`${figtree.variable} ${syne.variable} ${plex.variable}`}
+      lang="en"
+    >
       <body className="antialiased">
         <AppShell>{children}</AppShell>
       </body>

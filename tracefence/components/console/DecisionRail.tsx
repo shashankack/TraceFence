@@ -11,15 +11,15 @@ import { Icon, toolIcon } from "@/components/ui/Icon";
 const PHASES = ["SOURCE", "PROPOSAL", "DECISION", "OUTCOME"] as const;
 
 const NODE_TONE: Record<Decision, string> = {
-  ALLOW: "text-teal bg-teal-soft border-[#bee0da]",
-  DENY: "text-deny bg-deny-soft border-[#efc2c2]",
-  REQUIRE_APPROVAL: "text-approval bg-approval-soft border-[#edd1a5]",
+  ALLOW: "text-allow bg-allow-soft/90 border-allow/30",
+  DENY: "text-deny bg-deny-soft/90 border-deny/30",
+  REQUIRE_APPROVAL: "text-approval bg-approval-soft/90 border-approval/35",
 };
 
 const REASON_TONE: Record<Decision, string> = {
-  ALLOW: "text-teal",
-  DENY: "text-deny",
-  REQUIRE_APPROVAL: "text-approval",
+  ALLOW: "text-[#7dceb0]",
+  DENY: "text-[#f0a0a0]",
+  REQUIRE_APPROVAL: "text-[#e0b878]",
 };
 
 export function formatTime(ts?: string) {
@@ -46,33 +46,41 @@ export function DecisionRail() {
   }, [events.length]);
 
   return (
-    <aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-white/95 shadow-[0_7px_24px_rgba(26,58,61,.05)]">
-      <div className="flex min-h-[64px] items-center justify-between border-b border-line px-4 py-3">
+    <aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-rail-line bg-rail text-rail-text shadow-[0_12px_40px_rgba(18,22,28,.22)]">
+      <div className="flex min-h-[64px] items-center justify-between border-b border-rail-line px-4 py-3">
         <div>
-          <span className="block text-[10px] font-extrabold uppercase tracking-[.75px] text-teal">Server gateway</span>
-          <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight">Decision rail</h2>
+          <span className="block text-[10px] font-extrabold uppercase tracking-[.85px] text-[#7dceb0]">
+            Server gateway
+          </span>
+          <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-rail-text">
+            Decision rail
+          </h2>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full bg-allow-soft px-2.5 py-1.5 text-[11px] font-bold text-allow">
+        <span className="flex items-center gap-1.5 rounded-md bg-rail-elevated px-2.5 py-1.5 text-[11px] font-bold text-rail-muted">
           <StatusDot tone={mode === "live" ? "green" : "amber"} />
           {mode === "live" ? "Live events" : "Replay events"}
         </span>
       </div>
 
-      <div className="flex min-h-[32px] items-center gap-1.5 border-b border-line bg-[#f7f9f9] px-3.5 font-mono text-[10px] font-semibold tracking-[.35px]">
+      <div className="flex min-h-[32px] items-center gap-1.5 border-b border-rail-line bg-rail-elevated px-3.5 font-mono text-[10px] font-semibold tracking-[.4px]">
         {PHASES.map((p, i) => (
           <span className="flex items-center gap-1.5" key={p}>
             <motion.span
-              animate={{ color: seenPhases.has(p) ? "var(--color-teal)" : "var(--color-faint)" }}
+              animate={{
+                color: seenPhases.has(p) ? "#7dceb0" : "var(--color-rail-faint)",
+              }}
               transition={{ duration: 0.4 }}
             >
               {p}
             </motion.span>
-            {i < PHASES.length - 1 && <Icon className="text-[#b2bcbe]" name="chevron" size={10} />}
+            {i < PHASES.length - 1 && (
+              <Icon className="text-rail-faint" name="chevron" size={10} />
+            )}
           </span>
         ))}
       </div>
 
-      <div className="scroll-thin flex-1 overflow-y-auto px-3 pt-1.5 pb-2" ref={scrollRef}>
+      <div className="scroll-rail flex-1 overflow-y-auto px-3 pt-1.5 pb-2" ref={scrollRef}>
         {events.length === 0 ? (
           <motion.div
             animate={{ opacity: 1 }}
@@ -80,14 +88,16 @@ export function DecisionRail() {
             initial={{ opacity: 0 }}
           >
             <motion.span
-              animate={{ rotate: [0, 12, -8, 0], scale: [1, 1.06, 1] }}
-              className="grid size-11 place-items-center rounded-xl bg-teal-soft text-teal"
+              animate={{ rotate: [0, 10, -6, 0] }}
+              className="grid size-11 place-items-center rounded-xl border border-rail-line bg-rail-elevated text-[#7dceb0]"
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
               <Icon name="spark" size={20} />
             </motion.span>
-            <strong className="mt-2.5 font-display text-sm font-bold">No decisions yet</strong>
-            <p className="max-w-[260px] text-xs leading-normal text-faint">
+            <strong className="mt-2.5 font-display text-sm font-bold text-rail-text">
+              No decisions yet
+            </strong>
+            <p className="max-w-[260px] text-xs leading-normal text-rail-muted">
               Tool proposals and source decisions will appear here in real time.
             </p>
           </motion.div>
@@ -100,10 +110,12 @@ export function DecisionRail() {
         )}
       </div>
 
-      <div className="flex min-h-[36px] items-center gap-1.5 border-t border-line bg-[#f7f9f9] px-3.5 text-[11px] text-muted">
-        <Icon className="text-teal" name="shield" size={13} />
+      <div className="flex min-h-[36px] items-center gap-1.5 border-t border-rail-line bg-rail-elevated px-3.5 text-[11px] text-rail-muted">
+        <Icon className="text-[#7dceb0]" name="shield" size={13} />
         <span>Policy executes outside the LLM</span>
-        <code className="ml-auto font-mono text-[10px] text-faint">{events.length} events</code>
+        <code className="ml-auto font-mono text-[10px] text-rail-faint">
+          {events.length} events
+        </code>
       </div>
     </aside>
   );
@@ -134,21 +146,25 @@ function RailEvent({ event, last, index }: { event: EventDTO; last: boolean; ind
         {!last && (
           <motion.span
             animate={{ scaleY: 1 }}
-            className="min-h-[72px] w-px flex-1 origin-top bg-line"
+            className="min-h-[72px] w-px flex-1 origin-top bg-rail-line"
             initial={{ scaleY: 0 }}
             transition={{ duration: 0.35, delay: 0.15 }}
           />
         )}
       </div>
-      <div className={`min-w-0 py-2 pl-2 ${last ? "" : "border-b border-[#eaf0ee]"}`}>
+      <div className={`min-w-0 py-2 pl-2 ${last ? "" : "border-b border-rail-line"}`}>
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-[10px] font-semibold tracking-[.7px] text-faint">{event.phase ?? "DECISION"}</span>
-          <time className="font-mono text-[10px] text-[#a2adaf]">{formatTime(event.ts)}</time>
+          <span className="font-mono text-[10px] font-semibold tracking-[.7px] text-rail-faint">
+            {event.phase ?? "DECISION"}
+          </span>
+          <time className="font-mono text-[10px] text-rail-faint">{formatTime(event.ts)}</time>
         </div>
         <div className="mt-1 flex items-center justify-between gap-2">
-          <code className="font-mono text-[13px] font-semibold text-ink">{event.tool ?? "gateway"}</code>
+          <code className="font-mono text-[13px] font-semibold text-rail-text">
+            {event.tool ?? "gateway"}
+          </code>
           {filtered ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-deny-soft px-2 py-1 font-mono text-[10px] font-bold text-deny">
+            <span className="inline-flex items-center gap-1 rounded-md bg-deny-soft px-2 py-1 font-mono text-[10px] font-bold text-deny">
               <Icon name="filter" size={10} />
               FILTERED
             </span>
@@ -158,12 +174,18 @@ function RailEvent({ event, last, index }: { event: EventDTO; last: boolean; ind
             )
           )}
         </div>
-        <code className="mt-1.5 block rounded-[5px] bg-[#f4f7f6] px-2 py-1.5 font-mono text-[11px] leading-snug break-words text-[#586568]">
+        <code className="mt-1.5 block rounded-md border border-rail-line bg-rail-elevated px-2 py-1.5 font-mono text-[11px] leading-snug break-words text-rail-muted">
           {argsLine(event.argsPreview)}
         </code>
         <div className="mt-1.5 flex items-baseline justify-between gap-2">
-          <code className={`font-mono text-[10px] font-semibold ${REASON_TONE[tone]}`}>{event.reasonCode}</code>
-          {event.outcome && <span className="truncate text-right text-[11px] text-faint" title={event.outcome}>{event.outcome}</span>}
+          <code className={`font-mono text-[10px] font-semibold ${REASON_TONE[tone]}`}>
+            {event.reasonCode}
+          </code>
+          {event.outcome && (
+            <span className="truncate text-right text-[11px] text-rail-faint" title={event.outcome}>
+              {event.outcome}
+            </span>
+          )}
         </div>
       </div>
     </motion.div>

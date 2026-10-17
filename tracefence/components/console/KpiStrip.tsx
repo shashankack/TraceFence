@@ -18,10 +18,10 @@ export function KpiStrip() {
   ).size;
 
   return (
-    <section className="mx-auto mt-3 grid h-[54px] max-w-[1366px] grid-cols-[.75fr_.75fr_1fr_1.4fr] rounded-[10px] border border-line bg-white/80 shadow-[0_3px_14px_rgba(26,58,61,.035)] max-[1410px]:mx-[22px]">
+    <section className="mx-auto mt-3 grid h-[54px] max-w-[1366px] grid-cols-[.75fr_.75fr_1fr_1.4fr] rounded-[10px] border border-line bg-surface/90 shadow-[0_4px_16px_rgba(18,22,28,.05)] max-[1410px]:mx-[22px]">
       <Kpi dot="bg-allow" label="Allowed" value={allowed} />
       <Kpi dot="bg-deny" label="Blocked" value={blocked} />
-      <Kpi dot="bg-[#d5831c]" label="Waiting approval" value={waiting} />
+      <Kpi dot="bg-approval" label="Waiting approval" value={waiting} />
       <Kpi
         badge="never in context"
         dot="bg-teal"

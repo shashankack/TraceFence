@@ -269,10 +269,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     async (decision: "APPROVE" | "REJECT") => {
       if (!approval) return;
       setDeciding(true);
-      const lastAsk = [...messages].reverse().find((m) => m.from === "user")?.text;
       try {
+        let nextStatus: ApprovalDTO["status"] =
+          decision === "APPROVE" ? "CONSUMED" : "REJECTED";
         if (mode === "replay") {
           await new Promise((r) => setTimeout(r, 400));
+          nextStatus = decision === "APPROVE" ? "APPROVED" : "REJECTED";
           setEvents((prev) => [...prev, replayApprovalOutcome(approval, decision)]);
           appendAssistant({
             text:
@@ -282,19 +284,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             blocked: decision === "REJECT",
           });
         } else {
-          await api.decideApproval(approval.id, decision);
+          const decided = await api.decideApproval(approval.id, decision);
+          nextStatus =
+            (decided.status as ApprovalDTO["status"]) ||
+            (decision === "APPROVE" ? "CONSUMED" : "REJECTED");
           const timeline = await api.sessionEvents(approval.sessionId).catch(() => null);
           if (timeline) setEvents(timeline);
           appendAssistant(
             decision === "APPROVE"
               ? {
-                  text: "Approval recorded for this exact action. The grant is single-use and bound to these arguments — retry the request to execute it.",
-                  retryable: lastAsk,
+                  text: "The approved export ran exactly once with the reviewed arguments. The single-use grant is now consumed.",
                 }
-              : { text: "The export was rejected. No file was created and no records were returned.", blocked: true },
+              : {
+                  text: "The export was rejected. No file was created and no records were returned.",
+                  blocked: true,
+                },
           );
         }
-        setApproval({ ...approval, status: decision === "APPROVE" ? "APPROVED" : "REJECTED" });
+        setApproval({ ...approval, status: nextStatus });
         setDrawerOpen(false);
         showToast(
           decision === "APPROVE"
@@ -316,7 +323,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setDeciding(false);
       }
     },
-    [approval, messages, mode, appendAssistant, showToast],
+    [approval, mode, appendAssistant, showToast],
   );
 
   const openApprovals = useCallback(() => {

@@ -22,10 +22,10 @@ export function AppHeader() {
   const { mode, setMode, pendingCount, openApprovals } = useAppState();
 
   return (
-    <header className="sticky top-0 z-40 flex h-[72px] items-center gap-6 border-b border-line bg-white/90 px-6 backdrop-blur-md">
-      <Link className="flex items-center gap-3 lg:w-[380px]" href="/">
+    <header className="sticky top-0 z-40 flex h-[72px] items-center gap-6 border-b border-line bg-surface/92 px-6 backdrop-blur-md">
+      <Link className="flex items-center gap-3 lg:w-[400px]" href="/">
         <motion.span
-          className="grid size-10 place-items-center rounded-[11px] bg-navy text-[#d4fff6] shadow-[inset_0_0_0_1px_rgba(255,255,255,.13),0_3px_10px_rgba(19,47,53,.16)]"
+          className="grid size-11 place-items-center rounded-[12px] bg-navy text-[#9fe2c8] shadow-[0_4px_14px_rgba(18,22,28,.18)]"
           transition={{ type: "spring", stiffness: 300, damping: 15 }}
           whileHover={{ rotate: -6, scale: 1.05 }}
         >
@@ -33,10 +33,16 @@ export function AppHeader() {
         </motion.span>
         <div>
           <div className="flex items-baseline gap-2">
-            <strong className="font-display text-xl font-extrabold tracking-tight">TraceFence</strong>
-            <span className="text-[10px] font-bold uppercase tracking-[.8px] text-teal">by NullTrace</span>
+            <strong className="font-display text-[1.35rem] font-extrabold tracking-[-0.03em] text-ink">
+              TraceFence
+            </strong>
+            <span className="text-[10px] font-bold uppercase tracking-[.85px] text-teal">
+              by NullTrace
+            </span>
           </div>
-          <p className="m-0 hidden text-xs text-muted sm:block">A source-aware security gateway for AI agents</p>
+          <p className="m-0 hidden text-xs text-muted sm:block">
+            A source-aware security gateway for AI agents
+          </p>
         </div>
       </Link>
 
@@ -64,7 +70,11 @@ export function AppHeader() {
       </nav>
 
       <div className="ml-auto flex items-center gap-2.5">
-        <div aria-label="Model mode" className="flex gap-0.5 rounded-[9px] border border-line bg-[#f2f5f4] p-[3px]" role="group">
+        <div
+          aria-label="Model mode"
+          className="flex gap-0.5 rounded-lg border border-line bg-surface-soft p-[3px]"
+          role="group"
+        >
           {MODES.map((m) => (
             <button
               aria-pressed={mode === m.id}
@@ -75,7 +85,7 @@ export function AppHeader() {
             >
               {mode === m.id && (
                 <motion.span
-                  className="absolute inset-0 rounded-md bg-white shadow-[0_1px_4px_rgba(24,53,57,.1)]"
+                  className="absolute inset-0 rounded-md bg-surface shadow-[0_1px_3px_rgba(18,22,28,.08)]"
                   layoutId="mode-pill"
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
@@ -89,7 +99,7 @@ export function AppHeader() {
         </div>
 
         <motion.button
-          className="flex h-[34px] items-center gap-1.5 rounded-lg border border-line-strong bg-white px-2.5 text-xs font-bold text-[#354448] hover:border-[#d4a25f]"
+          className="flex h-[34px] items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2.5 text-xs font-bold text-ink hover:border-approval/50"
           onClick={openApprovals}
           type="button"
           whileTap={{ scale: 0.96 }}
@@ -99,7 +109,7 @@ export function AppHeader() {
           <AnimatePresence initial={false} mode="popLayout">
             <motion.span
               animate={{ scale: 1, opacity: 1 }}
-              className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1.5 font-mono text-[10px] font-semibold ${pendingCount ? "bg-approval-soft text-approval" : "bg-[#eef2f1] text-faint"}`}
+              className={`grid h-[18px] min-w-[18px] place-items-center rounded-md px-1.5 font-mono text-[10px] font-semibold ${pendingCount ? "bg-approval-soft text-approval" : "bg-surface-soft text-faint"}`}
               exit={{ scale: 0.4, opacity: 0 }}
               initial={{ scale: 1.6, opacity: 0 }}
               key={pendingCount}
