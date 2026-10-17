@@ -11,6 +11,12 @@ declare global {
 }
 
 function resolveDbPath(): string {
+  // Vercel / serverless: only /tmp is writable (ephemeral; DEMO_MODE reseeds).
+  if (process.env.VERCEL || process.env.TRACEFENCE_DB_TMP === "1") {
+    return process.env.DATABASE_PATH && path.isAbsolute(process.env.DATABASE_PATH)
+      ? process.env.DATABASE_PATH
+      : "/tmp/tracefence.sqlite";
+  }
   const configured = process.env.DATABASE_PATH ?? "./data/tracefence.sqlite";
   return path.isAbsolute(configured)
     ? configured
@@ -33,7 +39,12 @@ export function getDb(): Database.Database {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
   const db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
+  // WAL is awkward on ephemeral /tmp serverless disks.
+  db.pragma(
+    process.env.VERCEL || process.env.TRACEFENCE_DB_TMP === "1"
+      ? "journal_mode = DELETE"
+      : "journal_mode = WAL",
+  );
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA_SQL);
   migrateApprovalsForSessions(db);

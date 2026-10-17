@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "copy-fixtures": "node scripts/copy-fixtures-for-deploy.mjs",
+    "build": "node scripts/copy-fixtures-for-deploy.mjs && next build",
     "start": "next start",
     "lint": "eslint"
   },

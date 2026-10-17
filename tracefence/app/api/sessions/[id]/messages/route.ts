@@ -5,6 +5,10 @@ import { handleChatTurn } from "@/lib/campus/chat";
 import { getDb } from "@/lib/db/client";
 import type { CampusRole } from "@/lib/security/types";
 
+/** Ollama via tunnel can be slow — allow long serverless execution on Vercel. */
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 function loadOwnedSession(id: string, auth: { tenantId: string; userId: string }) {
   const session = getDb()
     .prepare(
