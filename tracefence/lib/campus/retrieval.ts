@@ -6,6 +6,7 @@ import {
   roleAllowsCollection,
   type DocMeta,
 } from "./policy";
+import { getDocumentContentOverride } from "./orgStore";
 import type { CampusRole } from "../security/types";
 import { ReasonCode } from "../security/reasonCodes";
 
@@ -24,7 +25,10 @@ export interface RetrievalResult {
   reasonCode: typeof ReasonCode.ALLOWED | typeof ReasonCode.RETRIEVAL_FILTERED;
 }
 
-function readDocFile(docId: string): string | null {
+function readDocContent(tenantId: string, docId: string): string | null {
+  const override = getDocumentContentOverride(tenantId, docId);
+  if (override !== null) return override;
+  // Fallback for tenants that still reference fixture filenames
   const root = resolveCampusRoot();
   const file = path.join(root, "docs", `${docId}.md`);
   if (!fs.existsSync(file)) return null;
@@ -45,24 +49,30 @@ function scoreDoc(query: string, content: string, meta: DocMeta): number {
 
 /**
  * Permission-filtered search. Unauthorized docs never appear in hits.
+ * Scoped to a single tenant — no cross-tenant leakage.
  */
 export function searchDocs(
+  tenantId: string,
   role: CampusRole,
   query: string,
   collection?: string,
 ): RetrievalResult {
-  const policy = loadCampusPolicy();
+  const policy = loadCampusPolicy(tenantId);
   const filteredOut: string[] = [];
-  const scored: Array<{ docId: string; meta: DocMeta; content: string; score: number }> =
-    [];
+  const scored: Array<{
+    docId: string;
+    meta: DocMeta;
+    content: string;
+    score: number;
+  }> = [];
 
   for (const [docId, meta] of Object.entries(policy.documents)) {
     if (collection && meta.collection !== collection) continue;
-    if (!roleAllowsCollection(role, meta.collection)) {
+    if (!roleAllowsCollection(tenantId, role, meta.collection)) {
       filteredOut.push(docId);
       continue;
     }
-    const content = readDocFile(docId);
+    const content = readDocContent(tenantId, docId);
     if (!content) continue;
     const score = scoreDoc(query, content, meta);
     if (score > 0 || !query.trim()) {
@@ -90,20 +100,26 @@ export function searchDocs(
 }
 
 export function readDocument(
+  tenantId: string,
   role: CampusRole,
   docId: string,
 ):
   | { ok: true; doc: RetrievedDoc }
-  | { ok: false; reasonCode: typeof ReasonCode.DENIED_COLLECTION | typeof ReasonCode.DENIED_SCOPE } {
-  const policy = loadCampusPolicy();
+  | {
+      ok: false;
+      reasonCode:
+        | typeof ReasonCode.DENIED_COLLECTION
+        | typeof ReasonCode.DENIED_SCOPE;
+    } {
+  const policy = loadCampusPolicy(tenantId);
   const meta = policy.documents[docId];
   if (!meta) {
     return { ok: false, reasonCode: ReasonCode.DENIED_SCOPE };
   }
-  if (!roleAllowsCollection(role, meta.collection)) {
+  if (!roleAllowsCollection(tenantId, role, meta.collection)) {
     return { ok: false, reasonCode: ReasonCode.DENIED_COLLECTION };
   }
-  const content = readDocFile(docId);
+  const content = readDocContent(tenantId, docId);
   if (!content) {
     return { ok: false, reasonCode: ReasonCode.DENIED_SCOPE };
   }

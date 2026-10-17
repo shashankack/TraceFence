@@ -6,18 +6,48 @@
 
 `ALLOW` | `DENY` | `REQUIRE_APPROVAL`
 
-## Identity (session)
+## Auth (multi-tenant)
+
+Trusted identity comes from a **Bearer auth session**, never from the client body.
+
+```http
+Authorization: Bearer <token>
+```
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/signup` | `{ email, password, displayName?, tenantName? }` |
+| `POST` | `/api/auth/login` | `{ email, password, tenantId? }` → token + memberships |
+| `POST` | `/api/auth/logout` | Revoke token |
+| `GET` | `/api/auth/me` | Current user + tenant + role |
+
+Signup with `tenantName` creates a new tenant and makes the user **admin**.  
+Without `tenantName`, new users join `nulltrace-institute` as **student**.
+
+### Demo users (`DEMO_MODE=true`, password `demo1234`)
+
+| Email | Tenant | Role |
+|---|---|---|
+| `student@nulltrace.demo` | `nulltrace-institute` | student |
+| `faculty@nulltrace.demo` | `nulltrace-institute` | faculty |
+| `admin@nulltrace.demo` | `nulltrace-institute` | admin |
+| `student@riverview.demo` | `riverview-college` | student |
+| `admin@riverview.demo` | `riverview-college` | admin |
+
+## Identity (chat session)
 
 ```json
 {
   "sessionId": "sess_1",
   "tenantId": "nulltrace-institute",
-  "userId": "demo-user-1",
-  "role": "student"
+  "userId": "usr_…",
+  "role": "student",
+  "policyVersion": 1
 }
 ```
 
-Roles: `student` | `faculty` | `admin`
+Roles: `student` | `faculty` | `admin`  
+`tenantId`, `userId`, `role` are copied from the auth membership when creating a chat session.
 
 ## Document classification (domain)
 
@@ -27,7 +57,7 @@ Roles: `student` | `faculty` | `admin`
 | `internal` | faculty guidance | DENY (unless faculty+) |
 | `confidential` | student directory, grades notes | DENY for student |
 
-Retrieval APIs **must** apply ACL before returning chunks. Never “retrieve then redact in the prompt only.”
+Retrieval APIs **must** apply ACL **and tenant scope** before returning chunks. Never “retrieve then redact in the prompt only.”
 
 ## Reason codes
 
@@ -54,22 +84,21 @@ Retrieval APIs **must** apply ACL before returning chunks. Never “retrieve the
 
 ## Endpoints
 
-| Method | Path | Purpose |
-|---|---|---|
-| `POST` | `/api/sessions` | `{ "role": "student" }` → session |
-| `POST` | `/api/sessions/:id/messages` | User chat turn |
-| `GET` | `/api/sessions/:id/events` | Timeline (retrieval + tools) |
-| `GET` | `/api/approvals` | Pending |
-| `POST` | `/api/approvals/:id/decision` | APPROVE \| REJECT |
-| `GET` | `/api/audit` | Aggregate |
-| `GET` | `/api/org/documents` | List corpus (fixtures + uploads) |
-| `POST` | `/api/org/documents` | Upload / create doc + classification |
-| `PATCH` | `/api/org/documents/:id` | Update classification / enabled |
-| `GET` | `/api/org/policy` | Current role×collection×tool matrix + version |
-| `PUT` | `/api/org/policy` | Replace matrix; bump `policyVersion` |
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `POST` | `/api/sessions` | Bearer | Create chat session from membership |
+| `POST` | `/api/sessions/:id/messages` | Bearer | User chat turn |
+| `GET` | `/api/sessions/:id/events` | Bearer | Timeline (retrieval + tools) |
+| `GET` | `/api/approvals` | Bearer | Pending (tenant-scoped) |
+| `POST` | `/api/approvals/:id/decision` | Bearer | APPROVE \| REJECT (executes once) |
+| `GET` | `/api/audit` | — | Aggregate |
+| `GET` | `/api/org/documents` | Bearer admin | List corpus |
+| `POST` | `/api/org/documents` | Bearer admin | Upload / create doc |
+| `PATCH` | `/api/org/documents/:id` | Bearer admin | Update classification / enabled |
+| `GET` | `/api/org/policy` | Bearer admin | Role×collection×tool matrix + version |
+| `PUT` | `/api/org/policy` | Bearer admin | Replace matrix; bump `policyVersion` |
 
-Org routes: demo-gate to `admin` role (or `DEMO_MODE` with explicit admin session).  
-Legacy `/api/tasks` and invoice tools are **deprecated**; remove or ignore when rewiring.
+Org docs and policy are **per `tenant_id`**. Legacy `/api/tasks` and invoice tools are **deprecated**.
 
 ## Message response (conceptual)
 

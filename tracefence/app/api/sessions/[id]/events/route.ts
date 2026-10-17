@@ -1,16 +1,30 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth/requireAuth";
 import { getDb } from "@/lib/db/client";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
+  const gate = requireAuth(req);
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
+
   const { id } = await ctx.params;
   const session = getDb()
-    .prepare(`SELECT id FROM sessions WHERE id = ?`)
-    .get(id);
+    .prepare(
+      `SELECT id, tenant_id as tenantId, user_id as userId FROM sessions WHERE id = ?`,
+    )
+    .get(id) as
+    | { id: string; tenantId: string; userId: string }
+    | undefined;
+
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+  if (session.tenantId !== gate.auth.tenantId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const rows = getDb()

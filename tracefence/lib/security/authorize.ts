@@ -56,7 +56,15 @@ export function authorize(
     };
   }
 
-  const action = toolDecisionForRole(role, input.tool);
+  if (!input.tenantId) {
+    return {
+      decision: "DENY",
+      reasonCode: ReasonCode.DENIED_DEFAULT,
+      message: "Missing trusted tenantId on authorize input",
+    };
+  }
+
+  const action = toolDecisionForRole(input.tenantId, role, input.tool);
   if (!action) {
     return {
       decision: "DENY",

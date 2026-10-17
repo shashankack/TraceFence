@@ -2,6 +2,7 @@ import { readDocument, searchDocs } from "../campus/retrieval";
 import type { CampusRole } from "../security/types";
 
 export async function executeCampusTool(
+  tenantId: string,
   role: CampusRole,
   tool: string,
   args: Record<string, unknown>,
@@ -11,11 +12,11 @@ export async function executeCampusTool(
       const query = String(args.query ?? "");
       const collection =
         typeof args.collection === "string" ? args.collection : undefined;
-      return searchDocs(role, query, collection);
+      return searchDocs(tenantId, role, query, collection);
     }
     case "read_document": {
       const docId = String(args.doc_id ?? "");
-      const result = readDocument(role, docId);
+      const result = readDocument(tenantId, role, docId);
       if (!result.ok) {
         return { error: result.reasonCode, docId };
       }
@@ -33,6 +34,7 @@ export async function executeCampusTool(
         exported: true,
         dataset,
         format,
+        tenantId,
         rows: dataset.includes("email") || dataset.includes("directory")
           ? [
               {
@@ -49,12 +51,14 @@ export async function executeCampusTool(
         posted: true,
         title: String(args.title ?? ""),
         body: String(args.body ?? ""),
+        tenantId,
       };
     case "notify_external":
       return {
         queued: true,
         to: String(args.to ?? ""),
         note: "Mock only — no real send",
+        tenantId,
       };
     default:
       throw new Error(`No executor for tool ${tool}`);

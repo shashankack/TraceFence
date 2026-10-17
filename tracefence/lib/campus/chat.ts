@@ -130,20 +130,22 @@ function insertEvent(
 
 export async function handleChatTurn(input: {
   sessionId: string;
+  tenantId: string;
   userId: string;
   role: CampusRole;
   message: string;
 }): Promise<ChatTurnResult> {
-  const policy = loadCampusPolicy();
+  const policy = loadCampusPolicy(input.tenantId);
   const events: ChatEvent[] = [];
   const citations: Array<{ docId: string; classification: string }> = [];
   let pendingApprovalId: string | undefined;
   let retrieval: RetrievalResult | undefined;
 
-  const executor = getCampusExecutor(input.role);
+  const executor = getCampusExecutor(input.tenantId, input.role);
   const baseAuth = {
     userId: input.userId,
     taskId: input.sessionId,
+    tenantId: input.tenantId,
     role: input.role,
     policyVersion: policy.policyVersion,
     now: new Date(),

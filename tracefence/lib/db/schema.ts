@@ -1,13 +1,49 @@
 /** SQL DDL for TraceFence SQLite. Applied on first getDb(). */
 
 export const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS tenants (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS memberships (
+  user_id TEXT NOT NULL,
+  tenant_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, tenant_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  tenant_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
   role TEXT NOT NULL,
   policy_version INTEGER NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
 
 CREATE TABLE IF NOT EXISTS session_events (
@@ -104,5 +140,27 @@ CREATE TABLE IF NOT EXISTS invoices (
   currency TEXT NOT NULL,
   status TEXT NOT NULL,
   note TEXT
+);
+
+CREATE TABLE IF NOT EXISTS org_documents (
+  tenant_id TEXT NOT NULL,
+  id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  classification TEXT NOT NULL,
+  collection TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  content TEXT NOT NULL,
+  source TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (tenant_id, id),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE TABLE IF NOT EXISTS org_policy (
+  tenant_id TEXT PRIMARY KEY,
+  policy_version INTEGER NOT NULL,
+  roles_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
 `;

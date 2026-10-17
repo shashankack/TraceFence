@@ -27,6 +27,7 @@ export interface AuthorizeInput {
   userId: string;
   /** Session id for campus (legacy field name taskId kept for approvals binding). */
   taskId: string;
+  tenantId: string;
   role?: CampusRole;
   policyVersion: number;
   tool: string;

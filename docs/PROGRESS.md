@@ -6,6 +6,31 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Multi-tenant SQLite + real auth
+
+### Done
+- Tables: `tenants`, `users`, `memberships`, `auth_sessions`; `org_documents` / `org_policy` keyed by `tenant_id`.
+- Auth APIs: signup / login / logout / me (scrypt passwords, Bearer tokens).
+- Chat + Org + approvals require Bearer; identity never taken from request body.
+- DEMO_MODE seeds `nulltrace-institute` + `riverview-college` and demo users (`demo1234`).
+
+### Next
+- Frontend login + tenant switcher; tester acceptance for cross-tenant isolation.
+
+---
+
+## 2026-10-17 — Org Admin APIs + approval execute
+
+### Done
+- `GET/POST /api/org/documents`, `PATCH /api/org/documents/:id`, `GET/PUT /api/org/policy` (admin session via `x-session-id`).
+- SQLite `org_documents` + `org_policy`; edits bump `policyVersion`; retrieval reads upload overrides.
+- Approval `APPROVE` executes the bound tool once and marks `CONSUMED` (OUTCOME event).
+
+### Next
+- Smoke the three killer demos; frontend wires Org page to these routes.
+
+---
+
 ## 2026-10-17 — Refresh teammate prompts + push
 
 ### Done

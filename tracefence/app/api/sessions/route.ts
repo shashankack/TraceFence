@@ -1,22 +1,21 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { createSessionSchema } from "@/lib/api/schemas";
+import { requireAuth } from "@/lib/auth/requireAuth";
 import { loadCampusPolicy } from "@/lib/campus/policy";
 import { getDb } from "@/lib/db/client";
 
+/**
+ * Create a chat session. Identity comes from Bearer auth — never from the body.
+ */
 export async function POST(req: Request) {
-  const json = await req.json().catch(() => null);
-  const parsed = createSessionSchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid body", details: parsed.error.flatten() },
-      { status: 400 },
-    );
+  const gate = requireAuth(req);
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
   }
 
-  const policy = loadCampusPolicy();
+  const { auth } = gate;
+  const policy = loadCampusPolicy(auth.tenantId);
   const sessionId = `sess_${randomUUID().slice(0, 8)}`;
-  const userId = parsed.data.userId ?? "demo-user-1";
   const now = new Date().toISOString();
 
   getDb()
@@ -26,18 +25,18 @@ export async function POST(req: Request) {
     )
     .run(
       sessionId,
-      policy.tenantId,
-      userId,
-      parsed.data.role,
+      auth.tenantId,
+      auth.userId,
+      auth.role,
       policy.policyVersion,
       now,
     );
 
   return NextResponse.json({
     sessionId,
-    tenantId: policy.tenantId,
-    userId,
-    role: parsed.data.role,
+    tenantId: auth.tenantId,
+    userId: auth.userId,
+    role: auth.role,
     policyVersion: policy.policyVersion,
   });
 }
