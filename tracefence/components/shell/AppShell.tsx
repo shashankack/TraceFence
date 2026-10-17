@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { HOME } from "@/components/auth/AuthProvider";
-import { NAV, activeItem, roleLabelFor } from "./nav";
+import { homeFor } from "@/components/auth/home";
+import { activeItem, navFor, roleLabelFor } from "./nav";
 
 function initials(name?: string | null, email?: string) {
   const src = name || email || "?";
@@ -62,15 +62,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const gateway = useGatewayStatus();
   if (!user) return <>{children}</>;
 
-  // Student / faculty / guest use a dedicated ChatGPT-style layout (no double chrome).
-  if (
-    CHAT_PATHS.has(pathname) &&
-    (user.role === "guest" || user.role === "student" || user.role === "faculty")
-  ) {
+  // Student / faculty / guest / custom workspace roles use chat layout (no double chrome).
+  if (CHAT_PATHS.has(pathname) && user.role !== "admin") {
     return <>{children}</>;
   }
 
-  const current = activeItem(user.role, pathname);
+  const current = activeItem(user.role, pathname, user);
 
   return (
     <div className="flex min-h-screen">
@@ -94,7 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="min-w-0">
             <p className="kicker m-0 hidden sm:block">
-              {user.tenantName ?? user.tenantId} · {roleLabelFor(user.role, user.orgType)}
+              {user.tenantName ?? user.tenantId} · {roleLabelFor(user.role, user.orgType, user.roleLabels)}
             </p>
             <h1 className="m-0 truncate text-[15px] leading-5 font-semibold tracking-[-0.01em]">{current.label}</h1>
           </div>
@@ -105,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {gateway === false ? "gateway unreachable" : gateway ? "gateway enforcing" : "connecting"}
             </Badge>
             <Badge className="hidden h-7 rounded-full border-violet/20 bg-violet-soft px-3 text-[11px] font-medium text-violet md:inline-flex" variant="outline">
-              {roleLabelFor(user.role, user.orgType)} view
+              {roleLabelFor(user.role, user.orgType, user.roleLabels)} view
             </Badge>
           </div>
         </header>
@@ -119,8 +116,8 @@ function SidebarBody({ pathname }: { pathname: string }) {
   const { user, logout, switchTenant } = useAuth();
   const router = useRouter();
   if (!user) return null;
-  const items = NAV[user.role];
-  const roleLabel = roleLabelFor(user.role, user.orgType);
+  const items = navFor(user);
+  const roleLabel = roleLabelFor(user.role, user.orgType, user.roleLabels);
   const multiTenant = (user.memberships?.length ?? 0) > 1;
 
   const signOut = async () => {
@@ -131,7 +128,7 @@ function SidebarBody({ pathname }: { pathname: string }) {
   const onSwitch = async (tenantId: string) => {
     if (tenantId === user.tenantId) return;
     const me = await switchTenant(tenantId);
-    router.replace(HOME[me.role]);
+    router.replace(homeFor(me));
   };
 
   return (
@@ -143,7 +140,7 @@ function SidebarBody({ pathname }: { pathname: string }) {
       <nav aria-label="Primary" className="flex flex-col gap-1 p-3">
         <p className="kicker m-0 px-2 pt-1 pb-2">{roleLabel} workspace</p>
         {items.map((item) => {
-          const active = activeItem(user.role, pathname).href === item.href;
+          const active = activeItem(user.role, pathname, user).href === item.href;
           return (
             <Link
               aria-current={active ? "page" : undefined}

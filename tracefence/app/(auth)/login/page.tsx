@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { ApiError } from "@/components/api/client";
 import type { Role } from "@/components/api/types";
-import { HOME, useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { homeFor } from "@/components/auth/home";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +41,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "authenticated" && user) router.replace(HOME[user.role]);
+    if (status === "authenticated" && user) router.replace(homeFor(user));
   }, [status, user, router]);
 
   const signIn = async (e: string, p: string, key: string) => {
@@ -48,7 +49,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const me = await login(e, p);
-      router.replace(HOME[me.role]);
+      router.replace(homeFor(me));
     } catch (err) {
       setError(message(err));
       setBusy(null);
@@ -75,7 +76,7 @@ export default function LoginPage() {
         orgType: orgTypeRaw === "small_business" ? "small_business" : "college",
         notifyEmail: String(f.get("notifyEmail") || "") || undefined,
       });
-      router.replace(HOME[me.role]);
+      router.replace(homeFor(me));
     } catch (err) {
       setError(message(err));
       setBusy(null);
@@ -87,7 +88,7 @@ export default function LoginPage() {
       {/* Brand panel */}
       <section className="relative hidden overflow-hidden border-r bg-background lg:flex lg:flex-col">
         <MeshBg />
-        <div className="relative flex flex-1 flex-col px-12 py-10">
+        <div className="relative z-10 flex flex-1 flex-col px-12 py-10">
           <BlurFade>
             <Logo />
           </BlurFade>
@@ -181,7 +182,7 @@ export default function LoginPage() {
                       setError(null);
                       try {
                         const me = await continueAsGuest();
-                        router.replace(HOME[me.role]);
+                        router.replace(homeFor(me));
                       } catch (err) {
                         setError(message(err));
                         setBusy(null);

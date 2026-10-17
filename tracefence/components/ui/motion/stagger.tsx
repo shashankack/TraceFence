@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
+import { bentoGridHoverClass } from "@/components/ui/bento";
 import { cn } from "@/components/lib/utils";
 
 /** Stagger children on mount  wrap admin bento grids / queues. */
@@ -10,17 +11,21 @@ export function Stagger({
   className,
   delay = 0,
   stagger = 0.06,
+  /** Dim sibling `.bento-tile`s while one is hovered (default on). */
+  dimSiblings = true,
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
   stagger?: number;
+  dimSiblings?: boolean;
 }) {
   const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
+  const gridClass = cn(className, dimSiblings && bentoGridHoverClass);
+  if (reduce) return <div className={gridClass}>{children}</div>;
   return (
     <motion.div
-      className={cn(className)}
+      className={gridClass}
       initial="hidden"
       animate="show"
       variants={{

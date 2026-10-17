@@ -131,8 +131,32 @@ export const api = {
         title: string;
       }>;
     }>("/api/sessions").then((r) => r.sessions),
-  sendMessage: (sessionId: string, message: string) =>
-    post<MessageResponseDTO>(`/api/sessions/${sessionId}/messages`, { message }),
+  sendMessage: (
+    sessionId: string,
+    message: string,
+    opts?: { attachmentIds?: string[] },
+  ) =>
+    post<MessageResponseDTO>(`/api/sessions/${sessionId}/messages`, {
+      message,
+      ...(opts?.attachmentIds?.length
+        ? { attachmentIds: opts.attachmentIds }
+        : {}),
+    }),
+  uploadSessionAttachment: (
+    sessionId: string,
+    input: { filename: string; content?: string; pdfBase64?: string },
+  ) =>
+    post<{
+      upload: {
+        id: string;
+        filename: string;
+        status: "ready" | "flagged" | "blocked";
+        flags: Array<{ kind: string; excerpt: string }>;
+        preview: string;
+        createdAt: string;
+      };
+      notice: string;
+    }>(`/api/sessions/${sessionId}/attachments`, input),
   sessionMessages: (sessionId: string) =>
     request<{
       session: SessionDTO;
@@ -230,11 +254,34 @@ export const api = {
     name?: string;
     notifyEmail?: string | null;
     orgType?: OrgType;
-    profile?: { website?: string; city?: string; sizeBand?: string };
+    profile?: OrgProfileDTO["profile"];
   }) =>
     request<OrgProfileDTO>("/api/org/profile", {
       method: "PATCH",
       body: JSON.stringify(patch),
+    }),
+  createOrgRole: (input: {
+    label: string;
+    workspace?: "student" | "faculty";
+    id?: string;
+  }) =>
+    request<{ role: import("./types").CustomOrgRole }>("/api/org/roles", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteOrgRole: (id: string) =>
+    request<{ ok: true }>(`/api/org/roles?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  orgMembers: () =>
+    request<{
+      members: import("./types").OrgMemberDTO[];
+      assignableRoles: string[];
+    }>("/api/org/members"),
+  setOrgMemberRole: (userId: string, role: string) =>
+    request<{ ok: true }>("/api/org/members", {
+      method: "PATCH",
+      body: JSON.stringify({ userId, role }),
     }),
   orgNotifications: (limit = 30) =>
     request<{

@@ -182,4 +182,22 @@ CREATE TABLE IF NOT EXISTS doc_chunks (
 
 CREATE INDEX IF NOT EXISTS idx_doc_chunks_tenant_doc
   ON doc_chunks (tenant_id, doc_id);
-`;
+
+CREATE TABLE IF NOT EXISTS session_attachments (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  tenant_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  status TEXT NOT NULL,
+  flags_json TEXT NOT NULL,
+  sanitized_text TEXT NOT NULL,
+  raw_excerpt TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_attachments_session
+  ON session_attachments (session_id, created_at);
+`

@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { getDb } from "../db/client";
+import { sanitizeCustomRoles, sanitizeRoleLabels } from "../org/types";
 import type { CampusRole } from "../security/types";
 import type { AuthContext } from "./types";
 
@@ -39,7 +40,8 @@ export function resolveAuthToken(token: string): AuthContext | null {
       `SELECT a.token, a.user_id as userId, a.tenant_id as tenantId, a.role,
               a.expires_at as expiresAt,
               u.email, u.display_name as displayName,
-              t.name as tenantName, t.org_type as orgType
+              t.name as tenantName, t.org_type as orgType,
+              t.profile_json as profileJson
        FROM auth_sessions a
        JOIN users u ON u.id = a.user_id
        JOIN tenants t ON t.id = a.tenant_id
@@ -56,6 +58,7 @@ export function resolveAuthToken(token: string): AuthContext | null {
         displayName: string;
         tenantName: string;
         orgType: string | null;
+        profileJson: string | null;
       }
     | undefined;
 
@@ -63,6 +66,23 @@ export function resolveAuthToken(token: string): AuthContext | null {
   if (new Date(row.expiresAt).getTime() < Date.now()) {
     revokeAuthSession(token);
     return null;
+  }
+
+  let roleLabels: AuthContext["roleLabels"];
+  let customRoles: AuthContext["customRoles"];
+  if (row.profileJson) {
+    try {
+      const profile = JSON.parse(row.profileJson) as {
+        roleLabels?: unknown;
+        customRoles?: unknown;
+      };
+      roleLabels = sanitizeRoleLabels(profile.roleLabels);
+      const custom = sanitizeCustomRoles(profile.customRoles);
+      if (custom.length) customRoles = custom;
+    } catch {
+      roleLabels = undefined;
+      customRoles = undefined;
+    }
   }
 
   return {
@@ -73,6 +93,8 @@ export function resolveAuthToken(token: string): AuthContext | null {
     tenantId: row.tenantId,
     tenantName: row.tenantName,
     orgType: row.orgType === "small_business" ? "small_business" : "college",
+    ...(roleLabels ? { roleLabels } : {}),
+    ...(customRoles ? { customRoles } : {}),
     role: row.role,
   };
 }

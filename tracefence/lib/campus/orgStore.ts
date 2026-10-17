@@ -229,24 +229,33 @@ export function replaceOrgPolicy(
   return loadCampusPolicy(tenantId);
 }
 
+function isRoleEntry(entry: unknown): boolean {
+  if (!entry || typeof entry !== "object") return false;
+  const e = entry as { collections?: unknown; tools?: unknown };
+  if (!Array.isArray(e.collections)) return false;
+  if (!e.tools || typeof e.tools !== "object") return false;
+  for (const decision of Object.values(e.tools as Record<string, unknown>)) {
+    if (
+      decision !== "ALLOW" &&
+      decision !== "DENY" &&
+      decision !== "REQUIRE_APPROVAL"
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function assertValidRoles(roles: unknown): roles is RolesJson {
   if (!roles || typeof roles !== "object") return false;
   const required: CampusRole[] = ["student", "faculty", "admin"];
   for (const role of required) {
-    const entry = (roles as Record<string, unknown>)[role];
-    if (!entry || typeof entry !== "object") return false;
-    const e = entry as { collections?: unknown; tools?: unknown };
-    if (!Array.isArray(e.collections)) return false;
-    if (!e.tools || typeof e.tools !== "object") return false;
-    for (const decision of Object.values(e.tools as Record<string, unknown>)) {
-      if (
-        decision !== "ALLOW" &&
-        decision !== "DENY" &&
-        decision !== "REQUIRE_APPROVAL"
-      ) {
-        return false;
-      }
-    }
+    if (!isRoleEntry((roles as Record<string, unknown>)[role])) return false;
+  }
+  // Custom org roles are optional extra keys with the same shape.
+  for (const [key, entry] of Object.entries(roles as Record<string, unknown>)) {
+    if (key === "guest") continue;
+    if (!isRoleEntry(entry)) return false;
   }
   return true;
 }

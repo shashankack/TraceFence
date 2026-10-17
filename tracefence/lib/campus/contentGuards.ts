@@ -6,7 +6,13 @@
 import { looksLikePromptInjection } from "./authGate";
 
 export type ContentScanHit = {
-  kind: "instruction_override" | "tool_inducement" | "classification_claim";
+  kind:
+    | "instruction_override"
+    | "tool_inducement"
+    | "classification_claim"
+    | "markup_payload"
+    | "role_spoof"
+    | "control_chars";
   excerpt: string;
 };
 
@@ -41,9 +47,11 @@ export function scanUntrustedContent(text: string): ContentScanHit[] {
     ) ||
     /\b(email|send|forward|notify).{0,40}(to|at)\s+[\w.+-]+@[\w.-]+/.test(t) ||
     /\battacker@/.test(t) ||
-    /\b(call|invoke|run|use)\s+(the\s+)?(tool|function)\s+(export_records|notify_external)/.test(
+    /\b(call|invoke|run|use)\s+(the\s+)?(tool|function)\s+(export_records|notify_external|post_announcement|use_chat_upload)/.test(
       t,
-    )
+    ) ||
+    /\b(wget|curl)\s+https?:\/\//.test(t) ||
+    /\bexfiltrat/.test(t)
   ) {
     hits.push({
       kind: "tool_inducement",
@@ -62,6 +70,35 @@ export function scanUntrustedContent(text: string): ContentScanHit[] {
     hits.push({
       kind: "classification_claim",
       excerpt: clip(body),
+    });
+  }
+
+  if (
+    /<\s*(script|iframe|object|embed|svg)\b/i.test(body) ||
+    /\bon\w+\s*=\s*['"]?javascript:/i.test(body) ||
+    /\bjavascript\s*:/i.test(t) ||
+    /\bdata\s*:\s*text\/html/i.test(t)
+  ) {
+    hits.push({
+      kind: "markup_payload",
+      excerpt: clip(body),
+    });
+  }
+
+  if (
+    /^\s*(system|assistant|developer)\s*[:=]/im.test(body) ||
+    /\b<<\s*sys\b|\b\[INST\]/i.test(body)
+  ) {
+    hits.push({
+      kind: "role_spoof",
+      excerpt: clip(body),
+    });
+  }
+
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(body)) {
+    hits.push({
+      kind: "control_chars",
+      excerpt: "Removed non-printable control characters from upload",
     });
   }
 
@@ -139,4 +176,127 @@ export function answerLooksUngrounded(
 function clip(text: string, n = 120): string {
   const one = text.replace(/\s+/g, " ").trim();
   return one.length > n ? `${one.slice(0, n)}…` : one;
+}
+
+const MAX_UPLOAD_CHARS = 80_000;
+
+/**
+ * Strict sanitize for chat file uploads.
+ * Strips attack payloads before any text may enter the LLM or drive tool use.
+ * Raw bytes never become authority over policy.
+ */
+export function sanitizeChatUpload(raw: string): {
+  sanitized: string;
+  flags: ContentScanHit[];
+  status: "ready" | "flagged" | "blocked";
+} {
+  const flags: ContentScanHit[] = [];
+  let text = raw.replace(/^\uFEFF/, "");
+
+  if (text.length > MAX_UPLOAD_CHARS) {
+    text = text.slice(0, MAX_UPLOAD_CHARS);
+    flags.push({
+      kind: "control_chars",
+      excerpt: `Truncated upload to ${MAX_UPLOAD_CHARS} characters`,
+    });
+  }
+
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(text)) {
+    flags.push({
+      kind: "control_chars",
+      excerpt: "Stripped control characters",
+    });
+    text = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+  }
+
+  if (
+    /<\s*(script|iframe|object|embed)\b/i.test(text) ||
+    /\bon\w+\s*=/i.test(text) ||
+    /\bjavascript\s*:/i.test(text) ||
+    /\bdata\s*:\s*text\/html/i.test(text)
+  ) {
+    flags.push({
+      kind: "markup_payload",
+      excerpt: "Stripped HTML / script / javascript: payloads",
+    });
+    text = text
+      .replace(/<\s*script\b[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, "")
+      .replace(/<\s*(iframe|object|embed|svg)\b[^>]*>[\s\S]*?(<\s*\/\s*\1\s*>)?/gi, "")
+      .replace(/\bon\w+\s*=\s*(['"]).*?\1/gi, "")
+      .replace(/\bjavascript\s*:[^\s"'<>]+/gi, "[redacted]")
+      .replace(/\bdata\s*:\s*text\/html[^,\s]*/gi, "[redacted]");
+  }
+
+  const { content: noClaims, stripped } = stripContentPolicyClaims(text);
+  text = noClaims;
+  if (stripped) {
+    flags.push({
+      kind: "classification_claim",
+      excerpt: "Stripped self-declared classification / policy lines",
+    });
+  }
+
+  const keptLines: string[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const l = line.toLowerCase();
+    if (
+      looksLikePromptInjection(line) ||
+      /^\s*(system|assistant|developer)\s*[:=]/i.test(line) ||
+      /\b<<\s*sys\b|\b\[INST\]/i.test(line)
+    ) {
+      flags.push({
+        kind: /system|assistant|developer|<<\s*sys|\[INST\]/i.test(line)
+          ? "role_spoof"
+          : "instruction_override",
+        excerpt: clip(line),
+      });
+      continue;
+    }
+    if (
+      /\b(export|email|send|notify|dump)\b.{0,60}\b(all|every|entire)\b.{0,40}\b(email|student|grades?|directory|roster)\b/i.test(
+        line,
+      ) ||
+      /\b(call|invoke|run|use)\s+(the\s+)?(tool|function)\s+/i.test(line) ||
+      /\battacker@/i.test(line) ||
+      /\b(wget|curl)\s+https?:\/\//i.test(l) ||
+      /\bexfiltrat/i.test(l)
+    ) {
+      flags.push({ kind: "tool_inducement", excerpt: clip(line) });
+      continue;
+    }
+    keptLines.push(line);
+  }
+  text = keptLines.join("\n").trim();
+
+  // Residual scan after aggressive strip.
+  const residual = scanUntrustedContent(text);
+  for (const h of residual) {
+    if (!flags.some((f) => f.kind === h.kind && f.excerpt === h.excerpt)) {
+      flags.push(h);
+    }
+  }
+
+  const hardResidual = residual.some(
+    (h) =>
+      h.kind === "instruction_override" ||
+      h.kind === "tool_inducement" ||
+      h.kind === "markup_payload" ||
+      h.kind === "role_spoof",
+  );
+
+  if (!text || hardResidual) {
+    return {
+      sanitized: "",
+      flags: flags.length
+        ? flags
+        : [{ kind: "instruction_override", excerpt: "Upload empty or fully blocked after sanitize" }],
+      status: "blocked",
+    };
+  }
+
+  return {
+    sanitized: text,
+    flags,
+    status: flags.length > 0 ? "flagged" : "ready",
+  };
 }

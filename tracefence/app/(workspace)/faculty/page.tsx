@@ -6,7 +6,7 @@ import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 
 export default function FacultyPage() {
   return (
-    <RoleGate allow={["faculty"]}>
+    <RoleGate allow={["faculty"]} workspace="faculty">
       <WorkspaceProvider>
         <CampusChat role="faculty" />
       </WorkspaceProvider>

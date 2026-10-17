@@ -10,16 +10,19 @@ import {
   LogOut,
   Menu,
   MessageSquarePlus,
+  Paperclip,
   PanelLeftClose,
   PanelLeft,
   ShieldAlert,
   Trash2,
   User,
+  X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { Role } from "@/components/api/types";
+import { toast } from "sonner";
+import { api, ApiError } from "@/components/api/client";
 import { LoginGate } from "@/components/auth/LoginGate";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { docTitle } from "@/components/domain/catalog";
@@ -39,7 +42,6 @@ import {
 import { Logo } from "@/components/ui/logo";
 import { AnimatedItem } from "@/components/ui/motion/animated-item";
 import { BlurFade } from "@/components/ui/motion/blur-fade";
-import { LiveFenceRail } from "@/components/ui/motion/live-fence";
 import { Pressable } from "@/components/ui/motion/pressable";
 import {
   LOADING_CHAT_PHRASES,
@@ -49,6 +51,13 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { useWorkspace, type ChatMessage } from "./WorkspaceProvider";
+
+type PendingUpload = {
+  id: string;
+  filename: string;
+  status: "ready" | "flagged" | "blocked";
+  flags: number;
+};
 
 type ChatRole = "guest" | "student" | "faculty";
 
@@ -88,7 +97,6 @@ export function CampusChat({ role }: { role: ChatRole }) {
   const { user, logout } = useAuth();
   const {
     messages,
-    railEvents,
     sending,
     switching,
     send,
@@ -114,19 +122,81 @@ export function CampusChat({ role }: { role: ChatRole }) {
     title: string;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploads, setUploads] = useState<PendingUpload[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pending = requests.filter((r) => r.status === "PENDING").length;
   const chatRole: ChatRole = role === "faculty" ? "faculty" : user?.role === "guest" ? "guest" : "student";
-  const showFence = sending || railEvents.length > 0;
+  const canUpload = chatRole !== "guest";
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, sending]);
 
+  useEffect(() => {
+    setUploads([]);
+  }, [session?.sessionId]);
+
+  const onPickFile = async (file: File | null) => {
+    if (!file || !session || !canUpload) return;
+    if (uploads.length >= 5) {
+      toast.error("At most 5 files per message");
+      return;
+    }
+    setUploading(true);
+    try {
+      const lower = file.name.toLowerCase();
+      const isPdf = lower.endsWith(".pdf");
+      let body: { filename: string; content?: string; pdfBase64?: string };
+      if (isPdf) {
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+        body = { filename: file.name, pdfBase64: btoa(binary) };
+      } else {
+        body = { filename: file.name, content: await file.text() };
+      }
+      const res = await api.uploadSessionAttachment(session.sessionId, body);
+      setUploads((prev) => [
+        ...prev,
+        {
+          id: res.upload.id,
+          filename: res.upload.filename,
+          status: res.upload.status,
+          flags: res.upload.flags.length,
+        },
+      ]);
+      if (res.upload.status === "blocked") {
+        toast.error("Upload blocked", { description: res.notice });
+      } else if (res.upload.status === "flagged") {
+        toast.warning("Upload sanitized (flagged)", { description: res.notice });
+      } else {
+        toast.success("Upload sanitized", { description: res.notice });
+      }
+    } catch (err) {
+      toast.error("Upload failed", {
+        description:
+          err instanceof ApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : "Unknown error",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const submit = () => {
-    if (!input.trim() || busy || !session) return;
-    send(input);
+    const usable = uploads.filter((u) => u.status !== "blocked");
+    if ((!input.trim() && usable.length === 0) || busy || !session) return;
+    send(input, {
+      attachmentIds: usable.map((u) => u.id),
+    });
     setInput("");
+    setUploads([]);
   };
 
   const signOut = async () => {
@@ -150,7 +220,7 @@ export function CampusChat({ role }: { role: ChatRole }) {
       <div className="border-b border-black/5 px-3 py-3">
         <Logo className="max-w-full" />
         <p className="mt-1.5 mb-0 truncate text-[11px] text-muted-foreground">
-          {roleLabelFor(user?.role ?? role, user?.orgType)} chat
+          {roleLabelFor(user?.role ?? role, user?.orgType, user?.roleLabels)} chat
         </p>
       </div>
 
@@ -460,23 +530,42 @@ export function CampusChat({ role }: { role: ChatRole }) {
 
         <div className="flex-none border-t border-black/5 bg-white px-3 py-3 sm:px-4">
           <div className="mx-auto w-full max-w-3xl">
-            <AnimatePresence>
-              {showFence && (
-                <motion.div
-                  className="mb-2.5"
-                  initial={{ opacity: 0, y: 8, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: 6, height: 0 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <LiveFenceRail compact events={railEvents} sending={sending} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {uploads.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {uploads.map((u) => (
+                  <span
+                    key={u.id}
+                    className={cn(
+                      "inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px]",
+                      u.status === "blocked"
+                        ? "border-deny/30 bg-deny-soft text-deny"
+                        : u.status === "flagged"
+                          ? "border-approval/30 bg-approval-soft text-approval"
+                          : "border-black/10 bg-[#f7f7f8] text-muted-foreground",
+                    )}
+                  >
+                    <FileText className="size-3 shrink-0" />
+                    <span className="truncate font-medium">{u.filename}</span>
+                    <span className="font-mono uppercase opacity-80">{u.status}</span>
+                    {u.flags > 0 ? (
+                      <span className="font-mono opacity-70">{u.flags}f</span>
+                    ) : null}
+                    <button
+                      aria-label={`Remove ${u.filename}`}
+                      className="rounded p-0.5 hover:bg-black/5"
+                      onClick={() => setUploads((prev) => prev.filter((x) => x.id !== u.id))}
+                      type="button"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="relative rounded-2xl border border-black/10 bg-[#f7f7f8] shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/35 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/15 focus-within:shadow-[0_0_0_4px_rgba(54,81,245,0.08)]">
               <Textarea
                 aria-label="Message"
-                className="min-h-[56px] max-h-[200px] resize-none border-0 bg-transparent px-4 py-3.5 pr-14 text-[15px] shadow-none focus-visible:ring-0"
+                className="min-h-[56px] max-h-[200px] resize-none border-0 bg-transparent px-4 py-3.5 pr-24 text-[15px] shadow-none focus-visible:ring-0"
                 disabled={!session}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -485,13 +574,46 @@ export function CampusChat({ role }: { role: ChatRole }) {
                     submit();
                   }
                 }}
-                placeholder="Ask about campus policies, hostel rules, exams…"
+                placeholder={
+                  canUpload
+                    ? "Ask about campus policies — or attach a file to sanitize first…"
+                    : "Ask about campus policies, hostel rules, exams…"
+                }
                 value={input}
               />
+              <input
+                accept=".txt,.md,.csv,.pdf,text/plain,text/markdown,text/csv,application/pdf"
+                className="sr-only"
+                onChange={(e) => {
+                  void onPickFile(e.target.files?.[0] ?? null);
+                  e.target.value = "";
+                }}
+                ref={fileRef}
+                type="file"
+              />
+              {canUpload ? (
+                <Pressable
+                  aria-label="Attach file"
+                  className="absolute right-12 bottom-2.5 inline-flex size-9 items-center justify-center rounded-xl border border-black/10 bg-white text-muted-foreground disabled:pointer-events-none disabled:opacity-50"
+                  disabled={busy || !session || uploading}
+                  onClick={() => fileRef.current?.click()}
+                  type="button"
+                >
+                  {uploading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Paperclip className="size-4" />
+                  )}
+                </Pressable>
+              ) : null}
               <Pressable
                 aria-label="Send"
                 className="absolute right-2.5 bottom-2.5 inline-flex size-9 items-center justify-center rounded-xl brand-gradient text-white disabled:pointer-events-none disabled:opacity-50"
-                disabled={!input.trim() || busy || !session}
+                disabled={
+                  (!input.trim() && uploads.filter((u) => u.status !== "blocked").length === 0) ||
+                  busy ||
+                  !session
+                }
                 onClick={submit}
                 type="button"
               >
@@ -499,7 +621,9 @@ export function CampusChat({ role }: { role: ChatRole }) {
               </Pressable>
             </div>
             <p className="mt-2 mb-0 text-center text-[11px] text-muted-foreground">
-              Answers come from campus PDF sources you&apos;re allowed to see. Enter to send.
+              {canUpload
+                ? "Files are sanitized on the server before the agent may use them. Enter to send."
+                : "Answers come from campus PDF sources you are allowed to see. Sign in to attach files."}
             </p>
           </div>
         </div>
@@ -553,8 +677,16 @@ function EmptyState({
 function Bubble({ message }: { message: ChatMessage }) {
   const assistant = message.from === "assistant";
   const reduce = useReducedMotion();
-  const inContext = message.citations ?? [];
-  const fenced = message.fenced ?? [];
+  // Citations can repeat the same doc across chunks — one chip per docId.
+  const inContext = (() => {
+    const seen = new Set<string>();
+    return (message.citations ?? []).filter((c) => {
+      if (seen.has(c.docId)) return false;
+      seen.add(c.docId);
+      return true;
+    });
+  })();
+  const fenced = [...new Set(message.fenced ?? [])];
   const hasFenceUi = assistant && (inContext.length > 0 || fenced.length > 0);
 
   return (
@@ -608,7 +740,7 @@ function Bubble({ message }: { message: ChatMessage }) {
                       initial={reduce ? false : { opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.25 }}
-                      key={`in-${c.docId}-${c.classification}`}
+                      key={c.docId}
                     >
                       <FileText className="size-3 text-primary" />
                       {docTitle(c.docId)}
@@ -658,5 +790,4 @@ function InlineMarkdown({ text }: { text: string }) {
   );
 }
 
-// Keep Role type import used for docs / future
-export type CampusChatRole = Extract<Role, ChatRole>;
+export type CampusChatRole = ChatRole;

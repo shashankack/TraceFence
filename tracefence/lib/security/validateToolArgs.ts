@@ -7,7 +7,6 @@ export const EXPORT_DATASETS = new Set([
   "student_emails",
   "student_directory",
   "grades_summary",
-  "roster",
   "announcements",
 ]);
 

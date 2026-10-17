@@ -1,6 +1,6 @@
 {
   "tenantId": "nulltrace-institute",
-  "policyVersion": 1,
+  "policyVersion": 2,
   "roles": {
     "guest": {
       "collections": [
@@ -11,7 +11,8 @@
         "read_document": "ALLOW",
         "export_records": "DENY",
         "post_announcement": "DENY",
-        "notify_external": "DENY"
+        "notify_external": "DENY",
+        "use_chat_upload": "DENY"
       }
     },
     "student": {
@@ -23,7 +24,8 @@
         "read_document": "ALLOW",
         "export_records": "DENY",
         "post_announcement": "DENY",
-        "notify_external": "DENY"
+        "notify_external": "DENY",
+        "use_chat_upload": "ALLOW"
       }
     },
     "faculty": {
@@ -37,7 +39,8 @@
         "read_document": "ALLOW",
         "export_records": "REQUIRE_APPROVAL",
         "post_announcement": "REQUIRE_APPROVAL",
-        "notify_external": "DENY"
+        "notify_external": "DENY",
+        "use_chat_upload": "ALLOW"
       }
     },
     "admin": {
@@ -51,7 +54,8 @@
         "read_document": "ALLOW",
         "export_records": "ALLOW",
         "post_announcement": "ALLOW",
-        "notify_external": "REQUIRE_APPROVAL"
+        "notify_external": "REQUIRE_APPROVAL",
+        "use_chat_upload": "ALLOW"
       }
     }
   },
@@ -79,82 +83,17 @@
     "faculty-guide": {
       "classification": "internal",
       "collection": "internal",
-      "title": "Faculty Guidance"
+      "title": "Faculty Guide"
     },
     "student-directory": {
       "classification": "confidential",
       "collection": "confidential",
-      "title": "Student Directory (synthetic)"
+      "title": "Student Directory"
     },
     "grades-notes": {
       "classification": "confidential",
       "collection": "confidential",
-      "title": "Grades Notes (synthetic)"
-    },
-    "pes-academic-rules": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Academic Rules (Timings, Attendance, Grading)"
-    },
-    "pes-admission-documents": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Documents Required for Admission"
-    },
-    "pes-anti-ragging": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Anti-Ragging Policy"
-    },
-    "pes-application-terms": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Online Application Terms, Privacy and Refunds"
-    },
-    "pes-campus-facilities": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Campus Facilities and Student Support"
-    },
-    "pes-fee-payment": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Fee Payment Policy"
-    },
-    "pes-grievance-redressal": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Student Grievance Redressal"
-    },
-    "pes-hostel-admission": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Hostel Admission Procedure"
-    },
-    "pes-internal-committee": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Internal Committee (Prevention of Sexual Harassment)"
-    },
-    "pes-loyalty-programme": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES Group Loyalty Programme (Fee Concessions)"
-    },
-    "pes-research-policy": {
-      "classification": "internal",
-      "collection": "internal",
-      "title": "PES University Research Policy"
-    },
-    "pes-scholarships": {
-      "classification": "public",
-      "collection": "public",
-      "title": "PES University Scholarships"
-    },
-    "pes-university-act": {
-      "classification": "public",
-      "collection": "public",
-      "title": "The PES University Act, 2012 (Karnataka Act No. 16 of 2013)"
+      "title": "Grades Notes"
     }
   }
 }

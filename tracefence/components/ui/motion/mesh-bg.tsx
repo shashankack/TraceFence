@@ -2,38 +2,41 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/components/lib/utils";
+import { CursorGrid } from "./cursor-grid";
 
 /**
- * Soft drifting orbs + sparse particles behind the login hero only.
- * Complements tech-grid  no Three.js for the demo.
+ * Login hero atmosphere: tech grid + cursor-reactive cells + soft orbs.
  */
 export function MeshBg({ className }: { className?: string }) {
   const reduce = useReducedMotion();
   return (
-    <div aria-hidden className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
-      <div className="tech-grid absolute inset-0 opacity-80 [mask-image:radial-gradient(ellipse_at_30%_20%,black,transparent_70%)]" />
+    <div
+      aria-hidden
+      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+    >
+      <div className="tech-grid absolute inset-0 z-0 opacity-70" />
+
       {!reduce && (
         <>
           <motion.div
-            className="absolute -top-24 -left-16 size-[28rem] rounded-full bg-primary/15 blur-3xl"
+            className="absolute -top-24 -left-16 z-[1] size-[28rem] rounded-full bg-primary/12 blur-3xl"
             animate={{ x: [0, 48, 0], y: [0, 28, 0], scale: [1, 1.06, 1] }}
             transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute top-1/3 -right-20 size-[24rem] rounded-full bg-violet/18 blur-3xl"
+            className="absolute top-1/3 -right-20 z-[1] size-[24rem] rounded-full bg-violet/14 blur-3xl"
             animate={{ x: [0, -36, 0], y: [0, 48, 0], scale: [1, 1.08, 1] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute bottom-0 left-1/4 size-[20rem] rounded-full bg-allow/12 blur-3xl"
+            className="absolute bottom-0 left-1/4 z-[1] size-[20rem] rounded-full bg-allow/10 blur-3xl"
             animate={{ x: [0, 24, 0], y: [0, -22, 0] }}
             transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* Sparse drifting particles */}
           {PARTICLES.map((p) => (
             <motion.span
               key={p.id}
-              className="absolute size-1 rounded-full bg-primary/35"
+              className="absolute z-[1] size-1 rounded-full bg-primary/40"
               style={{ left: p.left, top: p.top }}
               animate={{
                 y: [0, p.dy, 0],
@@ -50,6 +53,8 @@ export function MeshBg({ className }: { className?: string }) {
           ))}
         </>
       )}
+
+      {!reduce && <CursorGrid cellSize={30} className="z-[2]" radius={100} />}
     </div>
   );
 }

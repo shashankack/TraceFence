@@ -184,52 +184,6 @@
   animation: status-shimmer 2.4s ease-in-out infinite;
 }
 
-/* Cursor-tracking flash on cards / buttons */
-.tf-spotlight {
-  --spot-x: 50%;
-  --spot-y: 50%;
-  --spot-size: 260px;
-  --spot-color: color-mix(in oklab, var(--primary) 16%, transparent);
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.tf-spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.28s ease;
-  background: radial-gradient(
-    var(--spot-size) circle at var(--spot-x) var(--spot-y),
-    var(--spot-color),
-    transparent 58%
-  );
-}
-
-.tf-spotlight[data-spotlight="on"]::before {
-  opacity: 1;
-}
-
-.tf-spotlight > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Compact flash for small controls (buttons, chips) */
-.tf-spotlight-sm {
-  --spot-size: 140px;
-  --spot-color: color-mix(in oklab, var(--primary) 28%, transparent);
-}
-
-.tf-spotlight-brand {
-  --spot-color: rgba(255, 255, 255, 0.2);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tech-grid {
     animation: none !important;
@@ -240,9 +194,5 @@
     background: none;
     color: inherit;
     -webkit-text-fill-color: unset;
-  }
-
-  .tf-spotlight::before {
-    display: none !important;
   }
 }

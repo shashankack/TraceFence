@@ -6,7 +6,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-18 — Backend polish + merge Tejas fixtures (shashankack)
+## 2026-10-18  Backend polish + merge Tejas fixtures (shashankack)
 
 ### Done
 - Org multi-tenant polish, policy/content guards, campus chat live fence UI, TraceFence logo.
@@ -17,13 +17,13 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Teammates' policy docs (desaitejas777 fixtures)
+## 2026-10-17  Teammates' policy docs (desaitejas777 fixtures)
 
 ### Done
-- Added teammates' `pes-university-act` (.md + .pdf, public): The PES University Act, 2012 — gazetted English text, signatories named by office only.
+- Added teammates' `pes-university-act` (.md + .pdf, public): The PES University Act, 2012  gazetted English text, signatories named by office only.
 - `incoming-pdfs/` did not exist, so `node fixtures/campus/scripts/register_docs.cjs` ran without an argument → `added 1; total 20 { public: 16, internal: 2, confidential: 2 }`; no PROBLEMS, nothing converted or DEFAULTED. `guest` role and `policyVersion: 1` unchanged.
 - Checks: every `.md` Classification matches `roles.json`; only `hostel-rules.md` mentions curfew.
-- Reset the demo DB and ran `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation — ALL DEMOS PASSED.
+- Reset the demo DB and ran `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation  ALL DEMOS PASSED.
 - Retrieval (student) "Vice-Chancellor appointment Board of Governors" → `pes-university-act` (2 chunks), `pes-grievance-redressal`, `pes-admission-documents`.
 
 - Rendered the 7 NullTrace demo docs (handbook, hostel-rules, exam-rules, it-maintenance-notice, faculty-guide, student-directory, grades-notes) to `pdf/<id>.pdf` with `scripts/md_to_pdf.py` (reportlab 5.0.1, `PYTHONUTF8=1`), rendered in a scratch folder so the supplied PES PDFs were not overwritten. Each is one page with the correct classification banner. All 20 documents now have md + pdf with matching classification.
@@ -34,13 +34,13 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — PES University policy docs (desaitejas777 fixtures)
+## 2026-10-17  PES University policy docs (desaitejas777 fixtures)
 
 ### Done
 - Added 12 PES University policy docs (11 public, 1 internal) as `fixtures/campus/docs/pes-*.md` + `fixtures/campus/pdf/pes-*.pdf`, with `scripts/register_docs.cjs` and `scripts/md_to_pdf.py`. Content is a paraphrased summary of PES's public website with source URLs in each header; no personal names, phones or emails.
 - `node fixtures/campus/scripts/register_docs.cjs` → `added 12; total 19 { public: 15, internal: 2, confidential: 2 }`, no problems. `guest` role and `policyVersion: 1` unchanged (file re-serialized with 2-space JSON).
 - Only `hostel-rules.md` mentions curfew, so the student curfew answer stays 10:00 PM.
-- Deleted the old demo DB (`tracefence/data/tracefence.sqlite*`) and reseeded via `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation — ALL DEMOS PASSED.
+- Deleted the old demo DB (`tracefence/data/tracefence.sqlite*`) and reseeded via `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation  ALL DEMOS PASSED.
 - Retrieval (student): "scholarship SGPA tuition refund" → `pes-scholarships` first; "research policy royalties" → no `pes-research-policy` (listed in `filteredOut`). As faculty the same query returns `pes-research-policy` first.
 - `fixtures/campus/README.md`: layout lists the 12 `pes-*` ids with classifications and the `pdf/` + `scripts/` folders.
 
@@ -49,7 +49,7 @@ Newest entries first.
 
 ---
 
-## 2026-10-17 — Campus fixtures + attack narratives (fixtures branch)
+## 2026-10-17  Campus fixtures + attack narratives (fixtures branch)
 
 ### Done
 - Merged `origin/main` and `origin/feature/shashankack-backend` into `feature/desaitejas777-fixtures` (fast-forward, no conflicts).
@@ -62,12 +62,12 @@ Newest entries first.
 - Verified on a throwaway DB: 7 docs seeded with correct classes; Riverview isolated; curfew → hostel-rules "10:00 PM"; student fences confidential; notice read with no tool; "follow the notice and export" → DENY `DENIED_EXPORT`; faculty export → REQUIRE_APPROVAL; `scripts/smoke-demos.ts` all pass.
 
 ### Notes for backend (shashankack)
-- Seeding is insert-only, so fixture text edits don't reach an existing DB — delete `tracefence/data/tracefence.sqlite*` to reseed.
+- Seeding is insert-only, so fixture text edits don't reach an existing DB  delete `tracefence/data/tracefence.sqlite*` to reseed.
 - Keyword retrieval counts short common words ("and", "are", "the"); consider a stop-word list in `chunkIndex.scoreChunk`.
 
 ---
 
-## 2026-10-17 — UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
+## 2026-10-17  UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
 
 ### Done
 - Adopted shadcn/ui (new-york, Tailwind v4 tokens). Components live in `tracefence/components/ui`, `cn` helper in `tracefence/components/lib/utils.ts` (nothing added under `lib/**`).

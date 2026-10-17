@@ -4,8 +4,9 @@ import { ArrowRight, BookOpen, FileSearch, Loader2, ShieldCheck, TriangleAlert }
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiError, DEMO_LOGIN_HINTS } from "@/components/api/client";
-import type { Role } from "@/components/api/types";
-import { HOME, useAuth } from "@/components/auth/AuthProvider";
+import type { AuthMeDTO, Role } from "@/components/api/types";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { homeFor, workspaceFor } from "@/components/auth/home";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,11 +54,12 @@ export function LoginGate({
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const finish = async (me: { role: Role }) => {
+  const finish = async (me: AuthMeDTO) => {
     // Parent closes the dialog and keeps the pending retry for the new session.
     await onSignedIn(me.role);
-    if (me.role !== "guest" && me.role !== "student") {
-      router.replace(HOME[me.role]);
+    // Stay on student chat if the new identity still uses that workspace.
+    if (workspaceFor(me) !== "student") {
+      router.replace(homeFor(me));
     }
   };
 
@@ -136,7 +138,7 @@ export function LoginGate({
         </p>
         <div className="grid gap-1.5">
           {DEMO_LOGIN_HINTS.slice(0, 3).map((h) => {
-            const Icon = ICONS[h.role];
+            const Icon = ICONS[h.role as keyof typeof ICONS] ?? BookOpen;
             return (
               <button
                 className="flex items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/40 hover:bg-accent/50 disabled:opacity-50"

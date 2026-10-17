@@ -15,7 +15,11 @@ export function wantsExport(message: string): boolean {
 }
 
 /** True when an anonymous guest must sign in before the gateway may proceed. */
-export function guestQueryRequiresLogin(message: string): boolean {
+export function guestQueryRequiresLogin(
+  message: string,
+  opts?: { hasAttachments?: boolean },
+): boolean {
+  if (opts?.hasAttachments) return true;
   if (wantsExport(message)) return true;
   const m = message.toLowerCase();
   return (
@@ -73,7 +77,7 @@ export function looksLikePromptInjection(message: string): boolean {
 
 /** Soft campus lexicon  used to allow grounded asks and refuse free-form chat. */
 export function looksLikeCampusTopic(message: string): boolean {
-  return /\b(campus|hostel|curfew|library|exam|exams|handbook|faculty|student|students|grade|grades|gpa|transcript|directory|registration|semester|dorm|mess|canteen|attendance|syllabus|policy|policies|document|documents|source|sources|export|approval|announcement|nulltrace|tracefence|advisor|advisee|roster|scholarship|tuition|fee|fees|lab|labs|orientation|id card|id cards)\b/i.test(
+  return /\b(campus|hostel|curfew|library|exam|exams|handbook|faculty|student|students|grade|grades|gpa|transcript|directory|registration|semester|dorm|mess|canteen|attendance|syllabus|policy|policies|document|documents|source|sources|export|approval|announcement|nulltrace|tracefence|advisor|advisee|roster|scholarship|scholarships|tuition|fee|fees|lab|labs|orientation|id card|id cards|pes|ragging|grievance|research|refund|admission|facility|facilities)\b/i.test(
     message,
   );
 }

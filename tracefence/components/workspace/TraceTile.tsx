@@ -7,14 +7,13 @@ import { externalRecipients } from "@/components/domain/injection";
 import { cn } from "@/components/lib/utils";
 import { BentoTile } from "@/components/ui/bento";
 import { DecisionBadge, FencedBadge, LiveDot } from "@/components/ui/decision-badge";
-import { LiveFenceRail } from "@/components/ui/motion/live-fence";
 import { argsLine, formatTime } from "./format";
 import { useWorkspace } from "./WorkspaceProvider";
 
 const EXFIL = new Set(["export_records", "notify_external", "post_announcement"]);
 
 export function TraceTile({ className, roleLabel }: { className?: string; roleLabel: string }) {
-  const { events, messages, turnFrom, railEvents, sending } = useWorkspace();
+  const { events, messages, turnFrom, sending } = useWorkspace();
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUser = [...messages].reverse().find((m) => m.from === "user");
   const targets = lastUser ? externalRecipients(lastUser.text) : [];
@@ -37,10 +36,6 @@ export function TraceTile({ className, roleLabel }: { className?: string; roleLa
       kicker="source → proposal → decision → outcome"
       title="Live trace"
     >
-      <div className="border-b px-4 py-3">
-        <LiveFenceRail compact events={railEvents} sending={sending} />
-      </div>
-
       <div className="scroll-thin max-h-[560px] min-h-[160px] flex-1 overflow-y-auto px-5 py-3" ref={scrollRef}>
         {events.length === 0 ? (
           <p className="m-0 text-sm text-muted-foreground">No decisions yet. Each source filter and tool proposal lands here in order.</p>

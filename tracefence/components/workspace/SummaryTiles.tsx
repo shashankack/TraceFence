@@ -20,7 +20,7 @@ export function WelcomeTile({ className }: { className?: string }) {
   if (!user) return null;
   const first = user.displayName ?? user.email.split("@")[0];
   return (
-    <BentoTile className={className} kicker={`${roleLabelFor(user.role, user.orgType)} · ${user.tenantName ?? user.tenantId}`} title={`Hello, ${first}`} tone="brand">
+    <BentoTile className={className} kicker={`${roleLabelFor(user.role, user.orgType, user.roleLabels)} · ${user.tenantName ?? user.tenantId}`} title={`Hello, ${first}`} tone="brand">
       <div className="flex flex-1 flex-col justify-between gap-4 px-5 pb-5">
         <p className="m-0 text-sm leading-relaxed text-white/85">{ROLE_BLURB[user.role]}</p>
         <dl className="m-0 grid grid-cols-2 gap-3 font-mono text-[11px]">

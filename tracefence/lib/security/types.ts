@@ -2,7 +2,18 @@ import type { ReasonCode } from "./reasonCodes";
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
 
-export type CampusRole = "guest" | "student" | "faculty" | "admin";
+/**
+ * Gateway role id. Builtins: guest | student | faculty | admin.
+ * Orgs may add custom ids (stored in tenant profile + org_policy.roles).
+ */
+export type CampusRole = string;
+
+export const BUILTIN_ROLES = ["guest", "student", "faculty", "admin"] as const;
+export type BuiltinRole = (typeof BUILTIN_ROLES)[number];
+
+export function isBuiltinRole(role: string): role is BuiltinRole {
+  return (BUILTIN_ROLES as readonly string[]).includes(role);
+}
 
 export type ApprovalStatus =
   | "PENDING"

@@ -78,12 +78,10 @@ interface WorkspaceState {
   messages: ChatMessage[];
   events: EventDTO[];
   turnFrom: number;
-  /** Events for the latest completed/in-flight turn only (drives Live fence). */
-  railEvents: EventDTO[];
   sending: boolean;
   /** True while restoring, opening history, or creating after delete  not "Thinking…". */
   switching: boolean;
-  send: (text: string) => Promise<void>;
+  send: (text: string, opts?: { attachmentIds?: string[] }) => Promise<void>;
   reset: () => void;
   requests: ApprovalDTO[];
   history: HistoryItem[];
@@ -116,7 +114,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [events, setEvents] = useState<EventDTO[]>([]);
   const [turnFrom, setTurnFrom] = useState(0);
-  const [railEvents, setRailEvents] = useState<EventDTO[]>([]);
   const [sending, setSending] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [requests, setRequests] = useState<ApprovalDTO[]>([]);
@@ -184,12 +181,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [refreshHistory]);
 
   const runTurn = useCallback(
-    async (s: SessionDTO, message: string, appendUser: boolean) => {
+    async (
+      s: SessionDTO,
+      message: string,
+      appendUser: boolean,
+      opts?: { attachmentIds?: string[] },
+    ) => {
       if (appendUser) {
         setMessages((prev) => [...prev, { id: nextId(), from: "user", text: message }]);
       }
       setTurnFrom(eventsRef.current.length);
-      setRailEvents([]);
       setSending(true);
       if (s.role !== "guest") {
         rememberSession({
@@ -202,7 +203,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         void refreshHistory();
       }
       try {
-        const res = await api.sendMessage(s.sessionId, message);
+        const res = await api.sendMessage(s.sessionId, message, {
+          attachmentIds: opts?.attachmentIds,
+        });
         // Ignore late replies if the user switched chats mid-request.
         if (sessionRef.current?.sessionId !== s.sessionId) return;
         const timeline = await api.sessionEvents(s.sessionId).catch(() => null);
@@ -211,7 +214,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         // session timeline by a stale client length  after restore, events
         // are empty while the DB still has history, which leaked old fences.
         const turnEvents = res.events;
-        setRailEvents(turnEvents);
         if (timeline) {
           setTurnFrom(Math.max(0, timeline.length - turnEvents.length));
           setEvents(timeline);
@@ -294,7 +296,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       );
       setEvents([]);
       setTurnFrom(0);
-      setRailEvents([]);
       setRequests([]);
       setSending(false);
       if (data.session.role !== "guest") {
@@ -317,7 +318,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const clearThread = useCallback(() => {
     setMessages([]);
     setEvents([]);
-    setRailEvents([]);
     setRequests([]);
     setTurnFrom(0);
     setSending(false);
@@ -434,10 +434,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [session, hasPending]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, opts?: { attachmentIds?: string[] }) => {
       const message = text.trim();
-      if (!message || sending || switching || !session) return;
-      await runTurn(session, message, true);
+      const hasAttachments = (opts?.attachmentIds?.length ?? 0) > 0;
+      if ((!message && !hasAttachments) || sending || switching || !session) return;
+      await runTurn(
+        session,
+        message || "Please review the attached file.",
+        true,
+        opts,
+      );
     },
     [sending, switching, session, runTurn],
   );
@@ -551,7 +557,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       messages,
       events,
       turnFrom,
-      railEvents,
       sending,
       switching,
       send,
@@ -573,7 +578,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       messages,
       events,
       turnFrom,
-      railEvents,
       sending,
       switching,
       send,

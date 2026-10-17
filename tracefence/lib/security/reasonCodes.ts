@@ -25,6 +25,8 @@ export const ReasonCode = {
   /** General chatbot / creative ask outside campus document scope. */
   SCOPE_REFUSED: "SCOPE_REFUSED",
   SOURCE_INSPECTED: "SOURCE_INSPECTED",
+  /** Chat upload failed sanitize; blocked from model context. */
+  UPLOAD_BLOCKED: "UPLOAD_BLOCKED",
   NOT_IMPLEMENTED: "NOT_IMPLEMENTED",
 } as const;
 

@@ -28,12 +28,17 @@ export const notifyExternalArgsSchema = z.object({
   body: z.string().min(1).max(4000),
 });
 
+export const useChatUploadArgsSchema = z.object({
+  upload_id: z.string().min(1),
+});
+
 export const toolArgSchemas = {
   search_docs: searchDocsArgsSchema,
   read_document: readDocumentArgsSchema,
   export_records: exportRecordsArgsSchema,
   post_announcement: postAnnouncementArgsSchema,
   notify_external: notifyExternalArgsSchema,
+  use_chat_upload: useChatUploadArgsSchema,
 } as const;
 
 export type ToolName = keyof typeof toolArgSchemas;
@@ -78,6 +83,21 @@ export const LLM_TOOL_DEFINITIONS = [
           format: { type: "string", enum: ["csv", "json"] },
         },
         required: ["dataset"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "use_chat_upload",
+      description:
+        "Read a session chat upload after server sanitize (never raw poison)",
+      parameters: {
+        type: "object",
+        properties: {
+          upload_id: { type: "string" },
+        },
+        required: ["upload_id"],
       },
     },
   },

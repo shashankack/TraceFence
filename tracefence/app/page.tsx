@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { HOME, useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { homeFor } from "@/components/auth/home";
 import { LogoMark } from "@/components/ui/logo";
 
 /** Entry point: send signed-in users to their role's workspace, everyone else to sign-in. */
@@ -12,7 +13,7 @@ export default function Index() {
 
   useEffect(() => {
     if (status === "anonymous") router.replace("/login");
-    if (status === "authenticated" && user) router.replace(HOME[user.role]);
+    if (status === "authenticated" && user) router.replace(homeFor(user));
   }, [status, user, router]);
 
   return (

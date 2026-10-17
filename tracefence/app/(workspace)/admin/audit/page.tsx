@@ -485,7 +485,7 @@ function CaseRow({
           <span className="font-mono text-muted-foreground">
             {formatTime(e.ts)}
           </span>
-          <span>{roleLabelFor(c.role, user?.orgType)}</span>
+          <span>{roleLabelFor(c.role, user?.orgType, user?.roleLabels)}</span>
           <span className="font-mono text-muted-foreground">{c.sessionId}</span>
           <ChevronDown
             className={cn(

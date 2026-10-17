@@ -12,6 +12,8 @@ export const signupSchema = z.object({
   notifyEmail: z.string().email().optional(),
 });
 
+const roleLabelsSchema = z.record(z.string().max(40), z.string().max(40)).optional();
+
 export const orgProfilePatchSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   notifyEmail: z.string().email().nullable().optional(),
@@ -21,8 +23,20 @@ export const orgProfilePatchSchema = z.object({
       website: z.string().max(200).optional(),
       city: z.string().max(120).optional(),
       sizeBand: z.string().max(80).optional(),
+      roleLabels: roleLabelsSchema,
     })
     .optional(),
+});
+
+export const createCustomRoleSchema = z.object({
+  label: z.string().min(1).max(40),
+  workspace: z.enum(["student", "faculty"]).optional(),
+  id: z.string().max(40).optional(),
+});
+
+export const setMemberRoleSchema = z.object({
+  userId: z.string().min(1),
+  role: z.string().min(1).max(40),
 });
 
 export const loginSchema = z.object({
@@ -35,9 +49,24 @@ export const switchTenantSchema = z.object({
   tenantId: z.string().min(1),
 });
 
-export const sessionMessageSchema = z.object({
-  message: z.string().min(1),
-});
+export const sessionMessageSchema = z
+  .object({
+    message: z.string().max(8000).default(""),
+    attachmentIds: z.array(z.string().min(1).max(80)).max(5).optional(),
+  })
+  .refine((v) => v.message.trim().length > 0 || (v.attachmentIds?.length ?? 0) > 0, {
+    message: "message or attachmentIds required",
+  });
+
+export const sessionAttachmentSchema = z
+  .object({
+    filename: z.string().min(1).max(200),
+    content: z.string().min(1).max(200_000).optional(),
+    pdfBase64: z.string().min(1).optional(),
+  })
+  .refine((v) => Boolean(v.content || v.pdfBase64), {
+    message: "content or pdfBase64 required",
+  });
 
 export const approvalDecisionSchema = z.object({
   decision: z.enum(["APPROVE", "REJECT"]),

@@ -4,14 +4,22 @@
  */
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
-export type Role = "guest" | "student" | "faculty" | "admin";
+/** Builtin or org-defined gateway role id. */
+export type Role = string;
+export type BuiltinRole = "guest" | "student" | "faculty" | "admin";
 export type OrgType = "college" | "small_business";
 export type Classification = "public" | "internal" | "confidential";
 export type Phase = "SOURCE" | "PROPOSAL" | "DECISION" | "OUTCOME";
 export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED" | "CONSUMED";
 
-/** Org policy matrix roles (guest is system-only, not editable). */
-export const ROLES: Array<Exclude<Role, "guest">> = ["student", "faculty", "admin"];
+export type CustomOrgRole = {
+  id: string;
+  label: string;
+  workspace: "student" | "faculty";
+};
+
+/** Default builtin roles shown in policy matrix (guest is system-only). */
+export const ROLES: BuiltinRole[] = ["student", "faculty", "admin"];
 export const CLASSIFICATIONS: Classification[] = ["public", "internal", "confidential"];
 export const TOOLS = [
   "search_docs",
@@ -19,6 +27,7 @@ export const TOOLS = [
   "export_records",
   "post_announcement",
   "notify_external",
+  "use_chat_upload",
 ] as const;
 export type ToolName = (typeof TOOLS)[number];
 
@@ -30,6 +39,8 @@ export interface AuthTokenDTO {
   role: Role;
 }
 
+export type RoleLabels = Partial<Record<string, string>>;
+
 export interface AuthMeDTO {
   userId: string;
   email: string;
@@ -37,6 +48,10 @@ export interface AuthMeDTO {
   tenantId: string;
   tenantName?: string | null;
   orgType?: OrgType;
+  /** Admin-defined display names for gateway roles. */
+  roleLabels?: RoleLabels;
+  /** Org-defined roles beyond the four builtins. */
+  customRoles?: CustomOrgRole[];
   role: Role;
   memberships: Array<{ tenantId: string; tenantName: string; role: Role }>;
 }
@@ -46,8 +61,21 @@ export interface OrgProfileDTO {
   name: string;
   orgType: OrgType;
   notifyEmail: string | null;
-  profile: { website?: string; city?: string; sizeBand?: string };
+  profile: {
+    website?: string;
+    city?: string;
+    sizeBand?: string;
+    roleLabels?: RoleLabels;
+    customRoles?: CustomOrgRole[];
+  };
   createdAt: string;
+}
+
+export interface OrgMemberDTO {
+  userId: string;
+  email: string;
+  displayName: string | null;
+  role: Role;
 }
 
 export interface NotificationDTO {
@@ -128,8 +156,5 @@ export interface OrgDocumentDTO {
 
 export interface OrgPolicyDTO {
   policyVersion: number;
-  roles: Record<
-    Exclude<Role, "guest">,
-    { collections: string[]; tools: Record<string, Decision> }
-  >;
+  roles: Record<string, { collections: string[]; tools: Record<string, Decision> }>;
 }

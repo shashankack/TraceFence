@@ -2,7 +2,6 @@
 
 import { ArrowUp, Bot, Loader2, MessagesSquare, RotateCcw, ShieldX, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { Role } from "@/components/api/types";
 import { docTitle } from "@/components/domain/catalog";
 import { cn } from "@/components/lib/utils";
 import { BentoTile } from "@/components/ui/bento";
@@ -21,7 +20,9 @@ const EXPECT_TONE: Record<string, string> = {
   FENCED: "text-violet",
 };
 
-export function AssistantTile({ role, className }: { role: Exclude<Role, "admin">; className?: string }) {
+type ScenarioRole = keyof typeof SCENARIOS;
+
+export function AssistantTile({ role, className }: { role: ScenarioRole; className?: string }) {
   const { messages, sending, send, reset, session, sessionError } = useWorkspace();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -156,8 +157,8 @@ function Message({ message }: { message: ChatMessage }) {
         </p>
         {message.citations && message.citations.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border/70 pt-2">
-            {message.citations.map((c) => (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-1.5 py-0.5 text-[11px]" key={c.docId}>
+            {message.citations.map((c, i) => (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-1.5 py-0.5 text-[11px]" key={`${c.docId}-${i}`}>
                 {docTitle(c.docId)}
                 <ClassLabel value={String(c.classification)} />
               </span>

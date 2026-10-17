@@ -2,7 +2,10 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, ApiError, getToken, setToken } from "@/components/api/client";
-import type { AuthMeDTO, Role } from "@/components/api/types";
+import type { AuthMeDTO } from "@/components/api/types";
+import { HOME, homeFor, workspaceFor } from "./home";
+
+export { HOME, homeFor, workspaceFor };
 
 type Status = "loading" | "anonymous" | "authenticated";
 
@@ -21,6 +24,8 @@ interface AuthState {
   /** Public corpus only  no password. */
   continueAsGuest: () => Promise<AuthMeDTO>;
   switchTenant: (tenantId: string) => Promise<AuthMeDTO>;
+  /** Re-fetch /api/auth/me (e.g. after org profile edits). */
+  refresh: () => Promise<AuthMeDTO | null>;
   logout: () => Promise<void>;
 }
 
@@ -31,14 +36,6 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }
-
-/** Where each role lands after sign-in. Roles never share a workspace. */
-export const HOME: Record<Role, string> = {
-  guest: "/student",
-  student: "/student",
-  faculty: "/faculty",
-  admin: "/admin",
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
@@ -97,6 +94,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [adopt],
   );
 
+  const refresh = useCallback(async () => {
+    if (!getToken()) {
+      setUser(null);
+      setStatus("anonymous");
+      return null;
+    }
+    try {
+      const me = await api.me();
+      setUser(me);
+      setStatus("authenticated");
+      return me;
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setToken(null);
+        setUser(null);
+        setStatus("anonymous");
+      }
+      return null;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await api.logout().catch(() => {});
     setToken(null);
@@ -105,8 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, login, signup, continueAsGuest, switchTenant, logout }),
-    [status, user, login, signup, continueAsGuest, switchTenant, logout],
+    () => ({ status, user, login, signup, continueAsGuest, switchTenant, refresh, logout }),
+    [status, user, login, signup, continueAsGuest, switchTenant, refresh, logout],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

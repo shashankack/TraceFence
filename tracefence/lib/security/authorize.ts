@@ -13,6 +13,7 @@ const CAMPUS_TOOLS = new Set([
   "export_records",
   "post_announcement",
   "notify_external",
+  "use_chat_upload",
 ]);
 
 /**

@@ -6,7 +6,7 @@ import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 
 export default function StudentPage() {
   return (
-    <RoleGate allow={["guest", "student"]}>
+    <RoleGate allow={["guest", "student"]} workspace="student">
       <WorkspaceProvider>
         <CampusChat role="student" />
       </WorkspaceProvider>

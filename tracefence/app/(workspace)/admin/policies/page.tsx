@@ -1,8 +1,8 @@
 "use client";
 
-import { Database, FileUp, Loader2, Lock, Plus, SlidersHorizontal, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Database, FileUp, Loader2, Lock, Plus, Search, SlidersHorizontal, Upload } from "lucide-react";
 import { motion } from "motion/react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/components/api/client";
 import { CLASSIFICATIONS, ROLES, TOOLS, type Classification, type Decision, type OrgDocumentDTO, type OrgPolicyDTO, type Role } from "@/components/api/types";
@@ -24,6 +24,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+
+const CORPUS_PAGE_SIZE = 8;
 
 const CELL: Record<Decision, string> = {
   ALLOW: "bg-allow-soft text-allow border-allow/20",
@@ -93,76 +95,7 @@ function Policies() {
         </StaggerItem>
 
         <StaggerItem className="md:col-span-6 xl:col-span-8">
-          <BentoTile
-            className="h-full"
-            icon={Database}
-            kicker={docs ? `${docs.length} sources` : "sources"}
-            title="Corpus"
-          >
-            {!docs ? (
-              <Skeleton className="m-5 h-48" />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-5">Source</TableHead>
-                    <TableHead>Classification</TableHead>
-                    <TableHead className="hidden sm:table-cell">Origin</TableHead>
-                    <TableHead className="pr-5 text-right">Enabled</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {docs.map((d, i) => (
-                    <motion.tr
-                      className={cn(!d.enabled && "opacity-55")}
-                      key={d.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.08 + i * 0.035, duration: 0.35 }}
-                    >
-                      <TableCell className="pl-5">
-                        <span className="block font-medium">{d.title}</span>
-                        <span className="font-mono text-[11px] text-muted-foreground">{d.id}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          onValueChange={(v) => updateDoc(d.id, { classification: v as Classification })}
-                          value={d.classification}
-                        >
-                          <SelectTrigger
-                            aria-label={`Classification for ${d.title}`}
-                            className="h-8 w-[150px]"
-                            size="sm"
-                          >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CLASSIFICATIONS.map((c) => (
-                              <SelectItem key={c} value={c}>
-                                <ClassLabel value={c} />
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Badge className="font-mono text-[10.5px] font-normal" variant="outline">
-                          {(d as OrgDocumentDTO & { source?: string }).source ?? "fixture"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="pr-5 text-right">
-                        <Switch
-                          aria-label={`Enable ${d.title}`}
-                          checked={d.enabled}
-                          onCheckedChange={(on) => updateDoc(d.id, { enabled: on })}
-                        />
-                      </TableCell>
-                    </motion.tr>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </BentoTile>
+          <CorpusPanel docs={docs} onUpdate={updateDoc} />
         </StaggerItem>
 
         <StaggerItem className="md:col-span-6 xl:col-span-12">
@@ -201,11 +134,15 @@ function Policies() {
             {!draft ? (
               <Skeleton className="m-5 h-48" />
             ) : (
+              (() => {
+                const matrixRoles = Object.keys(draft.roles).filter((r) => r !== "guest");
+                return (
               <div className="grid gap-0 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:divide-x">
                 <Matrix
                   caption="Retrieval ACL  which collections each role may read. Applied before the model sees anything."
                   columns={CLASSIFICATIONS}
-                  value={(r, c) => (draft.roles[r].collections.includes(c) ? "ALLOW" : "DENY")}
+                  roles={matrixRoles}
+                  value={(r, c) => (draft.roles[r]?.collections.includes(c) ? "ALLOW" : "DENY")}
                   onCycle={(r, c) => {
                     const cur = draft.roles[r].collections;
                     const collections = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
@@ -218,7 +155,8 @@ function Policies() {
                 <Matrix
                   caption="Tool gateway  what happens when the model proposes each tool. Click a cell to cycle."
                   columns={TOOLS}
-                  value={(r, t) => (draft.roles[r].tools[t] ?? "DENY") as Decision}
+                  roles={matrixRoles}
+                  value={(r, t) => (draft.roles[r]?.tools[t] ?? "DENY") as Decision}
                   onCycle={(r, t) => {
                     const v = (draft.roles[r].tools[t] ?? "DENY") as Decision;
                     setDraft({
@@ -234,6 +172,8 @@ function Policies() {
                   }}
                 />
               </div>
+                );
+              })()
             )}
           </BentoTile>
         </StaggerItem>
@@ -241,7 +181,7 @@ function Policies() {
       <BlurFade delay={0.18}>
         <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Lock className="size-3.5" />
-          Classification and tool access are set here — wording inside a PDF cannot override them.
+          Classification and tool access are set here  wording inside a PDF cannot override them.
         </p>
       </BlurFade>
     </main>
@@ -249,18 +189,20 @@ function Policies() {
 }
 
 function Matrix({
+  roles,
   columns,
   caption,
   value,
   onCycle,
 }: {
+  roles: string[];
   columns: readonly string[];
   caption: string;
-  value: (r: (typeof ROLES)[number], c: string) => Decision;
-  onCycle: (r: (typeof ROLES)[number], c: string) => void;
+  value: (r: string, c: string) => Decision;
+  onCycle: (r: string, c: string) => void;
 }) {
   const { user } = useAuth();
-  const label = (r: (typeof ROLES)[number]) => roleLabelFor(r, user?.orgType);
+  const label = (r: string) => roleLabelFor(r, user?.orgType, user?.roleLabels);
   return (
     <div className="min-w-0 px-5 py-4">
       <p className="m-0 mb-3 text-xs text-muted-foreground">{caption}</p>
@@ -277,9 +219,14 @@ function Matrix({
             </tr>
           </thead>
           <tbody>
-            {ROLES.map((r) => (
+            {roles.map((r) => (
               <tr key={r}>
-                <td className="pr-2 font-medium">{label(r)}</td>
+                <td className="pr-2 font-medium">
+                  {label(r)}
+                  {!ROLES.includes(r as (typeof ROLES)[number]) && (
+                    <span className="mt-0.5 block font-mono text-[10px] font-normal text-muted-foreground">{r}</span>
+                  )}
+                </td>
                 {columns.map((c) => {
                   const d = value(r, c);
                   return (
@@ -307,6 +254,181 @@ function Matrix({
         </table>
       </div>
     </div>
+  );
+}
+
+function CorpusPanel({
+  docs,
+  onUpdate,
+}: {
+  docs: OrgDocumentDTO[] | null | undefined;
+  onUpdate: (id: string, patch: Partial<Pick<OrgDocumentDTO, "classification" | "enabled">>) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [classFilter, setClassFilter] = useState<Classification | "all">("all");
+  const [page, setPage] = useState(0);
+
+  const filtered = useMemo(() => {
+    if (!docs) return [];
+    const q = query.trim().toLowerCase();
+    return docs.filter((d) => {
+      if (classFilter !== "all" && d.classification !== classFilter) return false;
+      if (!q) return true;
+      const hay = `${d.title} ${d.id} ${d.classification} ${(d as OrgDocumentDTO & { source?: string }).source ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [docs, query, classFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / CORPUS_PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageDocs = filtered.slice(safePage * CORPUS_PAGE_SIZE, safePage * CORPUS_PAGE_SIZE + CORPUS_PAGE_SIZE);
+
+  const setQueryAndReset = (v: string) => {
+    setQuery(v);
+    setPage(0);
+  };
+  const setClassAndReset = (v: Classification | "all") => {
+    setClassFilter(v);
+    setPage(0);
+  };
+
+  return (
+    <BentoTile
+      className="h-full"
+      icon={Database}
+      kicker={docs ? `${docs.length} sources` : "sources"}
+      title="Corpus"
+    >
+      {!docs ? (
+        <Skeleton className="m-5 h-48" />
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex flex-col gap-2 border-b px-4 py-3 sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Search corpus"
+                className="h-9 pl-8"
+                onChange={(e) => setQueryAndReset(e.target.value)}
+                placeholder="Search title, id, classification…"
+                value={query}
+              />
+            </div>
+            <Select onValueChange={(v) => setClassAndReset(v as Classification | "all")} value={classFilter}>
+              <SelectTrigger aria-label="Filter by classification" className="h-9 w-full sm:w-[150px]" size="sm">
+                <SelectValue placeholder="Classification" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All classes</SelectItem>
+                {CLASSIFICATIONS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    <ClassLabel value={c} />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {pageDocs.length === 0 ? (
+            <p className="m-0 px-5 py-8 text-sm text-muted-foreground">
+              No sources match{query ? ` “${query.trim()}”` : ""}.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-5">Source</TableHead>
+                  <TableHead>Classification</TableHead>
+                  <TableHead className="hidden sm:table-cell">Origin</TableHead>
+                  <TableHead className="pr-5 text-right">Enabled</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pageDocs.map((d, i) => (
+                  <motion.tr
+                    className={cn(!d.enabled && "opacity-55")}
+                    key={d.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.04 + i * 0.03, duration: 0.3 }}
+                  >
+                    <TableCell className="pl-5">
+                      <span className="block font-medium">{d.title}</span>
+                      <span className="font-mono text-[11px] text-muted-foreground">{d.id}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        onValueChange={(v) => onUpdate(d.id, { classification: v as Classification })}
+                        value={d.classification}
+                      >
+                        <SelectTrigger
+                          aria-label={`Classification for ${d.title}`}
+                          className="h-8 w-[150px]"
+                          size="sm"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CLASSIFICATIONS.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              <ClassLabel value={c} />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge className="font-mono text-[10.5px] font-normal" variant="outline">
+                        {(d as OrgDocumentDTO & { source?: string }).source ?? "fixture"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="pr-5 text-right">
+                      <Switch
+                        aria-label={`Enable ${d.title}`}
+                        checked={d.enabled}
+                        onCheckedChange={(on) => onUpdate(d.id, { enabled: on })}
+                      />
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
+          <div className="mt-auto flex items-center justify-between gap-2 border-t px-4 py-2.5">
+            <span className="font-mono text-[11px] text-muted-foreground">
+              {filtered.length === 0
+                ? "0 shown"
+                : `${safePage * CORPUS_PAGE_SIZE + 1}–${Math.min((safePage + 1) * CORPUS_PAGE_SIZE, filtered.length)} of ${filtered.length}`}
+              {filtered.length !== docs.length ? ` · filtered from ${docs.length}` : ""}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                aria-label="Previous page"
+                disabled={safePage <= 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="min-w-[4.5rem] text-center font-mono text-[11px] text-muted-foreground">
+                {safePage + 1} / {pageCount}
+              </span>
+              <Button
+                aria-label="Next page"
+                disabled={safePage >= pageCount - 1}
+                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </BentoTile>
   );
 }
 

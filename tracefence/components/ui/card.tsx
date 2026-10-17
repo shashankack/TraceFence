@@ -2,49 +2,24 @@
 
 import * as React from "react";
 import { cn } from "@/components/lib/utils";
-import { useSpotlight } from "@/components/ui/motion/spotlight";
 
 function Card({
   className,
   interactive = false,
-  onMouseMove,
-  onMouseLeave,
   ...props
 }: React.ComponentProps<"div"> & {
-  /** Cursor-tracking flash + lift  for promo/tiles only, not form shells. */
+  /** Lift on hover  for promo/tiles only, not form shells. */
   interactive?: boolean;
 }) {
-  const { spotlightProps } = useSpotlight({
-    size: 340,
-    disabled: !interactive,
-  });
   return (
     <div
       data-slot="card"
-      data-spotlight={interactive ? spotlightProps["data-spotlight"] : undefined}
       className={cn(
         "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm",
-        interactive && spotlightProps.className,
         interactive &&
           "transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(14,18,37,0.08)]",
         className,
       )}
-      onMouseMove={
-        interactive
-          ? (e) => {
-              spotlightProps.onMouseMove?.(e);
-              onMouseMove?.(e);
-            }
-          : onMouseMove
-      }
-      onMouseLeave={
-        interactive
-          ? (e) => {
-              spotlightProps.onMouseLeave?.(e);
-              onMouseLeave?.(e);
-            }
-          : onMouseLeave
-      }
       {...props}
     />
   );

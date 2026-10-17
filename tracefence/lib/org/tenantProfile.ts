@@ -1,6 +1,6 @@
 import { getDb } from "../db/client";
 import type { OrgProfile, OrgType } from "./types";
-import { isOrgType } from "./types";
+import { isOrgType, sanitizeCustomRoles, sanitizeRoleLabels } from "./types";
 
 export type TenantProfileRow = {
   id: string;
@@ -15,7 +15,16 @@ function parseProfile(json: string | null): OrgProfile {
   if (!json) return {};
   try {
     const v = JSON.parse(json) as OrgProfile;
-    return v && typeof v === "object" ? v : {};
+    if (!v || typeof v !== "object") return {};
+    const roleLabels = sanitizeRoleLabels(v.roleLabels);
+    const customRoles = sanitizeCustomRoles(v.customRoles);
+    return {
+      website: typeof v.website === "string" ? v.website : undefined,
+      city: typeof v.city === "string" ? v.city : undefined,
+      sizeBand: typeof v.sizeBand === "string" ? v.sizeBand : undefined,
+      ...(roleLabels ? { roleLabels } : {}),
+      ...(customRoles.length ? { customRoles } : {}),
+    };
   } catch {
     return {};
   }
@@ -67,7 +76,20 @@ export function updateTenantProfile(
       ? existing.notifyEmail
       : patch.notifyEmail?.trim() || null;
   const orgType = patch.orgType ?? existing.orgType;
-  const profile = { ...existing.profile, ...(patch.profile ?? {}) };
+  const merged = { ...existing.profile, ...(patch.profile ?? {}) };
+  const roleLabels = sanitizeRoleLabels(merged.roleLabels);
+  const customRoles = sanitizeCustomRoles(
+    patch.profile && "customRoles" in patch.profile
+      ? patch.profile.customRoles
+      : merged.customRoles,
+  );
+  const profile: OrgProfile = {
+    website: merged.website,
+    city: merged.city,
+    sizeBand: merged.sizeBand,
+    ...(roleLabels ? { roleLabels } : {}),
+    ...(customRoles.length ? { customRoles } : {}),
+  };
 
   getDb()
     .prepare(

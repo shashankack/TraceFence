@@ -44,7 +44,7 @@ function Overview() {
   const docs = useDocuments();
   const evidence = useEvidence({ page: 1, pageSize: 20 });
   const [open, setOpen] = useState<ApprovalDTO | null>(null);
-  const label = (r: (typeof ROLES)[number]) => roleLabelFor(r, user?.orgType);
+  const label = (r: (typeof ROLES)[number]) => roleLabelFor(r, user?.orgType, user?.roleLabels);
 
   const sessions = useMemo(() => evidence.data?.sessions ?? [], [evidence.data]);
   const rows = useMemo(() => sessions.flatMap((s) => s.events.map((e) => ({ ...e, role: s.role }))), [sessions]);
@@ -307,7 +307,7 @@ function Overview() {
                   >
                     <span className="w-14 font-mono text-[11px] text-muted-foreground">{c.ref}</span>
                     <span className="w-16 text-xs text-muted-foreground">
-                      {roleLabelFor(c.role, user?.orgType)}
+                      {roleLabelFor(c.role, user?.orgType, user?.roleLabels)}
                     </span>
                     <code className="min-w-0 flex-1 truncate font-mono text-[13px]">{c.event.tool}</code>
                     <span className="hidden font-mono text-[10.5px] text-muted-foreground sm:inline">

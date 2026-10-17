@@ -105,7 +105,8 @@ export async function POST(
     tenantId: session.tenantId,
     userId: session.userId,
     role: session.role,
-    message: parsed.data.message,
+    message: parsed.data.message.trim() || "Please review the attached file.",
+    attachmentIds: parsed.data.attachmentIds,
   });
 
   return NextResponse.json(result);
