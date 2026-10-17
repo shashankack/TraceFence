@@ -6,6 +6,25 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
+
+### Done
+- Adopted shadcn/ui (new-york, Tailwind v4 tokens). Components live in `tracefence/components/ui`, `cn` helper in `tracefence/components/lib/utils.ts` (nothing added under `lib/**`).
+- New deps in `tracefence/package.json`: radix-ui, class-variance-authority, clsx, tailwind-merge, lucide-react, sonner, tw-animate-css (dev).
+- Light theme: white surfaces, electric-blue primary, violet secondary; green/red/amber only on gateway decisions.
+- `/login`: sign in, create organization (`/api/auth/signup`), one-click demo accounts. Token kept in sessionStorage; identity from `/api/auth/me`.
+- Role-separated routes (client gate + server auth on every call): `/student`, `/faculty`, `/admin`, `/admin/approvals`, `/admin/policies`, `/admin/audit`. Removed `/org` and `/audit`.
+- Student / faculty bento workspace: assistant, source inspector (highlighted injection, context fence), live trace (blocked external email card), session stats. Faculty adds "My requests" with review progress; faculty cannot approve their own requests in the UI.
+- Admin: overview bento (verdict, KPIs, approval queue, policy snapshot, corpus, recent decisions), approval review sheet (payload, countdown, session context, Approve once / Reject), policies (upload, classify, enable, ACL + tool matrices, publish), investigation report (9 evidence checks, EV cases).
+- Admin evidence re-fetches events from the server for sessions opened in this browser (ids remembered in localStorage).
+- Verified in headless Edge: login → student injection DENY → `/admin` redirected for student → faculty export REQUIRE_APPROVAL → admin approves in sheet → audit 9/9; 390px layout.
+
+### Notes for backend
+- Approval decision route accepts any same-tenant user; the admin-only approval step is enforced in the UI only. Consider `requireRole(["admin"])` on `/api/approvals/:id/decision`.
+- Removed scripted replay mode (it depended on demo auto-login).
+
+---
+
 ## 2026-10-17 — Restrained light UI (venilashree)
 
 ### Done
