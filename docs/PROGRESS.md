@@ -6,6 +6,54 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Refresh teammate prompts + push
+
+### Done
+- Regenerated all `docs/prompts/MASTER_*.md` with mandatory `git merge origin/main` and product lock (no RAG, not email-only, Org Admin, Next.js APIs).
+- Tester prompt (`MASTER_Varun-op.md`) + `docs/testing/strategy.md` updated for `/api/sessions` acceptance matrix.
+
+### Next
+- Teammates pull/merge main before coding; Varun starts API acceptance tests.
+
+---
+
+## 2026-10-17 — Org Admin surface (docs + policies)
+
+### Decision
+- Product needs an **Org / Admin** page: upload documents, classify sources, define role→collection ACLs and tool ALLOW/DENY/REQUIRE_APPROVAL, bump policy version.
+- Console remains chat + rail; Admin is how orgs “bring their corpus.”
+- MVP: UI + APIs over SQLite (seed from fixtures OK); no vector RAG.
+
+### Next
+- Figma: add Org Admin page; frontend ships Admin + Console; backend upload/policy routes.
+
+---
+
+## 2026-10-17 — No vector RAG for MVP
+
+### Decision
+- Ship **ACL/keyword filtered sources + Ollama** (scripted fallback).
+- **No** embeddings / vector RAG in the hackathon build.
+- Security story stays “filter before context + tool gateway,” not “we have RAG.”
+
+---
+
+## 2026-10-17 — Reaffirm original TraceFence (not email-only)
+
+### Decision
+- Product = **original TraceFence**: source-aware security gateway for AI agents.
+- Campus remains the **demo domain**, not a rename of the product.
+- Explicitly **not** an email-only pitch; email/notify is one tool among search, read, export, etc.
+- Keep SOURCE → PROPOSAL → DECISION → OUTCOME + exact-action approvals from the blueprint.
+
+### Done
+- Updated SCOPE, JUDGE brief, PRESENTATION, PPT_ALIGNMENT, DEMO_SCRIPT, SYSTEM opener.
+
+### Next
+- Frontend decision rail; optional synthetic “email attacker” source → DENY; polish Ollama/scenarios.
+
+---
+
 ## 2026-10-17 — Campus gateway MVP (sessions + ACL)
 
 ### Done

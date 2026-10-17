@@ -3,17 +3,27 @@
 **Product:** TraceFence · **Team:** NullTrace  
 **Tagline:** *A source-aware security gateway for AI agents*
 
-**Demo domain:** Campus chat (NullTrace Institute) — filtered retrieval + tool gateway.
+**Demo:** Campus sources + multi-tool gateway + **org admin** (upload docs / define policies) — **not** an email-only product.
 
 ---
 
 ## 60-second judge pitch
 
-> **TraceFence** is a source-aware security gateway for AI agents. Agents propose tools and need context from documents — we decide what they may **read** and what they may **do**, in application code, not by trusting the model.  
+> AI agents read untrusted sources and call tools. Hoping the model “behaves” is not a security boundary.  
 >  
-> Demo world: campus chat. A student learns hostel curfew from the public handbook (allowed sources only). The same student cannot pull the confidential directory into context and cannot export student emails — **DENY** with an audit trail. Faculty can request an export with one exact approval.  
+> **TraceFence** is a source-aware security gateway: the org uploads documents and defines who may read what and which tools are ALLOW / DENY / REQUIRE_APPROVAL. We filter what may enter context, and every consequential tool hits policy in application code. Timeline: **SOURCE → PROPOSAL → DECISION → OUTCOME**.  
 >  
-> Source-aware means unauthorized content never enters the model; every consequential tool hits ALLOW / DENY / REQUIRE_APPROVAL. We are not claiming perfect prompt-injection immunity.
+> Live demo: show Org admin corpus + policy matrix, then campus chat — a student gets hostel curfew from public sources only; cannot pull confidential directory into context; cannot export records — **DENY**. Faculty export needs one exact approval. Document text cannot rewrite permissions.  
+>  
+> We are not claiming perfect prompt-injection immunity. We are showing inspectable, enforceable agent permissions.
+
+---
+
+## Org admin (product must-show)
+
+- Upload / manage documents + classification  
+- Role → collection ACL + tool policy matrix  
+- Policy version visible on sessions / audit
 
 ---
 
@@ -21,23 +31,25 @@
 
 | Q | A |
 |---|---|
-| What is TraceFence? | A source-aware security gateway for AI agents (demo: campus chat). |
-| Is this “SecureRAG”? | No second product. We use policy-outside-the-LLM / filtered-retrieval ideas; the **product name is TraceFence**. |
-| Why campus? | Concrete sources + roles to show read filters and tool decisions in 3 minutes. |
-| What if the model ignores policy? | Confidential docs never retrieved; tools still denied by gateway. |
+| What is TraceFence? | A source-aware security gateway for AI agents. |
+| Is this just blocking email? | No — email/notify is one tool. We also filter reads and gate exports and other actions. |
+| Why campus? | Clear public vs confidential sources so judges see the gateway in 3 minutes. |
+| What if the model ignores policy? | Bad sources never enter context; tools still denied by the gateway. |
 
 ---
 
 ## Build checklist
 
-1. [ ] Session + role identity  
-2. [ ] ACL-filtered `search_docs` / `read_document`  
-3. [ ] Chat uses only filtered context  
-4. [ ] `export_records` DENY student / APPROVAL faculty  
-5. [ ] Decision rail + audit  
-6. [ ] Ollama + scripted fallback  
+1. [x] Session + role identity  
+2. [x] ACL-filtered `search_docs` / `read_document`  
+3. [x] Chat uses only filtered context  
+4. [x] `export_records` DENY student / APPROVAL faculty  
+5. [ ] Console UI (chat + decision rail + approvals)  
+6. [ ] **Org / Admin UI** (documents + policies)  
+7. [ ] Upload + policy APIs (or Admin over seeded fixtures first)  
+8. [ ] Ollama path polished + scripted scenarios  
 
-**Out:** Full multi-domain platform, production ABAC/crypto, inventing RAG/RBAC, dual branding as SecureRAG.
+**Out:** Vector RAG, email-only pitch, SecureRAG as second product, production ABAC claims.
 
 ---
 

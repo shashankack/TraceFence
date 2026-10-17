@@ -1,6 +1,6 @@
 # Agent ADCE Master Prompt
 
-Paste **with** git prompts. Prefer per-person files in [`docs/prompts/`](./prompts/).
+Paste **with** per-person git prompts. Prefer [`docs/prompts/`](./prompts/).
 
 ```text
 This repository uses ADCE. Run before meaningful changes:
@@ -12,18 +12,21 @@ This repository uses ADCE. Run before meaningful changes:
 6) After edits: adce scan
 7) Never commit .adce/cache, logs, metrics, state.db
 
+Before any work: git fetch && merge origin/main into your feature branch.
+Stale invoice/QR/SecureRAG dual-brand chat memory is invalid — re-read SCOPE from disk.
+
 TRUST ORDER:
-- AUTHORITATIVE: docs/SCOPE_AND_RULES.md, docs/JUDGE_AND_TEAM_BRIEF.md, docs/SYSTEM_OVERVIEW.md, docs/contracts.md, docs/TEAM_AND_GIT.md, docs/SECURERAG_ALIGNMENT.md, decisions/0001-record-architecture-decisions.md
-- Design reference (not a product): docs/secure_rag_domain_agnostic_design.md
-- CANONICAL historical: docs/TraceFence_Project_Blueprint.md (living SCOPE supersedes invoice/QR sections)
-- Supporting: docs/PROGRESS.md, docs/PPT_ALIGNMENT.md, docs/PRESENTATION.md
+- AUTHORITATIVE: docs/SCOPE_AND_RULES.md, docs/JUDGE_AND_TEAM_BRIEF.md, docs/SYSTEM_OVERVIEW.md, docs/contracts.md, docs/TEAM_AND_GIT.md, design/overview.md
+- Design reference only (not a product): docs/SECURERAG_ALIGNMENT.md, docs/secure_rag_domain_agnostic_design.md
+- Historical: docs/TraceFence_Project_Blueprint.md (invoice/QR sections superseded)
+- Supporting: docs/PROGRESS.md, docs/PRESENTATION.md, docs/PPT_ALIGNMENT.md
 
 INVARIANTS:
 - Product: TraceFence only. Tagline: A source-aware security gateway for AI agents.
-- LLM is never the security boundary.
-- Unauthorized docs must never enter LLM context (permission-filtered retrieval).
+- Surfaces: Console + Org/Admin (docs+policies) + Audit.
+- LLM is never the security boundary. Unauthorized docs never enter context.
 - Tools via gateway: ALLOW / DENY / REQUIRE_APPROVAL. Roles: student|faculty|admin.
+- No vector RAG in MVP. Not email-only. Next.js APIs (no FastAPI rewrite).
 - DEMO_MODE never bypasses DENY. Synthetic only.
-- Do not pitch SecureRAG as a second product.
-- No app code unless human says: implement. Update docs/PROGRESS.md each iteration.
+- Update docs/PROGRESS.md each iteration.
 ```

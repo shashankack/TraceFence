@@ -1,7 +1,8 @@
 # TraceFence — System Overview
 
 **TraceFence** — *A source-aware security gateway for AI agents*  
-Demo surface: campus chat + filtered retrieval + tool gateway.
+Original product: filter sources + authorize **multiple** tools (not email-only).  
+Hackathon demo surface: campus chat + filtered retrieval + tool gateway.
 
 ## Request flow
 

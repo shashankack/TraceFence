@@ -62,7 +62,13 @@ Retrieval APIs **must** apply ACL before returning chunks. Never “retrieve the
 | `GET` | `/api/approvals` | Pending |
 | `POST` | `/api/approvals/:id/decision` | APPROVE \| REJECT |
 | `GET` | `/api/audit` | Aggregate |
+| `GET` | `/api/org/documents` | List corpus (fixtures + uploads) |
+| `POST` | `/api/org/documents` | Upload / create doc + classification |
+| `PATCH` | `/api/org/documents/:id` | Update classification / enabled |
+| `GET` | `/api/org/policy` | Current role×collection×tool matrix + version |
+| `PUT` | `/api/org/policy` | Replace matrix; bump `policyVersion` |
 
+Org routes: demo-gate to `admin` role (or `DEMO_MODE` with explicit admin session).  
 Legacy `/api/tasks` and invoice tools are **deprecated**; remove or ignore when rewiring.
 
 ## Message response (conceptual)

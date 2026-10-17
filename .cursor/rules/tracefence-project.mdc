@@ -9,11 +9,11 @@ This repository is **TraceFence**, a source-aware security gateway for AI agents
 
 **Tagline:** A source-aware security gateway for AI agents.
 
-**Pitch:** Inspect and filter what the agent may read; enforce every tool call in application code, not by the model. Campus chat is the hackathon demo domain.
+**Pitch:** Inspect and filter what the agent may read; enforce every tool call in application code, not by the model. **Not email-only** — notify/email is one tool among several. Campus chat is the hackathon demo domain.
 
 **Decisions:** `ALLOW`, `DENY`, `REQUIRE_APPROVAL`. Default deny. Approvals bind to exact tool, canonical arguments, task/session, caller, and expiry, and are single-use. Timeline links **SOURCE → PROPOSAL → DECISION → OUTCOME**.
 
-**MVP:** One Next.js App Router + TypeScript app; campus fixtures; server gateway; deterministic policy; SQLite; Ollama local LLM API (`qwen3:8b`); campus tools (`search_docs`, `read_document`, `export_records`). Synthetic data only. No real email, arbitrary live web scanning, or dual product branding as SecureRAG.
+**MVP:** One Next.js App Router + TypeScript app; campus fixtures; server gateway; deterministic policy; SQLite; Ollama local LLM API (`qwen3:8b`); tools (`search_docs`, `read_document`, `export_records`, optional `notify_external` / `post_announcement`). Synthetic data only. No real SMTP, arbitrary live web scanning, email-only branding, or dual product branding as SecureRAG.
 
 **Invariants:**
 
