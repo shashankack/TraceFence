@@ -1,31 +1,19 @@
 # Requirements overview
 
-TrustFence MVP requirements (hackathon). Detail: [`docs/SCOPE_AND_RULES.md`](../docs/SCOPE_AND_RULES.md) and the project blueprint.
-
-## Problem
-
-AI agents propose tool calls. Proposal is not permission. Untrusted content (e.g. invoice notes) can steer the model toward unsafe actions.
+Authoritative detail: [`docs/SCOPE_AND_RULES.md`](../docs/SCOPE_AND_RULES.md) (PPT option A).
 
 ## Goal
 
-Enforce task-scoped authorization in server application code for every proposed tool call: `ALLOW`, `DENY`, or `REQUIRE_APPROVAL` (default deny).
+Source-aware authorization for AI tool use: inspect what the agent reads (synthetic QR page), enforce what it may execute, explain source → proposal → decision → outcome.
 
-## Functional requirements (P0)
+## P0 highlights
 
-- Scoped invoice-summary task for `INV-001`–`INV-003`.
-- Tools: `read_invoice`, `send_email`, `delete_invoice` via trusted gateway only.
-- Exact-action, single-use, expiring approvals.
-- Audit timeline + reason codes.
-- Local LLM (Ollama `qwen3:8b`) with scripted proposal fallback.
-- Deterministic security tests including unauthorized external email.
-
-## Non-functional
-
-- Synthetic data only; no real email.
-- Keys/config server-side; no secrets in browser.
-- `DEMO_MODE` must not bypass denies.
-- Single Next.js app + SQLite for demo.
+- Invoice task + three mock tools behind gateway.
+- QR/URL + Playwright offline inspect + SOURCE on timeline.
+- ALLOW / DENY / REQUIRE_APPROVAL; exact-action approvals.
+- Local Ollama agent + scripted fallback.
+- Unauthorized external email never reaches executor.
 
 ## Out of scope
 
-RAG, production IAM, arbitrary MCP, shell/filesystem tools, claims of prompt-injection immunity.
+Arbitrary live scanning, real email, APK analysis, RAG, production IAM.

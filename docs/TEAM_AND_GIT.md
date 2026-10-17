@@ -1,47 +1,45 @@
-# TrustFence — Team and Git
+# TraceFence — Team and Git
 
-Five people. Path ownership is the conflict-avoidance strategy. Only **`shashankack`** merges to `main`.
+Five people (**slides must say 5, not 6**). Path ownership avoids merge conflicts. Only **`shashankack`** merges to `main`.
+
+Team name on deck: **NullTrace**. Product: **TraceFence**.
 
 ## People and branches
 
 | Person | GitHub | Role | Branch |
 |---|---|---|---|
-| Lead (integration + full backend) | `shashankack` | Gateway, policy engine, orchestrator, API, DB | `feature/shashankack-backend` |
-| Frontend | `venilashree` | Dashboard UI | `feature/venilashree-frontend` |
-| Fixtures & attacks | `desaitejas777` | Seeds, malicious invoice, sample policies | `feature/desaitejas777-fixtures` |
-| Tests / QA | `Varun-op` | Vitest / acceptance matrix | `feature/Varun-op-tests` |
-| Local runtime & scenarios | `Spandananarayanaswamy` | Ollama docs, scripted scenarios, smoke | `feature/Spandananarayanaswamy-runtime` |
+| Lead (integration + full backend) | `shashankack` | Gateway, policy, orchestrator, API, DB, **Playwright inspect service**, source linkage | `feature/shashankack-backend` |
+| Frontend | `venilashree` | Dashboard, **QR/URL input**, source panel, source→action timeline UI | `feature/venilashree-frontend` |
+| Fixtures & attacks | `desaitejas777` | Invoices, **synthetic HTML pages**, attack docs, sample policies | `feature/desaitejas777-fixtures` |
+| Tests / QA | `Varun-op` | Vitest + PPT security matrix (incl. source-linked DENY) | `feature/Varun-op-tests` |
+| Local runtime & scenarios | `Spandananarayanaswamy` | Ollama, scripted scenarios (incl. QR-attack path), smoke notes | `feature/Spandananarayanaswamy-runtime` |
 
 ## Path ownership (do not cross)
 
 | Owner | Owns exclusively | Must not touch |
 |---|---|---|
-| `shashankack` | `trustfence/lib/**`, `trustfence/app/api/**`, DB schema/client, `.env.example`, integration wiring | `trustfence/components/**`, `tests/**`, `fixtures/**`, `scenarios/**` |
-| `venilashree` | `trustfence/app/**/page.tsx` (and layout/UI routes), `trustfence/components/**`, Tailwind/UI assets | `trustfence/lib/**`, `trustfence/app/api/**`, `tests/**` |
-| `desaitejas777` | `fixtures/**`, `docs/attacks/**`, sample policy JSON | Runtime app code under `trustfence/lib` or `app/api` |
-| `Varun-op` | `tests/**`, notes under `docs/testing/` | Production UI/API implementation |
-| `Spandananarayanaswamy` | `docs/local-llm.md`, `scenarios/**`, Ollama health/smoke notes | `lib/**` business logic, `components/**`, `tests/**` |
+| `shashankack` | `tracefence/lib/**`, `tracefence/app/api/**`, DB, `.env.example`, Playwright inspect under `lib/` | `components/**`, `tests/**`, `fixtures/**`, `scenarios/**` |
+| `venilashree` | App pages/layouts (not `app/api`), `tracefence/components/**`, Tailwind/UI | `lib/**`, `app/api/**`, `tests/**` |
+| `desaitejas777` | `fixtures/**` (incl. `fixtures/pages/**`), `docs/attacks/**`, sample policy JSON | Runtime `lib` / `app/api` |
+| `Varun-op` | `tests/**`, `docs/testing/` notes | Production UI/API implementation |
+| `Spandananarayanaswamy` | `docs/local-llm.md`, `scenarios/**`, Ollama health notes | `lib/**` business logic, `components/**`, `tests/**` |
 
-Shared contracts are **documented first** in [`contracts.md`](./contracts.md) and `openapi.yaml`. Backend implements; frontend consumes. Do not edit the same TypeScript file in two branches.
+Shared contracts first in [`contracts.md`](./contracts.md). Do not edit the same TypeScript file on two branches.
 
-## Git workflow (humans who do not know git)
+## Git workflow
 
-1. Clone the repo (owner pushes `main` after init).
-2. `git fetch` then `git checkout feature/<your-branch>` (exact name above).
-3. Work only in your paths. Commit on your branch only.
-4. Push your branch: `git push -u origin HEAD`.
-5. Open a PR into `main`. Wait for `shashankack` to merge.
-6. After merge, update your branch: `git fetch origin` then `git rebase origin/main` (or merge `main` if rebase fails — ask lead).
+1. Clone `https://github.com/shashankack/TraceFence.git`
+2. `git checkout feature/<your-branch>`
+3. Own paths only → commit → `git push -u origin HEAD` → PR to `main`
+4. After merge: rebase onto `origin/main`
 
-Never commit to `main` directly. Never push `--force` to `main`. Never edit another teammate’s owned paths “just this once.”
-
-## Commit hygiene
-
-- Author identity: use your own GitHub name/email (configured locally by you).
-- Message: short imperative (“Add INV-003 attack note fixture”).
-- **Forbidden in commits:** `Co-authored-by: Cursor`, `Co-authored-by: *Agent*`, `Made-with: Cursor`, “Committed by Agent”, or similar watermarks.
-- No secrets in git.
+Never commit to `main` directly. No force-push to `main`. No secrets. No agent commit watermarks.
 
 ## Agent help
 
-Paste the prompt from [`AGENT_GIT_MASTER_PROMPT.md`](./AGENT_GIT_MASTER_PROMPT.md) into each teammate’s Cursor agent so git is handled for them.
+**Easiest:** paste one file from [`docs/prompts/`](./prompts/) (per person).
+
+Or compose manually:
+
+1. [`AGENT_ADCE_MASTER_PROMPT.md`](./AGENT_ADCE_MASTER_PROMPT.md)  
+2. [`AGENT_GIT_MASTER_PROMPT.md`](./AGENT_GIT_MASTER_PROMPT.md)  

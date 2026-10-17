@@ -1,8 +1,84 @@
-# TrustFence — Progress Log
+# TraceFence — Progress Log
 
 Living iteration log. **Update this file on every planning or delivery iteration without fail.**
 
 Newest entries first.
+
+---
+
+## 2026-10-17 — Individual master prompts + push
+
+### Done
+- Regenerated ADCE + git master prompts for **TraceFence**.
+- Added per-person paste files under [`docs/prompts/`](./prompts/) (all five teammates).
+- Commit and push to `origin/main`; sync feature branches.
+
+### Next
+- Teammates pull `main`, checkout their branch, paste their `MASTER_*.md`.
+
+---
+
+## 2026-10-17 — Product name locked: TraceFence
+
+### Done
+- Renamed product branding from TrustFence/TrustTrace → **TraceFence** across living docs, cursor rule, OpenAPI, blueprint filename `docs/TraceFence_Project_Blueprint.md`.
+- App path / DB: `tracefence/`, `./data/tracefence.sqlite`.
+- Team remains **NullTrace**. GitHub: `shashankack/TraceFence`.
+
+### Next
+- On PPT: ensure title uses **TraceFence** (not TrustFence/TrustTrace).
+- Commit/push when ready; `adce scan` after rename.
+
+---
+
+## 2026-10-17 — Option A locked: project follows Mystara PPT
+
+### Done
+- Decision **A** applied across living docs: QR/URL + Playwright synthetic pages + SOURCE→PROPOSAL→DECISION→OUTCOME.
+- Updated SCOPE, SYSTEM, contracts, TEAM, PRESENTATION, DEMO, ADR, requirements/architecture/design/security/testing, agent prompts, cursor rule, openapi, fixtures/pages + attacks narrative.
+- Brand: product **TraceFence**, team **NullTrace**, 5 people; Ollama = local LLM API.
+
+### PPT file still needs (human)
+- TraceFence → TraceFence; 6 → 5; “LLM API” → local Ollama wording.
+
+### Next
+- Commit/push docs; Tejas: `supplier-attack.html`; Spandana: QR-attack scenario; lead: `implement` app when ready.
+
+---
+
+## 2026-10-17 — PPT alignment review (Mystara pitch)
+
+### Done
+- Compared PPT to docs; gaps documented in [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md).
+
+### Decision
+- **A chosen** (see entry above).
+
+---
+
+## 2026-10-17 — Presentation / demo pack
+
+### Done
+- Added [`PRESENTATION.md`](./PRESENTATION.md) (5 slides + speaker lines).
+- Added [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) (3-minute timed demo + elevator).
+- Added [`QA_CHEATSHEET.md`](./QA_CHEATSHEET.md) for judges.
+- Linked from README.
+
+### Next
+- Assign narrator + operator; rehearse once with scripted fallback.
+- Build slides in PowerPoint/Google Slides from PRESENTATION.md (or present from markdown).
+- Push to GitHub when ready.
+
+---
+
+## 2026-10-17 — ADCE master prompt for teammate agents
+
+### Done
+- Added [`docs/AGENT_ADCE_MASTER_PROMPT.md`](./AGENT_ADCE_MASTER_PROMPT.md): shared ADCE workflow + per-role add-ons.
+- Cross-linked from git master prompt, `TEAM_AND_GIT.md`, and README. Paste order: ADCE → Git.
+
+### Next
+- Push this doc to `origin/main` when ready; teammates re-pull and paste both prompts.
 
 ---
 
@@ -21,7 +97,7 @@ Newest entries first.
 ## 2026-10-17 — Expand `.gitignore`
 
 ### Done
-- Broadened [`.gitignore`](../.gitignore): deps (yarn/pnpm), secrets patterns, Next/Vercel/Turbo, test reports, SQLite WAL/SHM, OS/editor junk, ADCE runtime, Cursor plans, Python venvs, GGUF/model weights, `trustfence/` local build/data.
+- Broadened [`.gitignore`](../.gitignore): deps (yarn/pnpm), secrets patterns, Next/Vercel/Turbo, test reports, SQLite WAL/SHM, OS/editor junk, ADCE runtime, Cursor plans, Python venvs, GGUF/model weights, `tracefence/` local build/data.
 
 ### Still tracked (intentional)
 - `.cursor/rules/`, `.adce/config.yaml`, `.adce/artifacts/README.md`, all docs and ownership paths.
@@ -43,14 +119,14 @@ Newest entries first.
 - Initialized git repo, `.gitignore`, initial docs commit, five feature branches.
 
 ### Decisions locked
-- Product name: **TrustFence** (not AgentGate).
+- Product name: **TraceFence** (not AgentGate).
 - Decisions: `ALLOW` | `DENY` | `REQUIRE_APPROVAL`; default deny.
 - LLM: local Ollama `qwen3:8b`; no cloud key required for MVP.
 - Coding agents propose; humans type until someone says `implement`.
 - Only `shashankack` merges to `main`.
 
 ### Next
-- Scaffold Next.js app under `trustfence/` when lead says `implement`.
+- Scaffold Next.js app under `tracefence/` when lead says `implement`.
 - Teammates clone, check out their branch, paste agent master prompt.
 - Spandana: pull `qwen3:8b` and land first smoke scenario under `scenarios/`.
 

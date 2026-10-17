@@ -1,13 +1,13 @@
-# TrustFence — AI Agent Permission Firewall
+# TraceFence — AI Agent Permission Firewall
 
 **Project blueprint and 24-hour hackathon implementation plan**  
 **Domains:** Cybersecurity · AI-Native Applications  
-**Team:** 6 full-stack developers  
+**Team:** 5 full-stack developers (NullTrace)  
 **Timebox:** 24 hours  
-**Document version:** 1.1 · October 17, 2026 · product name: TrustFence  
+**Document version:** 1.1 · October 17, 2026 · product name: TraceFence  
 **Project status:** Proposed hackathon MVP; not production security software
 
-> **One-line pitch:** TrustFence is a task-scoped authorization firewall for AI agents. It inspects every proposed tool action, enforces permissions outside the language model, requests approval when needed, and produces a clear audit trail.
+> **One-line pitch:** TraceFence is a task-scoped authorization firewall for AI agents. It inspects every proposed tool action, enforces permissions outside the language model, requests approval when needed, and produces a clear audit trail.
 
 ---
 
@@ -44,7 +44,7 @@
 
 AI agents are moving beyond generating text. They increasingly interact with business systems by reading files, searching databases, sending messages, updating records, or calling APIs. Those tools give an agent useful capabilities, but they also create an authorization problem: **a tool call suggested by an AI model is not proof that the user permitted that action.**
 
-TrustFence places a deterministic authorization layer between an AI agent and the tools it can use. For each task, users specify a limited set of permissions. When the model proposes a tool call, TrustFence validates the tool and arguments and returns one of three decisions:
+TraceFence places a deterministic authorization layer between an AI agent and the tools it can use. For each task, users specify a limited set of permissions. When the model proposes a tool call, TraceFence validates the tool and arguments and returns one of three decisions:
 
 - **ALLOW:** The operation fits the active permission policy; execute through the approved tool wrapper.
 - **DENY:** The operation is prohibited, malformed, or outside the task scope; do not execute.
@@ -58,7 +58,7 @@ Every decision is logged with its reason. The demo centers on an invoice-summari
 
 ### Elevator pitch (30 seconds)
 
-> AI agents can now act on our behalf, but their access is often broader than the task requires. If an invoice contains a malicious instruction, the assistant may try to email data or delete records. TrustFence acts as a permission firewall: every proposed action is checked against the user's task-specific permissions, dangerous actions require approval, and unauthorized calls never reach the tool. We make agent behavior inspectable, controllable, and testable.
+> AI agents can now act on our behalf, but their access is often broader than the task requires. If an invoice contains a malicious instruction, the assistant may try to email data or delete records. TraceFence acts as a permission firewall: every proposed action is checked against the user's task-specific permissions, dangerous actions require approval, and unauthorized calls never reach the tool. We make agent behavior inspectable, controllable, and testable.
 
 ---
 
@@ -102,7 +102,7 @@ OWASP's agentic AI security guidance documents risks involving excessive agency,
 
 ### 3.1 Product vision
 
-TrustFence is a **task-scoped, policy-enforced execution gateway** for AI agents. It controls the point at which a proposed action becomes a real operation.
+TraceFence is a **task-scoped, policy-enforced execution gateway** for AI agents. It controls the point at which a proposed action becomes a real operation.
 
 ### 3.2 Core capabilities
 
@@ -154,7 +154,7 @@ The novel **project experience** is the integration of a visual permission lifec
 
 ## 5. Research and competitive landscape
 
-| Existing solution | Relevant capability | How TrustFence differs in the proposed MVP |
+| Existing solution | Relevant capability | How TraceFence differs in the proposed MVP |
 |---|---|---|
 | [Invariant Guardrails](https://invariantlabs.ai/guardrails) | Context-aware, deterministic tool-call restrictions and dataflow policies | A deliberately narrow, highly visual task-grant and approval lifecycle for a mock business workflow |
 | [OpenAI function calling](https://developers.openai.com/api/docs/guides/function-calling) | Models generate structured requests to tools; application executes tools | The app performs independent authorization between model output and tool execution |
@@ -162,7 +162,7 @@ The novel **project experience** is the integration of a visual permission lifec
 | [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) | Standardized tools and external integrations; includes transport-level authorization specifications | A task-level action authorization layer; MCP compatibility is deferred |
 | [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/) | Guidance around controllable, inspectable agents and policy-enforcement interfaces | A working, comprehensible educational prototype of related principles |
 
-**Competitive reality:** Invariant already has strong guardrails and a trace explorer. TrustFence should **not** claim to be the first permission gateway or first agent security dashboard. Its hackathon pitch is a particularly concrete end-to-end demonstration of least privilege, time-limited permissions, and exact-action approvals.
+**Competitive reality:** Invariant already has strong guardrails and a trace explorer. TraceFence should **not** claim to be the first permission gateway or first agent security dashboard. Its hackathon pitch is a particularly concrete end-to-end demonstration of least privilege, time-limited permissions, and exact-action approvals.
 
 ---
 
@@ -214,18 +214,18 @@ The novel **project experience** is the integration of a visual permission lifec
 
 ### 7.1 Main user journey
 
-1. User opens the TrustFence dashboard and selects **New Task**.
+1. User opens the TraceFence dashboard and selects **New Task**.
 2. They enter: “Summarize outstanding amounts in invoices INV-001 to INV-003.”
 3. They review a permission policy:
    - `read_invoice`: allowed for `INV-001`, `INV-002`, `INV-003`.
    - `send_email`: requires approval **only** to a whitelisted `@company.example` recipient.
    - `delete_invoice`: denied.
-4. TrustFence creates a task with an expiry time and immutable initial policy version.
-5. The agent proposes `read_invoice(INV-001)`; TrustFence allows it.
+4. TraceFence creates a task with an expiry time and immutable initial policy version.
+5. The agent proposes `read_invoice(INV-001)`; TraceFence allows it.
 6. The same process succeeds for the other permitted invoices.
 7. A malicious invoice note asks the agent to email the records to `external-audit@attacker.example`.
-8. If the model proposes that email action, TrustFence rejects the call based on recipient policy.
-9. TrustFence logs the decision and returns a refusal/error result to the agent.
+8. If the model proposes that email action, TraceFence rejects the call based on recipient policy.
+9. TraceFence logs the decision and returns a refusal/error result to the agent.
 10. The agent can still produce the authorized summary without taking the unsafe action.
 
 ### 7.2 Human-approval branch
@@ -739,7 +739,7 @@ Cause the agent to propose `send_email` to an unauthorized destination carrying 
 
 ### 15.3 Security boundary being evaluated
 
-Even if the AI proposes this tool call, **TrustFence must deny the invocation before any mock email is created**.
+Even if the AI proposes this tool call, **TraceFence must deny the invocation before any mock email is created**.
 
 ### 15.4 Threats and defenses
 
@@ -758,7 +758,7 @@ Even if the AI proposes this tool call, **TrustFence must deny the invocation be
 
 **Run two separate modes and label them clearly:**
 
-- **Live LLM mode:** real model reads the hostile invoice. The model may or may not propose the unauthorized email. If it does, TrustFence blocks it. If it refuses safely, report that honestly.
+- **Live LLM mode:** real model reads the hostile invoice. The model may or may not propose the unauthorized email. If it does, TraceFence blocks it. If it refuses safely, report that honestly.
 - **Deterministic security-test mode:** inject a predefined *tool-call proposal* for `send_email` into the same gateway. The forbidden call must be denied, demonstrating the boundary regardless of model behavior.
 
 Never claim an attack succeeded against the LLM if the model did not actually propose the forbidden call. Likewise, a denial from a synthetic test proves gateway enforcement, **not** that the LLM was exploited.
@@ -812,6 +812,8 @@ Also report the model-specific outcome separately: e.g., “The live model propo
 
 ## 17. Team allocation
 
+> **Alignment note (2026-10-17):** Mystara PPT option A is locked — project follows the deck’s **source-aware QR → Playwright synthetic page → gateway** story. Living scope in [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md) and [`PPT_ALIGNMENT.md`](./PPT_ALIGNMENT.md) supersedes older invoice-note-only novelty wording where they conflict. Product name remains **TraceFence** (not TraceFence).
+
 **Active hackathon team: 5 people.** Path-owned branches and GitHub usernames are the source of truth in [`docs/TEAM_AND_GIT.md`](./TEAM_AND_GIT.md). Summary:
 
 | Member | GitHub | Primary owner | Integration contract |
@@ -862,7 +864,7 @@ Historical six-role split (Agent / Security / Backend / Frontend / Test harness 
 ### 19.1 Suggested files
 
 ```text
-trustfence/
+tracefence/
 ├── app/
 │   ├── page.tsx
 │   ├── tasks/[id]/page.tsx
@@ -922,7 +924,7 @@ trustfence/
 ```dotenv
 # Set only the variable for your selected provider.
 LLM_API_KEY=replace-with-your-server-side-key
-DATABASE_PATH=./data/trustfence.sqlite
+DATABASE_PATH=./data/tracefence.sqlite
 APP_BASE_URL=http://localhost:3000
 DEMO_MODE=true
 ```
@@ -998,7 +1000,7 @@ A: No. The MVP protects only tools routed through our gateway. Production system
 
 ### Important limitation: controlling actions is not the same as controlling all information flows
 
-TrustFence's scoped tool policy can stop an unauthorized send operation, but an agent might still place sensitive information in its chat response or use another authorized output path. True data-loss prevention requires classification, egress policies, lower-level system permissions, and broader dataflow monitoring. These are future work, not MVP claims.
+TraceFence's scoped tool policy can stop an unauthorized send operation, but an agent might still place sensitive information in its chat response or use another authorized output path. True data-loss prevention requires classification, egress policies, lower-level system permissions, and broader dataflow monitoring. These are future work, not MVP claims.
 
 ### Important limitation: approval ≠ blanket safety
 
@@ -1056,7 +1058,7 @@ The project is ready to submit when:
 
 ### Final hackathon positioning
 
-**Name:** TrustFence  
+**Name:** TraceFence  
 **Tagline:** *Give AI agents tools, not unchecked authority.*  
 **Category:** Cybersecurity / AI-Native Applications  
 **Problem:** Agents may propose actions outside the user's intended scope.  

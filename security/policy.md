@@ -2,30 +2,14 @@
 
 ## Principles
 
-1. Default deny.
-2. Least privilege per task.
-3. Separation of data and authority (invoice text ≠ permissions).
-4. Deterministic enforcement (LLM does not grant auth).
-5. Exact-action approvals (tool + canonical args + task + caller + expiry).
-6. Short-lived grants.
-7. Single execution path through the trusted gateway.
-8. Auditability.
+Default deny · least privilege · data ≠ authority · deterministic enforcement · exact-action approvals · short-lived grants · single gateway path · audit with **source linkage**.
 
-## Decision ordering
+## Source handling
 
-1. Reject invalid session, ownership, inactive/expired task.
-2. Reject unknown tools / schema failures.
-3. Resolve immutable policy version.
-4. Match tool + resource scope.
-5. Apply deny and recipient allowlists (external email → DENY, not approval).
-6. Return ALLOW / DENY / REQUIRE_APPROVAL.
-7. Re-check immediately before execution; consume approval atomically.
-8. Audit final result.
+- Only allowlisted synthetic page hosts/paths in DEMO_MODE.
+- Inspected HTML is untrusted; never mutates policy.
+- Attack email domains (e.g. `external.example`) are DENY, not approval-eligible.
 
 ## DEMO_MODE
 
-Seeds fixtures and labels reproducible tests. **Never** bypasses DENY.
-
-## Threat demo
-
-INV-003 untrusted note tries to force email to `external-audit@attacker.example`. Gateway must deny; mock outbox stays empty.
+Fixtures + labels only. Never bypasses DENY.

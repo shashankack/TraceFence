@@ -120,7 +120,7 @@ venv/
 models/
 ollama/
 
-# --- TrustFence demo runtime ---
-trustfence/data/
-trustfence/.next/
-trustfence/node_modules/
+# --- TraceFence demo runtime ---
+tracefence/data/
+tracefence/.next/
+tracefence/node_modules/

@@ -1,11 +1,29 @@
 openapi: 3.0.3
 info:
-  title: TrustFence API
-  version: 0.1.0
+  title: TraceFence API
+  version: 0.2.0
   description: >
-    Sketch only. Detailed DTO notes live in docs/contracts.md.
-    Endpoints are implemented when the lead says implement.
+    Sketch aligned to PPT option A (source inspect + gateway).
+    See docs/contracts.md. Implemented when the lead says implement.
 paths:
+  /api/sources/inspect:
+    post:
+      summary: Inspect allowlisted synthetic page (Playwright)
+      responses:
+        "200":
+          description: SOURCE record created
+  /api/sources/{id}:
+    get:
+      summary: Get source
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Source detail
   /api/tasks:
     post:
       summary: Create task and policy
@@ -50,7 +68,7 @@ paths:
           description: Stopped
   /api/tasks/{id}/events:
     get:
-      summary: Timeline events
+      summary: Timeline events (source-linked)
       parameters:
         - name: id
           in: path

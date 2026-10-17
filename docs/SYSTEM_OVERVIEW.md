@@ -1,26 +1,30 @@
-# TrustFence — System Overview
+# TraceFence — System Overview
 
-How users, the agent, and the firewall interact. Implementation details: blueprint + [`contracts.md`](./contracts.md).
+Aligned to Mystara PPT (**option A**). Contracts: [`contracts.md`](./contracts.md). Scope: [`SCOPE_AND_RULES.md`](./SCOPE_AND_RULES.md).
 
-## Approach (what is good for this system)
+## Approach
 
-TrustFence is a **tool-calling agent behind a deterministic authorization gateway**, not a RAG chatbot.
+TraceFence is a **source-aware tool-calling agent behind a deterministic authorization gateway**.
 
-- Invoices are **live mock records** reached only through `read_invoice` after policy checks.
-- Dangerous actions (`send_email`, `delete_invoice`) are denied or require **exact-action** human approval.
-- Authorization is **application code** on the server. The LLM never gets direct tool credentials or a bypass.
+1. **Inspect** — User supplies a QR-linked URL to a synthetic supplier page; server investigates it offline (Playwright) and stores a SOURCE record.
+2. **Enforce** — Agent may propose tools; gateway returns ALLOW / DENY / REQUIRE_APPROVAL.
+3. **Explain** — Timeline links source, proposal, policy decision, and outcome.
 
-This matches the product thesis: control the moment a proposal becomes an execution.
+Not a RAG chatbot. Not arbitrary live web scanning.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  User[User Dashboard] --> TaskAPI[Task and Policy API]
+  User[User Dashboard] --> QR[QR or URL input]
+  QR --> Inspect[Playwright inspect synthetic page]
+  Inspect --> Source[(SOURCE record)]
+  User --> TaskAPI[Task and Policy API]
   TaskAPI --> DB[(SQLite)]
+  Source --> DB
   User --> Run[Start Task]
   Run --> Orch[Server Orchestrator]
-  Orch --> LLM[Ollama qwen3:8b]
+  Orch --> LLM[Ollama local LLM API]
   LLM -->|proposes tool plus args| GW[Trusted Tool Gateway]
   GW --> Policy[Policy Engine]
   Policy -->|ALLOW| Tools[Mock Tools]
@@ -30,63 +34,60 @@ flowchart LR
   Pending -->|exact bind once| Tools
   Tools --> Audit
   Audit --> DB
-  DB --> TraceUI[Trace Timeline UI]
+  Source --> Audit
+  DB --> TraceUI[Source to Action Timeline]
   TraceUI --> User
 ```
 
 ### Trust boundary
 
 ```text
-UNTRUSTED                          TRUSTED SERVER
------------                        --------------
-User task text  -----\
-Invoice content ------> LLM ---> Proposed call ---> Validate
-Other model output --/                               |
-                                                  Policy
-                                                     |
-                                           ALLOW / DENY / APPROVAL
-                                                     |
-                                            Mock tools (only)
+UNTRUSTED                              TRUSTED SERVER
+-----------                            --------------
+QR / synthetic page  --\
+User task text  --------+--> LLM ---> Proposed call ---> Validate
+Invoice content -------/                                  |
+                                                       Policy
+                                                          |
+                                                ALLOW / DENY / APPROVAL
+                                                          |
+                                                 Mock tools (only)
 ```
 
-## User interface (four surfaces)
+SOURCE text is untrusted input to the model. It never updates policy rules.
 
-1. **Mission Control** — New task: instruction, invoice scope, policy rules (read ALLOW for scoped IDs; email REQUIRE_APPROVAL for `@company.example`; delete DENY), expiry.
-2. **Live Trace** — Timeline rows: tool, args preview, decision, reason code, outcome.
-3. **Approval Drawer** — Exact recipient/subject/body; Approve / Reject; shows expiry; one consumption.
-4. **Audit Report** — Counts of allow/deny/approval; proof that forbidden outbox entries stayed zero; forced security-test results.
+## User interface
 
-Frontend talks **only** to HTTP APIs. It never imports or calls mock tool executors.
+1. **Mission Control** — Task + policies + **QR/URL** for supplier page.
+2. **Source panel** — What was fetched (URL, excerpt, flagged instruction).
+3. **Live Trace** — SOURCE → PROPOSAL → DECISION → OUTCOME rows with reason codes.
+4. **Approval Drawer** — Exact payload; single-use.
+5. **Audit Report** — Blocked external email proof; outbox empty; test counts.
 
-## Agent loop
+## Agent + source loop
 
-1. User starts task → server loads immutable policy version + fixtures.
-2. Orchestrator sends task context + tool schemas to **Ollama `qwen3:8b`**.
-3. Model returns one or more proposed tool calls (or fails).
-4. Each proposal → **Trusted Tool Gateway** → schema validate → **Policy Engine**.
-5. `ALLOW` → mock executor → result to model; `DENY` → error result + audit; `REQUIRE_APPROVAL` → pending, agent pauses that action.
-6. Loop capped (demo: ~5 reasoning iterations, ~8 tool attempts).
-7. Model produces final invoice summary text for authorized reads.
-
-### Fallback
-
-If Ollama is unreachable or tool JSON is invalid, orchestrator runs **scripted proposals** from `scenarios/` (owned by Spandana) through the **same gateway** for:
-
-- Happy path: three `read_invoice` allows + summary.
-- Attack path: external email → DENY.
-- Approval path: internal email → REQUIRE_APPROVAL → consume once.
+1. Inspect URL → SOURCE stored and shown.
+2. Orchestrator includes task + SOURCE excerpt + tool schemas to Ollama.
+3. Each proposal → gateway → policy → audit row **with `sourceId`** when the proposal is attributable to inspected content (and for forced attack replays).
+4. Caps: ~5 iterations / ~8 tool attempts.
+5. Fallback: scripted proposals still attach the same SOURCE for the attack demo.
 
 ## Tools (MVP)
 
-| Tool | Normal demo policy |
+| Tool | Demo policy |
 |---|---|
-| `read_invoice(invoice_id)` | ALLOW for `INV-001`, `INV-002`, `INV-003` only |
-| `send_email(to, subject, body)` | REQUIRE_APPROVAL only if recipient domain is `company.example`; else DENY |
-| `delete_invoice(invoice_id)` | DENY |
+| `read_invoice` | ALLOW for INV-001..003 |
+| `send_email` | REQUIRE_APPROVAL only for `@company.example`; else DENY |
+| `delete_invoice` | DENY |
 
-## Stack (runtime)
+Optional internal helper (server-only, not model-facing): Playwright inspect used by `/api/sources/inspect`.
 
-- Next.js App Router + TypeScript (single app under `trustfence/` when scaffolded).
-- SQLite at `./data/trustfence.sqlite`.
-- Zod for API and tool argument validation.
-- Ollama local LLM; no cloud key required for MVP.
+## Stack
+
+| Layer | Choice | PPT wording |
+|---|---|---|
+| App | Next.js + TypeScript | Same |
+| Validation | Zod | Same |
+| DB | SQLite | Same |
+| Page inspect | Playwright against `fixtures/pages` | “Offline investigation of synthetic pages” |
+| LLM | Ollama `qwen3:8b` at `127.0.0.1:11434` | “Local LLM API” (not cloud-required) |

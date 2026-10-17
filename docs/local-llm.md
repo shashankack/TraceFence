@@ -4,13 +4,15 @@
 **Runtime:** [Ollama](https://ollama.com) on `http://127.0.0.1:11434`  
 **Owner:** `Spandananarayanaswamy` (docs + scenarios); orchestrator wiring owned by `shashankack`.
 
+**PPT wording:** this is our **“local LLM API”** — same role as “one LLM API” on the deck, without requiring a cloud key.
+
 ## Why this model
 
 - Native tool / function calling through Ollama’s tools API.
 - ~5 GB at typical Q4 quant; fits most 8–16 GB machines.
 - Strong enough for a 3-tool invoice agent without a cloud key.
 
-MVP does **not** use RAG. The agent calls tools; TrustFence authorizes those calls.
+MVP does **not** use RAG. The agent calls tools after SOURCE inspect; TraceFence authorizes those calls.
 
 ## Steps (Windows)
 
@@ -37,7 +39,7 @@ Type a short greeting, confirm a reply, then `/bye`.
 LLM_BASE_URL=http://127.0.0.1:11434
 LLM_MODEL=qwen3:8b
 DEMO_MODE=true
-DATABASE_PATH=./data/trustfence.sqlite
+DATABASE_PATH=./data/tracefence.sqlite
 ```
 
 6. Land a smoke scenario under `scenarios/` that expects at least one `read_invoice`-shaped proposal. If the live model fails, the orchestrator must use **scripted proposals** through the same gateway.

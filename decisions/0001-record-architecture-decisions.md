@@ -4,19 +4,20 @@ Status: Accepted
 
 ## Context
 
-TrustFence needs a fast hackathon MVP that proves tool authorization outside the model, with a team of five and local-only LLM constraints.
+TraceFence must match the Mystara NullTrace pitch: source-aware gateway (QR → synthetic page → enforce tool calls) while staying a 5-person, 24-hour MVP.
 
 ## Decision
 
-1. Single Next.js App Router + TypeScript app with server-side gateway and SQLite.
-2. Local LLM via Ollama model **`qwen3:8b`**, with mandatory scripted proposal fallback.
-3. No RAG in MVP; invoices via authorized `read_invoice` only.
-4. Five path-owned git branches; only `shashankack` merges to `main`.
-5. Product name TrustFence; default-deny policy with exact-action approvals.
+1. Single Next.js App Router + TypeScript app; SQLite audit store.
+2. **Source path:** QR/URL → Playwright inspect of **allowlisted** `fixtures/pages` → SOURCE record linked on timeline.
+3. **Enforcement path:** trusted gateway + deterministic policy (ALLOW / DENY / REQUIRE_APPROVAL); exact-action single-use approvals.
+4. **LLM:** Ollama **`qwen3:8b`** as local LLM API; scripted proposal fallback with same SOURCE linkage.
+5. Product name **TraceFence**; team **NullTrace**; no RAG in MVP; no arbitrary live web scanning.
+6. Five path-owned git branches; only `shashankack` merges to `main`.
 
 ## Consequences
 
-- Demo works offline without cloud API keys.
-- Local model flakiness is mitigated by scenarios + same gateway.
-- Clear file ownership reduces merge conflicts for git-novice teammates.
-- Post-hackathon novelty can add gated retrieval (authorized RAG) without redesigning the gateway.
+- Deck and product share one story (option A alignment).
+- Playwright + fixtures become P0; frontend must show source→action.
+- Local Ollama satisfies “LLM API” without cloud dependency.
+- Scope stays honest: synthetic pages only; no prompt-injection immunity claim.
