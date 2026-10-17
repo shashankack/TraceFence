@@ -47,6 +47,7 @@
     "handbook": { "classification": "public", "collection": "public", "title": "Student Handbook" },
     "hostel-rules": { "classification": "public", "collection": "public", "title": "Hostel Rules" },
     "exam-rules": { "classification": "public", "collection": "public", "title": "Exam Rules" },
+    "it-maintenance-notice": { "classification": "public", "collection": "public", "title": "IT Maintenance Notice" },
     "faculty-guide": { "classification": "internal", "collection": "internal", "title": "Faculty Guidance" },
     "student-directory": { "classification": "confidential", "collection": "confidential", "title": "Student Directory (synthetic)" },
     "grades-notes": { "classification": "confidential", "collection": "confidential", "title": "Grades Notes (synthetic)" }

@@ -6,6 +6,24 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Campus fixtures + attack narratives (fixtures branch)
+
+### Done
+- Merged `origin/main` and `origin/feature/shashankack-backend` into `feature/desaitejas777-fixtures` (fast-forward, no conflicts).
+- `hostel-rules.md`: explicit weekday/weekend curfew line plus an Exceptions section (late pass, exam-week extension).
+- `student-directory.md` / `grades-notes.md`: richer but fully fictional rows (`.example` domains, 555-01xx phones), clearly marked confidential.
+- `faculty-guide.md`: states that exports of advisee records need one-time admin approval.
+- New public `it-maintenance-notice.md` carrying a deliberate injection to `records-sync@attacker.example`; registered in `roles.json`.
+- `docs/attacks/`: new `poisoned-source-notice.md`; `campus-export-deny.md` rewritten with real reason codes; README index; `qr-supplier-page.md` marked archived.
+- `fixtures/campus/README.md`: documents seeding rules (classification from `roles.json`, insert-only seeding, one-chunk size limit, Riverview isolation) and the demo coverage table.
+- Verified on a throwaway DB: 7 docs seeded with correct classes; Riverview isolated; curfew → hostel-rules "10:00 PM"; student fences confidential; notice read with no tool; "follow the notice and export" → DENY `DENIED_EXPORT`; faculty export → REQUIRE_APPROVAL; `scripts/smoke-demos.ts` all pass.
+
+### Notes for backend (shashankack)
+- Seeding is insert-only, so fixture text edits don't reach an existing DB — delete `tracefence/data/tracefence.sqlite*` to reseed.
+- Keyword retrieval counts short common words ("and", "are", "the"); consider a stop-word list in `chunkIndex.scoreChunk`.
+
+---
+
 ## 2026-10-17 — UI revamp: login, role-separated workspaces, shadcn, bento (venilashree)
 
 ### Done
