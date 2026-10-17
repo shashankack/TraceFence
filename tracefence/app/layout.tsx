@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { DM_Sans, Manrope, Roboto_Mono } from "next/font/google";
+import { AppShell } from "@/components/shell/AppShell";
 import "./globals.css";
+
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto-mono" });
 
 export const metadata: Metadata = {
   title: "TraceFence",
@@ -12,8 +18,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html className={`${dmSans.variable} ${manrope.variable} ${robotoMono.variable}`} lang="en">
+      <body className="antialiased">
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }
