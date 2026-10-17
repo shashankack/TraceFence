@@ -6,6 +6,21 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — PES University policy docs (desaitejas777 fixtures)
+
+### Done
+- Added 12 PES University policy docs (11 public, 1 internal) as `fixtures/campus/docs/pes-*.md` + `fixtures/campus/pdf/pes-*.pdf`, with `scripts/register_docs.cjs` and `scripts/md_to_pdf.py`. Content is a paraphrased summary of PES's public website with source URLs in each header; no personal names, phones or emails.
+- `node fixtures/campus/scripts/register_docs.cjs` → `added 12; total 19 { public: 15, internal: 2, confidential: 2 }`, no problems. `guest` role and `policyVersion: 1` unchanged (file re-serialized with 2-space JSON).
+- Only `hostel-rules.md` mentions curfew, so the student curfew answer stays 10:00 PM.
+- Deleted the old demo DB (`tracefence/data/tracefence.sqlite*`) and reseeded via `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation — ALL DEMOS PASSED.
+- Retrieval (student): "scholarship SGPA tuition refund" → `pes-scholarships` first; "research policy royalties" → no `pes-research-policy` (listed in `filteredOut`). As faculty the same query returns `pes-research-policy` first.
+- `fixtures/campus/README.md`: layout lists the 12 `pes-*` ids with classifications and the `pdf/` + `scripts/` folders.
+
+### Open
+- No NullTrace 75% attendance document exists on this branch; the only attendance rule is PES's 80% (`pes-academic-rules.md`). Add one if the demo needs the contrast.
+
+---
+
 ## 2026-10-17 — Campus fixtures + attack narratives (fixtures branch)
 
 ### Done

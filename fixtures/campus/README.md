@@ -17,9 +17,28 @@ fixtures/campus/
     faculty-guide.md          # internal
     student-directory.md      # confidential (fake names, emails, phones)
     grades-notes.md           # confidential (fake grades and advisor notes)
+    pes-anti-ragging.md         # public
+    pes-internal-committee.md   # public
+    pes-grievance-redressal.md  # public
+    pes-academic-rules.md       # public   — PES attendance rule is 80%
+    pes-scholarships.md         # public
+    pes-loyalty-programme.md    # public
+    pes-fee-payment.md          # public
+    pes-application-terms.md    # public
+    pes-admission-documents.md  # public
+    pes-hostel-admission.md     # public
+    pes-campus-facilities.md    # public
+    pes-research-policy.md      # internal — hidden from students and guests
+  pdf/
+    pes-*.pdf                 # PDF rendering of each pes-*.md (same id)
   policies/
     roles.json                # role → collections + tools matrix, and the document registry
+  scripts/
+    register_docs.cjs         # adds docs/*.md missing from roles.json (reads "# " title + "Classification:" line)
+    md_to_pdf.py              # renders docs/*.md to classification-bannered PDFs (needs reportlab)
 ```
+
+The `pes-*` documents are paraphrased summaries of PES University's public website, with the source URLs in each file's header. They contain no personal names, phone numbers or emails.
 
 ## How the gateway uses these files
 
@@ -30,7 +49,9 @@ fixtures/campus/
 - A document that is not listed in `roles.json` is never seeded. Add the `.md` file **and** its `documents` entry.
 - Seeding is insert-only. Edits to an existing document do not reach a database that was already seeded; delete
   `tracefence/data/tracefence.sqlite*` to reseed. New documents are picked up on the next start.
-- Keep each document under ~1,000 characters so it fits in one retrieval chunk (window is 1,200 including the title).
+- Keep NullTrace demo documents under ~1,000 characters so each fits in one retrieval chunk (window is 1,200 including
+  the title). Longer documents such as the `pes-*` set are split into several chunks, which is fine for retrieval.
+- Only `hostel-rules.md` may mention curfew, so the student curfew answer stays 10:00 PM.
 - Riverview College (`riverview-college`) is seeded separately with a minimal public handbook. Never copy NullTrace
   confidential documents into it.
 - Org Admins can change classification or disable documents at runtime; these fixtures must still demo cleanly on first boot.

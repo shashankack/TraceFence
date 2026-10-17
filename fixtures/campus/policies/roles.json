@@ -3,7 +3,9 @@
   "policyVersion": 1,
   "roles": {
     "guest": {
-      "collections": ["public"],
+      "collections": [
+        "public"
+      ],
       "tools": {
         "search_docs": "ALLOW",
         "read_document": "ALLOW",
@@ -13,7 +15,9 @@
       }
     },
     "student": {
-      "collections": ["public"],
+      "collections": [
+        "public"
+      ],
       "tools": {
         "search_docs": "ALLOW",
         "read_document": "ALLOW",
@@ -23,7 +27,11 @@
       }
     },
     "faculty": {
-      "collections": ["public", "internal", "confidential"],
+      "collections": [
+        "public",
+        "internal",
+        "confidential"
+      ],
       "tools": {
         "search_docs": "ALLOW",
         "read_document": "ALLOW",
@@ -33,7 +41,11 @@
       }
     },
     "admin": {
-      "collections": ["public", "internal", "confidential"],
+      "collections": [
+        "public",
+        "internal",
+        "confidential"
+      ],
       "tools": {
         "search_docs": "ALLOW",
         "read_document": "ALLOW",
@@ -44,12 +56,100 @@
     }
   },
   "documents": {
-    "handbook": { "classification": "public", "collection": "public", "title": "Student Handbook" },
-    "hostel-rules": { "classification": "public", "collection": "public", "title": "Hostel Rules" },
-    "exam-rules": { "classification": "public", "collection": "public", "title": "Exam Rules" },
-    "it-maintenance-notice": { "classification": "public", "collection": "public", "title": "IT Maintenance Notice" },
-    "faculty-guide": { "classification": "internal", "collection": "internal", "title": "Faculty Guidance" },
-    "student-directory": { "classification": "confidential", "collection": "confidential", "title": "Student Directory (synthetic)" },
-    "grades-notes": { "classification": "confidential", "collection": "confidential", "title": "Grades Notes (synthetic)" }
+    "handbook": {
+      "classification": "public",
+      "collection": "public",
+      "title": "Student Handbook"
+    },
+    "hostel-rules": {
+      "classification": "public",
+      "collection": "public",
+      "title": "Hostel Rules"
+    },
+    "exam-rules": {
+      "classification": "public",
+      "collection": "public",
+      "title": "Exam Rules"
+    },
+    "it-maintenance-notice": {
+      "classification": "public",
+      "collection": "public",
+      "title": "IT Maintenance Notice"
+    },
+    "faculty-guide": {
+      "classification": "internal",
+      "collection": "internal",
+      "title": "Faculty Guidance"
+    },
+    "student-directory": {
+      "classification": "confidential",
+      "collection": "confidential",
+      "title": "Student Directory (synthetic)"
+    },
+    "grades-notes": {
+      "classification": "confidential",
+      "collection": "confidential",
+      "title": "Grades Notes (synthetic)"
+    },
+    "pes-academic-rules": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Academic Rules (Timings, Attendance, Grading)"
+    },
+    "pes-admission-documents": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Documents Required for Admission"
+    },
+    "pes-anti-ragging": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Anti-Ragging Policy"
+    },
+    "pes-application-terms": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Online Application Terms, Privacy and Refunds"
+    },
+    "pes-campus-facilities": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Campus Facilities and Student Support"
+    },
+    "pes-fee-payment": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Fee Payment Policy"
+    },
+    "pes-grievance-redressal": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Student Grievance Redressal"
+    },
+    "pes-hostel-admission": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Hostel Admission Procedure"
+    },
+    "pes-internal-committee": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Internal Committee (Prevention of Sexual Harassment)"
+    },
+    "pes-loyalty-programme": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES Group Loyalty Programme (Fee Concessions)"
+    },
+    "pes-research-policy": {
+      "classification": "internal",
+      "collection": "internal",
+      "title": "PES University Research Policy"
+    },
+    "pes-scholarships": {
+      "classification": "public",
+      "collection": "public",
+      "title": "PES University Scholarships"
+    }
   }
 }
