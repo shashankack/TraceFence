@@ -2,133 +2,99 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { ROLE_LABEL } from "@/components/console/catalog";
-import { ActivityIndicator } from "@/components/ui/ActivityIndicator";
 import { Icon } from "@/components/ui/Icon";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { useAppState, type Mode } from "./AppState";
 import { NAV, isActive } from "./nav";
 
 const MODES: Array<{ id: Mode; label: string }> = [
-  { id: "live", label: "Live gateway" },
-  { id: "replay", label: "Scripted replay" },
+  { id: "live", label: "Live" },
+  { id: "replay", label: "Replay" },
 ];
+
+function useClock() {
+  const [now, setNow] = useState<string>("");
+  useEffect(() => {
+    const tick = () => setNow(new Date().toLocaleTimeString("en-GB", { hour12: false }));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
 
 export function TopBar() {
   const pathname = usePathname();
   const { mode, setMode, pendingCount, openApprovals, sending, deciding, role, session } = useAppState();
   const current = NAV.find((n) => isActive(pathname, n.href)) ?? NAV[0];
   const busy = sending || deciding;
+  const clock = useClock();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-[rgba(5,9,19,.7)] backdrop-blur-xl">
-      <div className="flex h-16 items-center gap-4 px-4 sm:px-6">
-        <Link className="grid size-9 place-items-center rounded-lg border border-neon/40 bg-neon-soft text-neon lg:hidden" href="/">
-          <Icon name="shield" size={18} />
+    <header className="sticky top-0 z-40 border-b border-line bg-surface">
+      <div className="flex h-12 items-center gap-3 px-4">
+        <Link aria-label="TraceFence home" className="grid size-6 place-items-center rounded-[4px] bg-accent text-white lg:hidden" href="/">
+          <Icon name="shield" size={14} />
         </Link>
 
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-[.12em] text-faint uppercase">
-            <span className="hidden sm:inline">NullTrace Institute</span>
-            <Icon className="hidden sm:inline" name="chevron" size={10} />
-            <span className="text-neon">{current.label}</span>
-          </div>
-          <h1 className="m-0 truncate font-display text-lg font-semibold tracking-tight text-ink">
-            {pathname === "/" ? "Security command center" : current.caption}
-          </h1>
-        </div>
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
+          <span className="hidden text-faint sm:inline">NullTrace Institute</span>
+          <span className="hidden text-line-strong sm:inline">/</span>
+          <span className="truncate font-medium text-ink">{current.title}</span>
+        </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <div
-            aria-label={busy ? "Gateway evaluating" : "Gateway idle"}
-            className="hidden items-center gap-2 rounded-lg border border-line bg-surface/60 px-2.5 py-1.5 md:flex"
-            role="status"
-          >
-            <ActivityIndicator busy={busy} tone={mode === "live" ? "neon" : "amber"} />
-            <AnimatePresence initial={false} mode="wait">
-              <motion.span
-                animate={{ opacity: 1, y: 0 }}
-                className="font-mono text-[10px] font-semibold tracking-wider text-muted uppercase"
-                exit={{ opacity: 0, y: -4 }}
-                initial={{ opacity: 0, y: 4 }}
-                key={busy ? "busy" : "idle"}
-              >
-                {busy ? "Evaluating" : "Monitoring"}
-              </motion.span>
-            </AnimatePresence>
+          <div className="hidden items-center gap-2 pr-1 font-mono text-[11px] text-faint md:flex" role="status">
+            <StatusDot live={!busy && mode === "live"} tone={busy ? "blue" : mode === "live" ? "green" : "amber"} />
+            <span className={busy ? "text-accent" : "text-muted"}>{busy ? "evaluating" : mode === "live" ? "gateway live" : "replay"}</span>
+            <span className="text-line-strong">·</span>
+            <span className="tabular-nums">{clock}</span>
           </div>
 
-          <div aria-label="Gateway mode" className="flex gap-0.5 rounded-lg border border-line bg-surface/60 p-[3px]" role="group">
+          <div aria-label="Gateway mode" className="flex h-7 rounded-[4px] border border-line p-[2px]" role="group">
             {MODES.map((m) => (
               <button
                 aria-pressed={mode === m.id}
-                className={`relative rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${mode === m.id ? "text-ink" : "text-faint hover:text-muted"}`}
+                className={`rounded-[3px] px-2.5 text-[12px] transition-colors ${mode === m.id ? "bg-surface-raised text-ink" : "text-faint hover:text-muted"}`}
                 key={m.id}
                 onClick={() => setMode(m.id)}
                 type="button"
               >
-                {mode === m.id && (
-                  <motion.span
-                    className="absolute inset-0 rounded-md border border-line-strong bg-surface-raised"
-                    layoutId="mode-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                  />
-                )}
-                <span className="relative flex items-center gap-1.5">
-                  {m.id === "live" && <StatusDot tone={mode === "live" ? "green" : "grey"} />}
-                  <span className="hidden sm:inline">{m.label}</span>
-                  <span className="sm:hidden">{m.id === "live" ? "Live" : "Replay"}</span>
-                </span>
+                {m.label}
               </button>
             ))}
           </div>
 
-          <motion.button
-            className={`flex h-[34px] items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors ${pendingCount ? "border-approval/45 bg-approval-soft text-approval glow-approval" : "border-line bg-surface/60 text-muted hover:text-ink"}`}
+          <button
+            className={`flex h-7 items-center gap-1.5 rounded-[4px] border px-2 text-[12px] transition-colors ${pendingCount ? "border-approval/45 text-approval hover:bg-approval-soft" : "border-line text-muted hover:border-line-strong hover:text-ink"}`}
             onClick={openApprovals}
             type="button"
-            whileTap={{ scale: 0.96 }}
           >
-            <Icon name="clock" size={15} />
+            <Icon name="clock" size={13} />
             <span className="hidden sm:inline">Approvals</span>
-            <AnimatePresence initial={false} mode="popLayout">
-              <motion.span
-                animate={{ scale: 1, opacity: 1 }}
-                className="grid h-[18px] min-w-[18px] place-items-center rounded-md bg-black/30 px-1.5 font-mono text-[10px] font-semibold"
-                exit={{ scale: 0.4, opacity: 0 }}
-                initial={{ scale: 1.6, opacity: 0 }}
-                key={pendingCount}
-                transition={{ type: "spring", stiffness: 500, damping: 22 }}
-              >
-                {pendingCount}
-              </motion.span>
-            </AnimatePresence>
-          </motion.button>
+            <span className="font-mono text-[11px]">{pendingCount}</span>
+          </button>
 
-          <div className="hidden items-center gap-2 rounded-lg border border-line bg-surface/60 py-1 pr-2.5 pl-1 xl:flex">
-            <span className="grid size-7 place-items-center rounded-md bg-neon-soft text-neon">
-              <Icon name="fingerprint" size={15} />
-            </span>
-            <span className="flex flex-col leading-tight">
-              <span className="text-xs font-semibold text-ink">{ROLE_LABEL[session?.role ?? role]}</span>
-              <span className="font-mono text-[10px] text-faint">{session?.userId ?? "authenticating…"}</span>
-            </span>
+          <div className="hidden h-7 items-center gap-2 border-l border-line pl-3 xl:flex">
+            <span className="text-[12px] text-ink">{ROLE_LABEL[session?.role ?? role]}</span>
+            <span className="font-mono text-[11px] text-faint">{session?.userId ?? "…"}</span>
           </div>
         </div>
       </div>
 
-      <nav aria-label="Primary" className="flex gap-1 overflow-x-auto border-t border-line px-3 py-1.5 lg:hidden">
+      <nav aria-label="Primary" className="flex gap-1 overflow-x-auto border-t border-line px-2 py-1 lg:hidden">
         {NAV.map((item) => {
           const active = isActive(pathname, item.href);
           return (
             <Link
               aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap ${active ? "bg-neon-soft text-neon" : "text-muted"}`}
+              className={`flex h-7 items-center gap-1.5 rounded-[4px] px-2.5 text-[12px] whitespace-nowrap ${active ? "bg-surface-raised text-ink" : "text-muted"}`}
               href={item.href}
               key={item.href}
             >
-              <Icon name={item.icon} size={14} />
+              <Icon className={active ? "text-accent" : ""} name={item.icon} size={13} />
               {item.label}
             </Link>
           );

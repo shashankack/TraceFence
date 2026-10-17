@@ -1,29 +1,19 @@
-"use client";
-
-import { motion } from "motion/react";
-
 const TONE = {
-  green: { dot: "bg-allow", ring: "bg-allow/40" },
-  amber: { dot: "bg-approval", ring: "bg-approval/40" },
-  red: { dot: "bg-deny", ring: "bg-deny/40" },
-  blue: { dot: "bg-neon", ring: "bg-neon/40" },
-  grey: { dot: "bg-faint", ring: "" },
+  green: "bg-allow",
+  amber: "bg-approval",
+  red: "bg-deny",
+  blue: "bg-accent",
+  grey: "bg-faint",
 };
 
 export type DotTone = keyof typeof TONE;
 
-export function StatusDot({ tone = "green" }: { tone?: DotTone }) {
-  const t = TONE[tone];
+/** Small status light. "live" adds a slow 2s fade — enough to read as alive, not enough to distract. */
+export function StatusDot({ tone = "green", live = false }: { tone?: DotTone; live?: boolean }) {
   return (
-    <span className="relative inline-flex size-1.5">
-      {tone !== "grey" && (
-        <motion.span
-          animate={{ scale: [1, 2.8], opacity: [0.7, 0] }}
-          className={`absolute inset-0 rounded-full ${t.ring}`}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
-        />
-      )}
-      <span className={`relative inline-block size-1.5 rounded-full ${t.dot}`} />
-    </span>
+    <span
+      className={`inline-block size-[7px] flex-none rounded-full ${TONE[tone]}`}
+      style={live ? { animation: "tf-pulse 2s ease-in-out infinite" } : undefined}
+    />
   );
 }

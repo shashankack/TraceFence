@@ -1,27 +1,21 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { Decision, EventDTO } from "@/components/api/types";
 import { useAppState } from "@/components/shell/AppState";
 import { DecisionChip } from "@/components/ui/DecisionChip";
 import { Icon, toolIcon } from "@/components/ui/Icon";
 import { StatusDot } from "@/components/ui/StatusDot";
+import { ROLE_LABEL } from "./catalog";
+import { Column } from "./Column";
 import { externalRecipients } from "./injection";
-import { PanelHeader } from "./MissionControl";
 
 const PHASES = ["SOURCE", "PROPOSAL", "DECISION", "OUTCOME"] as const;
 
-const NODE_TONE: Record<Decision, string> = {
-  ALLOW: "text-allow bg-allow-soft border-allow/40",
-  DENY: "text-deny bg-deny-soft border-deny/45",
-  REQUIRE_APPROVAL: "text-approval bg-approval-soft border-approval/45",
-};
-
-const REASON_TONE: Record<Decision, string> = {
-  ALLOW: "text-allow",
-  DENY: "text-deny",
-  REQUIRE_APPROVAL: "text-approval",
+const NODE: Record<Decision, string> = {
+  ALLOW: "border-allow bg-canvas",
+  DENY: "border-deny bg-deny",
+  REQUIRE_APPROVAL: "border-approval bg-canvas",
 };
 
 export function formatTime(ts?: string) {
@@ -35,203 +29,170 @@ export function argsLine(args?: Record<string, unknown> | null) {
   if (!args) return "—";
   return Object.entries(args)
     .map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : typeof v === "string" ? `"${v}"` : JSON.stringify(v)}`)
-    .join(" · ");
+    .join("  ");
 }
 
-/** Sensitive tools whose DENY is shown as a full blocked-action card. */
+/** Sensitive tools whose DENY is rendered as a full blocked-action record. */
 const EXFIL_TOOLS = new Set(["export_records", "notify_external", "post_announcement"]);
 
-export function DecisionRail() {
-  const { events, mode, messages, turnFrom, sending } = useAppState();
+export function DecisionRail({ className = "" }: { className?: string }) {
+  const { events, mode, messages, turnFrom, sending, session, role } = useAppState();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const seenPhases = new Set(events.map((e) => e.phase));
   const lastUser = [...messages].reverse().find((m) => m.from === "user");
   const turnTargets = lastUser ? externalRecipients(lastUser.text) : [];
+  const reached = new Set<string>(events.map((e) => e.phase ?? "DECISION"));
+  if (events.some((e) => e.tool)) reached.add("PROPOSAL");
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [events.length]);
 
   return (
-    <aside className="glass flex min-h-[560px] flex-col overflow-hidden rounded-2xl xl:min-h-0">
-      <PanelHeader
-        eyebrow="03 · Live trace"
-        right={
-          <span className="flex items-center gap-1.5 rounded-md border border-line px-2 py-1 font-mono text-[10px] font-semibold text-muted">
-            <StatusDot tone={mode === "live" ? "green" : "amber"} />
-            {events.length} EVENTS
-          </span>
-        }
-        title="Source → action timeline"
-      />
+    <Column
+      className={className}
+      footer={
+        <>
+          <Icon name="shield" size={12} />
+          Decisions are made by policy outside the model.
+          <span className="ml-auto font-mono text-[10.5px]">{mode === "live" ? "/api/sessions/:id/events" : "replay"}</span>
+        </>
+      }
+      index="03"
+      meta={
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-faint">
+          <StatusDot live={mode === "live"} tone={mode === "live" ? "green" : "amber"} />
+          {events.length} events
+        </span>
+      }
+      title="Live trace"
+    >
+      <ol className="m-0 flex h-9 flex-none list-none items-center gap-0 border-b border-line px-4 font-mono text-[10.5px]">
+        {PHASES.map((p, i) => (
+          <li className="flex flex-1 items-center gap-2" key={p}>
+            <span className={reached.has(p) ? "text-ink" : "text-faint"}>{p}</span>
+            {i < PHASES.length - 1 && <span className={`mr-2 h-px flex-1 ${reached.has(PHASES[i + 1]) ? "bg-line-strong" : "bg-line-soft"}`} />}
+          </li>
+        ))}
+      </ol>
 
-      <div className="grid grid-cols-4 border-b border-line bg-black/20 px-3 py-2">
-        {PHASES.map((p, i) => {
-          const on = seenPhases.has(p) || (p === "PROPOSAL" && events.some((e) => e.tool));
-          return (
-            <div className="flex items-center gap-1" key={p}>
-              <motion.span
-                animate={{ backgroundColor: on ? "var(--color-neon)" : "rgba(126,162,222,.2)", boxShadow: on ? "0 0 10px var(--color-neon)" : "0 0 0 transparent" }}
-                className="size-1.5 rounded-full"
-                transition={{ duration: 0.4 }}
-              />
-              <motion.span
-                animate={{ color: on ? "var(--color-ink)" : "var(--color-faint)" }}
-                className="font-mono text-[9.5px] font-semibold tracking-[.08em]"
-              >
-                {p}
-              </motion.span>
-              {i < PHASES.length - 1 && <span className="mx-1 h-px flex-1 bg-line-strong" />}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="scroll-rail min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-3" ref={scrollRef}>
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto py-2" ref={scrollRef}>
         {events.length === 0 ? (
-          <motion.div animate={{ opacity: 1 }} className="flex h-full min-h-[260px] flex-col items-center justify-center text-center" initial={{ opacity: 0 }}>
-            <motion.span
-              animate={{ rotate: [0, 8, -6, 0] }}
-              className="grid size-12 place-items-center rounded-2xl border border-line bg-white/[.03] text-neon"
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Icon name="activity" size={22} />
-            </motion.span>
-            <strong className="mt-3 font-display text-base font-semibold text-ink">Trace is quiet</strong>
-            <p className="max-w-[260px] text-xs leading-relaxed text-muted">Every source decision and tool proposal will stream here with its reason code.</p>
-          </motion.div>
+          <p className="m-0 max-w-[340px] px-4 py-2 text-[12.5px] leading-relaxed text-faint">
+            Waiting for the first decision. Each source filter and tool proposal is recorded here in order, with its reason code and
+            outcome.
+          </p>
         ) : (
-          <AnimatePresence initial={false}>
+          <ol className="m-0 list-none p-0">
             {events.map((e, i) => (
-              <RailEvent
+              <TraceEvent
+                actor={ROLE_LABEL[session?.role ?? role]}
                 event={e}
-                index={i}
                 key={e.id}
                 last={i === events.length - 1}
-                target={i >= turnFrom && EXFIL_TOOLS.has(e.tool ?? "") ? turnTargets : []}
+                n={i + 1}
+                targets={i >= turnFrom && EXFIL_TOOLS.has(e.tool ?? "") ? turnTargets : []}
               />
             ))}
-          </AnimatePresence>
+          </ol>
         )}
         {sending && (
-          <motion.div
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            className="mt-2 flex items-center gap-2 pl-9 font-mono text-[10px] tracking-wider text-neon uppercase"
-            transition={{ duration: 1.2, repeat: Infinity }}
-          >
-            <Icon name="activity" size={12} />
-            awaiting gateway decision…
-          </motion.div>
+          <div className="flex items-center gap-2 px-4 pt-2 font-mono text-[11px] text-accent">
+            <span className="size-[7px] rounded-full bg-accent" style={{ animation: "tf-pulse 1s ease-in-out infinite" }} />
+            awaiting decision…
+          </div>
         )}
       </div>
-
-      <div className="flex min-h-[36px] items-center gap-1.5 border-t border-line bg-black/20 px-4 text-[11px] text-faint">
-        <Icon className="text-neon" name="shield" size={12} />
-        Policy executes outside the LLM
-      </div>
-    </aside>
+    </Column>
   );
 }
 
-function RailEvent({ event, last, index, target }: { event: EventDTO; last: boolean; index: number; target: string[] }) {
-  const decision = (event.decision ?? "ALLOW") as Decision;
+function TraceEvent({ event, n, last, targets, actor }: { event: EventDTO; n: number; last: boolean; targets: string[]; actor: string }) {
   const filtered = event.reasonCode === "RETRIEVAL_FILTERED";
-  const tone: Decision = filtered ? "DENY" : decision;
+  const decision = (event.decision ?? "ALLOW") as Decision;
   const blocked = decision === "DENY" && !filtered && EXFIL_TOOLS.has(event.tool ?? "");
-  const recipient = typeof event.argsPreview?.to === "string" ? [event.argsPreview.to as string] : target;
+  const recipients = typeof event.argsPreview?.to === "string" ? [event.argsPreview.to as string] : targets;
+  const nodeTone = filtered ? "border-accent bg-canvas" : NODE[decision];
 
   return (
-    <motion.div
-      animate={{ opacity: 1, x: 0 }}
-      className="grid grid-cols-[28px_1fr]"
-      initial={{ opacity: 0, x: 16 }}
-      layout="position"
-      transition={{ type: "spring", stiffness: 340, damping: 30, delay: (index % 4) * 0.05 }}
-    >
-      <div className="flex flex-col items-center">
-        <motion.span
-          animate={{ scale: 1 }}
-          className={`z-[1] mt-2.5 grid size-6 place-items-center rounded-[7px] border ${NODE_TONE[tone]} ${blocked ? "glow-deny" : ""}`}
-          initial={{ scale: 0 }}
-          transition={{ type: "spring", stiffness: 500, damping: 20, delay: 0.08 }}
-        >
-          <Icon name={filtered ? "filter" : toolIcon(event.tool)} size={13} />
-        </motion.span>
-        {!last && (
-          <motion.span
-            animate={{ scaleY: 1 }}
-            className="w-px flex-1 origin-top bg-gradient-to-b from-line-strong to-line"
-            initial={{ scaleY: 0 }}
-            transition={{ duration: 0.35, delay: 0.15 }}
-          />
-        )}
+    <li className="grid grid-cols-[44px_1fr] pr-4">
+      <div className="relative flex justify-center">
+        {!last && <span className="absolute top-[18px] bottom-0 w-px bg-line" />}
+        {n > 1 && <span className="absolute top-0 h-[10px] w-px bg-line" />}
+        <span className={`relative mt-[10px] size-[9px] rounded-full border-2 ${nodeTone}`} />
       </div>
 
-      {blocked ? (
-        <motion.div
-          animate={{ opacity: 1, scale: 1 }}
-          className="glow-deny my-1.5 ml-2 overflow-hidden rounded-xl border border-deny/50 bg-[linear-gradient(135deg,rgba(255,84,104,.18),rgba(255,84,104,.05))]"
-          initial={{ opacity: 0, scale: 0.96 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="flex items-center justify-between border-b border-deny/25 px-3 py-2">
-            <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[.12em] text-deny uppercase">
-              <Icon name="lock" size={12} />
-              Blocked {event.tool === "notify_external" ? "external email" : "exfiltration"}
-            </span>
-            <time className="font-mono text-[10px] text-ink/70">{formatTime(event.ts)}</time>
-          </div>
-          <div className="space-y-2 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <code className="font-mono text-[13px] font-semibold text-ink">{event.tool}</code>
-              <DecisionChip decision="DENY" pulse={last} />
-            </div>
-            {recipient.length > 0 && (
-              <div className="flex items-center gap-2 rounded-lg border border-deny/30 bg-black/30 px-2.5 py-1.5">
-                <Icon className="text-deny" name="mail" size={13} />
-                <span className="text-[10px] tracking-wider text-faint uppercase">to</span>
-                <code className="truncate font-mono text-[12px] font-semibold text-deny line-through decoration-deny/60">{recipient.join(", ")}</code>
-              </div>
-            )}
-            <code className="block rounded-md border border-line bg-black/30 px-2 py-1.5 font-mono text-[11px] break-words text-muted">
-              {argsLine(event.argsPreview)}
-            </code>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <code className="rounded bg-deny/15 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-deny">{event.reasonCode}</code>
-              <span className="text-[11px] text-ink/70">Not executed · {event.outcome ?? "gateway denied"}</span>
-            </div>
-          </div>
-        </motion.div>
-      ) : (
-        <div className={`min-w-0 py-2 pl-2 ${last ? "" : "border-b border-line"}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-mono text-[9.5px] font-semibold tracking-[.1em] text-faint">{event.phase ?? "DECISION"}</span>
-            <time className="font-mono text-[10px] text-faint">{formatTime(event.ts)}</time>
-          </div>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <code className="font-mono text-[13px] font-semibold text-ink">{event.tool ?? "gateway"}</code>
-            {filtered ? (
-              <span className="inline-flex items-center gap-1 rounded-md border border-neon/35 bg-neon-soft px-2 py-[3px] font-mono text-[10px] font-bold text-neon">
-                <Icon name="filter" size={10} />
-                FENCED
-              </span>
-            ) : (
-              event.decision && <DecisionChip decision={event.decision} glow={event.decision === "REQUIRE_APPROVAL"} pulse={event.decision === "REQUIRE_APPROVAL" && last} />
-            )}
-          </div>
-          <code className="mt-1.5 block rounded-md border border-line bg-black/25 px-2 py-1.5 font-mono text-[11px] leading-snug break-words text-muted">
-            {argsLine(event.argsPreview)}
-          </code>
-          <div className="mt-1.5 flex items-baseline justify-between gap-2">
-            <code className={`font-mono text-[10px] font-semibold ${filtered ? "text-neon" : REASON_TONE[tone]}`}>{event.reasonCode}</code>
-            {event.outcome && (
-              <span className="truncate text-right text-[11px] text-faint" title={event.outcome}>
-                {event.outcome}
-              </span>
-            )}
-          </div>
+      <div className="min-w-0 pt-[5px] pb-3">
+        <div className="flex items-center gap-2 font-mono text-[10.5px] text-faint">
+          <span className="text-muted">#{String(n).padStart(2, "0")}</span>
+          <span>{formatTime(event.ts)}</span>
+          <span>{event.phase ?? "DECISION"}</span>
         </div>
-      )}
-    </motion.div>
+
+        {blocked ? (
+          <div className="mt-1.5 overflow-hidden rounded-[4px] border border-deny/45 border-l-[3px] border-l-deny bg-deny-soft">
+            <div className="flex items-center gap-2 px-3 pt-2.5">
+              <Icon className="text-deny" name={recipients.length ? "mail" : toolIcon(event.tool)} size={14} />
+              <strong className="text-[13px] font-semibold text-deny">
+                {recipients.length ? "External email blocked" : "Export blocked"}
+              </strong>
+              <span className="ml-auto">
+                <DecisionChip decision="DENY" />
+              </span>
+            </div>
+            <p className="mx-3 mt-1.5 mb-2 text-[12.5px] leading-relaxed text-ink/85">
+              {recipients.length ? (
+                <>
+                  The model proposed sending student records to{" "}
+                  <code className="font-mono text-[12px] text-deny">{recipients.join(", ")}</code>, an address outside the tenant. Policy does
+                  not let a {actor.toLowerCase()} run <code className="font-mono text-[12px]">{event.tool}</code>, so nothing was sent.
+                </>
+              ) : (
+                <>
+                  Policy does not let a {actor.toLowerCase()} run <code className="font-mono text-[12px]">{event.tool}</code>. The call was
+                  stopped before execution.
+                </>
+              )}
+            </p>
+            <dl className="m-0 grid grid-cols-[72px_1fr] gap-y-1 border-t border-deny/25 px-3 py-2 text-[11.5px]">
+              <dt className="text-faint">Tool</dt>
+              <dd className="m-0 font-mono text-ink">{event.tool}</dd>
+              <dt className="text-faint">Arguments</dt>
+              <dd className="m-0 font-mono break-words text-muted">{argsLine(event.argsPreview)}</dd>
+              <dt className="text-faint">Reason</dt>
+              <dd className="m-0 font-mono font-semibold text-deny">{event.reasonCode}</dd>
+              <dt className="text-faint">Outcome</dt>
+              <dd className="m-0 text-ink">Not executed</dd>
+            </dl>
+          </div>
+        ) : (
+          <>
+            <div className="mt-1 flex items-center gap-2">
+              <Icon className="text-faint" name={filtered ? "filter" : toolIcon(event.tool)} size={13} />
+              <code className="font-mono text-[12.5px] text-ink">{filtered ? "acl.filter" : (event.tool ?? "gateway")}</code>
+              <span className="ml-auto">
+                {filtered ? (
+                  <span className="inline-flex h-[20px] items-center rounded-[3px] border border-line px-1.5 text-[11px] text-muted">Fenced</span>
+                ) : (
+                  event.decision && <DecisionChip decision={event.decision} />
+                )}
+              </span>
+            </div>
+            <div className="mt-1 font-mono text-[11.5px] break-words text-muted">{argsLine(event.argsPreview)}</div>
+            <div className="mt-1 flex items-baseline gap-2 text-[11.5px]">
+              <code
+                className={`font-mono text-[10.5px] ${filtered ? "text-accent" : decision === "REQUIRE_APPROVAL" ? "text-approval" : decision === "DENY" ? "text-deny" : "text-faint"}`}
+              >
+                {event.reasonCode}
+              </code>
+              {event.outcome && (
+                <span className="min-w-0 truncate text-faint" title={event.outcome}>
+                  {event.outcome}
+                </span>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </li>
   );
 }

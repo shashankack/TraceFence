@@ -54,21 +54,21 @@ export function DocumentsPanel({
 
   return (
     <motion.section
-      className="mt-4 overflow-hidden glass rounded-2xl"
+      className="panel mt-5 overflow-hidden"
       variants={panelVariants}
     >
-      <div className="flex min-h-[60px] items-center justify-between border-b border-line px-4 py-3">
+      <div className="flex h-11 items-center justify-between border-b border-line px-4">
         <div>
-          <h2 className="m-0 font-display text-base font-bold">Documents</h2>
-          <p className="mt-0.5 text-xs text-muted">Classify before save. Content cannot self-elevate permissions.</p>
+          <h2 className="m-0 inline text-[13px] font-semibold">Documents</h2>
+          <p className="m-0 ml-3 inline text-[12px] text-faint">Classify before save. Content cannot self-elevate permissions.</p>
         </div>
         <span className="font-mono text-xs text-faint">{docs.length} sources</span>
       </div>
 
-      <div className="grid items-center gap-2 border-b border-line bg-black/20 px-3.5 py-3 lg:grid-cols-[1.4fr_1fr_auto_auto]">
+      <div className="grid items-center gap-2 border-b border-line bg-canvas px-4 py-3 lg:grid-cols-[1.4fr_1fr_auto_auto]">
         <motion.button
-          animate={{ scale: dragging ? 1.02 : 1, borderColor: dragging ? "rgba(76,194,255,.8)" : "rgba(76,194,255,.3)" }}
-          className="flex items-center gap-2.5 rounded-[10px] border border-dashed bg-neon-soft/60 px-3 py-2.5 text-left text-teal disabled:opacity-60"
+          animate={{ borderColor: dragging ? "#3461d1" : "#cbc5b9" }}
+          className="flex items-center gap-2.5 rounded-[4px] border border-dashed bg-surface px-3 py-2 text-left text-muted hover:text-ink disabled:opacity-60"
           disabled={!canEdit}
           onClick={() => fileRef.current?.click()}
           onDragLeave={() => setDragging(false)}
@@ -122,7 +122,7 @@ export function DocumentsPanel({
           ))}
         </select>
         <motion.button
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-neon/40 bg-neon-soft px-3.5 text-sm font-bold text-neon disabled:opacity-45"
+          className="btn"
           disabled={!canEdit || !title.trim() || adding}
           onClick={submit}
           type="button"
@@ -149,7 +149,7 @@ export function DocumentsPanel({
       </div>
 
       <div className="pt-1 pb-2">
-        <div className="grid min-h-[36px] grid-cols-[2fr_1fr_.9fr_.7fr_.55fr] items-center gap-2.5 bg-black/20 px-3.5 text-[10px] font-extrabold uppercase tracking-[.4px] text-faint">
+        <div className="grid min-h-[36px] grid-cols-[2fr_1fr_.9fr_.7fr_.55fr] items-center gap-2.5 border-b border-line px-4 text-[11px] font-medium text-faint">
           <span>Title</span>
           <span>Classification</span>
           <span>Collection</span>
@@ -160,14 +160,14 @@ export function DocumentsPanel({
           {docs.map((doc) => (
             <motion.div
               animate={{ opacity: 1, height: "auto", backgroundColor: "rgba(76,194,255,0)" }}
-              className="grid min-h-[54px] grid-cols-[2fr_1fr_.9fr_.7fr_.55fr] items-center gap-2.5 border-b border-line px-3.5 text-sm last:border-b-0"
+              className="grid min-h-[46px] grid-cols-[2fr_1fr_.9fr_.7fr_.55fr] items-center gap-2.5 border-b border-line-soft px-4 text-[13px] last:border-b-0"
               initial={{ opacity: 0, height: 0, backgroundColor: "rgba(76,194,255,.16)" }}
               key={doc.id}
               layout
               transition={{ duration: 0.35, backgroundColor: { duration: 1.6 } }}
             >
               <span className={doc.enabled ? "" : "opacity-50"}>
-                <strong className="block text-sm">{doc.title}</strong>
+                <strong className="block text-[13px] font-medium">{doc.title}</strong>
                 <code className="font-mono text-[11px] text-faint">{doc.id}</code>
               </span>
               <select
@@ -206,14 +206,14 @@ function Toggle({ on, onChange, disabled, label }: { on: boolean; onChange: () =
     <button
       aria-checked={on}
       aria-label={label}
-      className={`flex h-6 w-11 items-center rounded-full border p-0.5 transition-colors disabled:opacity-50 ${on ? "justify-end border-allow/50 bg-allow/80 shadow-[0_0_12px_rgba(46,229,157,.35)]" : "justify-start border-line bg-white/10"}`}
+      className={`flex h-5 w-9 items-center rounded-full border p-[1px] transition-colors disabled:opacity-50 ${on ? "justify-end border-allow bg-allow" : "justify-start border-line-strong bg-surface-raised"}`}
       disabled={disabled}
       onClick={onChange}
       role="switch"
       type="button"
     >
       <motion.span
-        className="size-[18px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,.2)]"
+        className="size-[16px] rounded-full bg-white shadow-[0_1px_2px_rgba(31,35,41,.25)]"
         layout
         transition={{ type: "spring", stiffness: 600, damping: 32 }}
       />

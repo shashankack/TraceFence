@@ -109,23 +109,19 @@ export function OrgView() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] p-3 pb-10 sm:p-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="mx-auto w-full max-w-[1180px] px-4 py-6 pb-10 sm:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <span className="block eyebrow">
-            Organization fence
-          </span>
-          <h2 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-ink">
-            NullTrace Institute
-          </h2>
-          <p className="mt-1 max-w-[600px] text-sm leading-normal text-muted">
+          <span className="mono-label block">tenant · nulltrace-institute</span>
+          <h1 className="mt-1 mb-0 text-[20px] font-semibold tracking-[-0.01em] text-ink">Sources &amp; policies</h1>
+          <p className="mt-1 mb-0 max-w-[600px] text-[13px] leading-normal text-muted">
             Upload sources and define who may read them and which tools are ALLOW / DENY / REQUIRE_APPROVAL.
           </p>
         </div>
         <div className="flex items-center gap-2.5">
           <BackendBadge backend={backend} />
           <motion.span
-            className="rounded-full border border-line bg-black/20 px-3 py-1.5 font-mono text-xs font-bold text-muted"
+            className="flex h-8 items-center gap-1 rounded-[4px] border border-line bg-surface px-2.5 font-mono text-[12px] text-muted"
             layout
           >
             Policy{" "}
@@ -143,7 +139,7 @@ export function OrgView() {
             {dirty && <span className="text-approval"> · unpublished changes</span>}
           </motion.span>
           <motion.button
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-neon px-3.5 text-sm font-bold text-[#04101f] shadow-[0_0_18px_rgba(76,194,255,.4)] hover:bg-neon-strong disabled:shadow-none disabled:opacity-45"
+            className="btn btn-primary"
             disabled={!dirty || !canEdit || publishing}
             onClick={publish}
             type="button"
@@ -163,13 +159,15 @@ export function OrgView() {
             exit={{ opacity: 0, height: 0 }}
             initial={{ opacity: 0, height: 0 }}
           >
-            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-approval/40 bg-approval-soft px-3.5 py-2.5 text-sm text-ink/80">
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[4px] border border-approval/35 border-l-[3px] border-l-approval bg-approval-soft px-3.5 py-2 text-[12.5px] text-ink/85">
               <Icon className="text-approval" name="lock" size={15} />
               <span className="flex-1">
                 Org routes are gated to the <strong>admin</strong> role. You are viewing as{" "}
                 <strong>{role}</strong> — read only.
               </span>
-              <RoleTabs layoutGroup="org" onChange={setRole} value={role} />
+              <div className="w-[240px]">
+                <RoleTabs layoutGroup="org" onChange={setRole} value={role} />
+              </div>
             </div>
           </motion.div>
         )}
@@ -180,7 +178,7 @@ export function OrgView() {
           {[0, 1].map((i) => (
             <motion.div
               animate={{ opacity: [0.5, 1, 0.5] }}
-              className="glass h-48 rounded-2xl"
+              className="panel h-48"
               key={i}
               transition={{ duration: 1.4, repeat: Infinity }}
             />
@@ -194,7 +192,7 @@ export function OrgView() {
             className="mx-0.5 mt-4 flex items-center gap-1.5 text-xs text-muted"
             variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
           >
-            <Icon className="text-teal" name="lock" size={13} />
+            <Icon className="text-faint" name="lock" size={13} />
             Uploaded content is untrusted. Document text cannot elevate its own classification or change tool policy.
           </motion.p>
         </motion.div>
@@ -206,10 +204,10 @@ export function OrgView() {
 function BackendBadge({ backend }: { backend: Backend }) {
   if (backend === "loading") return null;
   return backend === "live" ? (
-    <span className="rounded-full bg-allow-soft px-2.5 py-1.5 text-[11px] font-bold text-allow">Org API live</span>
+    <span className="flex items-center gap-1.5 text-[12px] text-muted"><span className="size-[7px] rounded-full bg-allow" />Org API live</span>
   ) : (
     <span
-      className="rounded-full bg-approval-soft px-2.5 py-1.5 text-[11px] font-bold text-approval"
+      className="flex items-center gap-1.5 text-[12px] text-approval"
       title="GET /api/org/documents and /api/org/policy are not deployed yet; edits stay in this browser tab."
     >
       Local draft · Org API pending

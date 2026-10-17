@@ -6,6 +6,20 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Restrained light UI (venilashree)
+
+### Done
+- Replaced the neon/glass dark theme with a warm-paper light system: flat white working surfaces, hairline dividers, Inter + JetBrains Mono, one cobalt accent; green/red/amber used only for gateway decisions.
+- Console: compact sidebar, 48px top bar with live status + clock, single-line stats strip (incl. forbidden executions), one divided three-column workspace instead of floating cards.
+- Untrusted source: SRC-nn record, line-numbered preview with injected phrases highlighted, finding panel, context-fence table, proposed call.
+- Live trace: numbered events (#01…) with timestamps; blocked exfiltration shows a red record with plain-language explanation, recipient, reason code, "Not executed".
+- Approval drawer: plain-English summary, countdown bar, request details, exact payload, grant binding, Reject / Approve once.
+- Audit: investigation report (TF-AUD ref), green verdict with forbidden executions / external emails, decision summary, nine evidence checks computed from live gateway responses (9/9 after running all three scenarios), EV-nnn cases as connected Source → Proposal → Decision → Outcome stages.
+- Fast-forwarded to backend `b888268` (adds `.adce/figma-*` exports; no app changes).
+- Verified in headless Edge against the live gateway: injection DENY, faculty approval → APPROVAL_CONSUMED, Org → Console chat still works, 390px layout.
+
+---
+
 ## 2026-10-17 — Command-center UI redesign (venilashree)
 
 ### Done

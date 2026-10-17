@@ -1,11 +1,13 @@
 import type { Classification } from "@/components/api/types";
-import { CLASSIFICATION_TONE } from "@/components/console/catalog";
 
+const TONE: Record<Classification, string> = {
+  public: "text-muted",
+  internal: "text-internal",
+  confidential: "text-deny",
+};
+
+/** Classification is metadata, so it reads as a quiet monospace label rather than a pill. */
 export function ClassBadge({ value }: { value: string }) {
-  const tone = CLASSIFICATION_TONE[value as Classification] ?? "text-muted bg-white/5 border-line";
-  return (
-    <em className={`rounded-full border px-2 py-[2px] font-mono text-[10px] font-semibold tracking-wide not-italic uppercase ${tone}`}>
-      {value}
-    </em>
-  );
+  const tone = TONE[value as Classification] ?? "text-faint";
+  return <span className={`font-mono text-[10.5px] whitespace-nowrap ${tone}`}>{value}</span>;
 }

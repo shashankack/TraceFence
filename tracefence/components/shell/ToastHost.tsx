@@ -6,9 +6,9 @@ import { Icon } from "@/components/ui/Icon";
 import { useAppState } from "./AppState";
 
 const TONE = {
-  allow: { border: "border-allow/40", icon: "text-allow bg-allow-soft", glyph: "check" as const, glow: "glow-allow" },
-  deny: { border: "border-deny/40", icon: "text-deny bg-deny-soft", glyph: "x" as const, glow: "glow-deny" },
-  info: { border: "border-neon/30", icon: "text-neon bg-neon-soft", glyph: "shield" as const, glow: "" },
+  allow: { bar: "bg-allow", icon: "text-allow", glyph: "check" as const },
+  deny: { bar: "bg-deny", icon: "text-deny", glyph: "x" as const },
+  info: { bar: "bg-accent", icon: "text-accent", glyph: "shield" as const },
 };
 
 export function ToastHost() {
@@ -25,22 +25,21 @@ export function ToastHost() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className={`glass pointer-events-auto flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 sm:w-[360px] ${TONE[toast.tone].border} ${TONE[toast.tone].glow}`}
-            exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-[6px] border border-line bg-surface py-3 pr-3 pl-4 shadow-[0_6px_20px_rgba(31,35,41,.1)] sm:w-[340px]"
+            exit={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 8 }}
             key={toast.id}
-            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            transition={{ duration: 0.16 }}
           >
-            <span className={`grid size-8 place-items-center rounded-lg ${TONE[toast.tone].icon}`}>
-              <Icon name={TONE[toast.tone].glyph} size={16} />
-            </span>
+            <span className={`absolute inset-y-0 left-0 w-[3px] ${TONE[toast.tone].bar}`} />
+            <Icon className={`mt-px ${TONE[toast.tone].icon}`} name={TONE[toast.tone].glyph} size={15} />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <strong className="text-sm text-ink">{toast.title}</strong>
-              <p className="m-0 text-xs text-muted">{toast.body}</p>
+              <strong className="text-[13px] font-medium text-ink">{toast.title}</strong>
+              <p className="m-0 text-[12px] text-muted">{toast.body}</p>
             </div>
             <button aria-label="Dismiss" className="text-faint hover:text-ink" onClick={dismissToast} type="button">
-              <Icon name="x" size={14} />
+              <Icon name="x" size={13} />
             </button>
           </motion.div>
         )}

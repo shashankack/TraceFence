@@ -38,7 +38,7 @@ export function PolicyMatrices({
   };
 
   return (
-    <div className="mt-3 grid gap-3 xl:grid-cols-[1fr_1.35fr]">
+    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
       <Panel icon="sliders" subtitle="Roles × collections — enforced before retrieval" title="Retrieval ACL">
         <Matrix columns={CLASSIFICATIONS}>
           {ROLES.map((role) => (
@@ -81,15 +81,15 @@ export function PolicyMatrices({
 function Panel({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: "sliders" | "lock"; children: React.ReactNode }) {
   return (
     <motion.section
-      className="overflow-hidden glass rounded-2xl"
+      className="panel overflow-hidden"
       variants={panelVariants}
     >
-      <div className="flex min-h-[60px] items-center justify-between border-b border-line px-4 py-3">
+      <div className="flex h-11 items-center justify-between border-b border-line px-4">
         <div>
-          <h2 className="m-0 font-display text-base font-bold">{title}</h2>
-          <p className="mt-0.5 text-xs text-muted">{subtitle}</p>
+          <h2 className="m-0 inline text-[13px] font-semibold">{title}</h2>
+          <p className="m-0 ml-3 inline text-[12px] text-faint">{subtitle}</p>
         </div>
-        <Icon className="text-teal" name={icon} size={16} />
+        <Icon className="text-faint" name={icon} size={14} />
       </div>
       <div className="overflow-x-auto px-2.5 pt-2 pb-3">{children}</div>
     </motion.section>
@@ -98,9 +98,9 @@ function Panel({ title, subtitle, icon, children }: { title: string; subtitle: s
 
 function Matrix({ columns, wide, children }: { columns: readonly string[]; wide?: boolean; children: React.ReactNode }) {
   return (
-    <div className={wide ? "min-w-[640px]" : ""}>
+    <div className={wide ? "min-w-[580px]" : ""}>
       <div
-        className={`grid min-h-[32px] items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[.35px] text-faint ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
+        className={`grid min-h-[32px] items-center gap-1.5 text-[11px] font-medium text-faint ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
       >
         <span>Role</span>
         {columns.map((c) => (
@@ -117,9 +117,9 @@ function Matrix({ columns, wide, children }: { columns: readonly string[]; wide?
 function Row({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <div
-      className={`grid min-h-[46px] items-center gap-1.5 border-b border-line py-1 text-sm last:border-b-0 ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
+      className={`grid min-h-[40px] items-center gap-1.5 border-b border-line-soft py-1 text-[13px] last:border-b-0 ${wide ? "grid-cols-[.85fr_repeat(5,1fr)]" : "grid-cols-[.7fr_repeat(3,1fr)]"}`}
     >
-      <span className="font-semibold">{label}</span>
+      <span className="font-medium">{label}</span>
       {children}
     </div>
   );
@@ -129,12 +129,11 @@ function Cell({ value, onClick, disabled, label }: { value: Decision; onClick: (
   return (
     <motion.button
       aria-label={`${label}: ${value}`}
-      className={`relative h-8 overflow-hidden rounded-lg border font-mono text-[10px] font-bold transition-colors disabled:cursor-not-allowed ${CELL_TONE[value]}`}
+      className={`relative h-7 overflow-hidden rounded-[3px] border font-mono text-[10.5px] font-medium transition-colors hover:brightness-95 disabled:cursor-not-allowed ${CELL_TONE[value]}`}
       disabled={disabled}
       onClick={onClick}
       type="button"
-      whileHover={disabled ? undefined : { y: -1 }}
-      whileTap={disabled ? undefined : { scale: 0.92 }}
+      
     >
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span
