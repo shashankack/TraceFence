@@ -1,54 +1,71 @@
 @import "tailwindcss";
 
 /*
-  TraceFence visual system — "workspace + fence"
-  Light instrument workspace; deep slate for brand/gateway surfaces.
-  Avoids purple gradients, cream+terracotta, and full-page dark mode.
+  TraceFence visual system — "command center"
+  Deep navy canvas, glass panels with hairline borders, neon-blue accent.
+  Decision colours carry meaning only: green ALLOW, red DENY, amber REQUIRE_APPROVAL.
 */
 @theme {
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex), ui-monospace, monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  --color-ink: #12161c;
-  --color-muted: #5a6472;
-  --color-faint: #8a93a0;
-  --color-line: #dde1e8;
-  --color-line-strong: #c8ced8;
-  --color-surface: #ffffff;
-  --color-surface-soft: #f3f4f7;
-  --color-canvas: #e6e8ee;
+  /* Text */
+  --color-ink: #e8eef8;
+  --color-muted: #94a3bb;
+  --color-faint: #5f6f88;
 
-  /* Brand / primary action — forest fence */
-  --color-navy: #151a22;
-  --color-teal: #0f6b52;
-  --color-teal-strong: #0a4f3d;
-  --color-teal-soft: #d8eee6;
+  /* Structure */
+  --color-canvas: #050913;
+  --color-surface: #0b1222;
+  --color-surface-soft: #101a2e;
+  --color-surface-raised: #142039;
+  --color-line: rgba(126, 162, 222, 0.12);
+  --color-line-strong: rgba(126, 162, 222, 0.22);
+
+  /* Accent — neon blue */
+  --color-neon: #4cc2ff;
+  --color-neon-strong: #1fa2f0;
+  --color-neon-soft: rgba(76, 194, 255, 0.12);
+
+  /* Kept for older class names: brand aliases point at the accent */
+  --color-navy: #0b1222;
+  --color-teal: #4cc2ff;
+  --color-teal-strong: #1fa2f0;
+  --color-teal-soft: rgba(76, 194, 255, 0.12);
 
   /* Decisions */
-  --color-allow: #157a45;
-  --color-allow-soft: #e1f4ea;
-  --color-deny: #c23030;
-  --color-deny-soft: #fce8e8;
-  --color-approval: #9a5b12;
-  --color-approval-soft: #f8ecd8;
+  --color-allow: #2ee59d;
+  --color-allow-soft: rgba(46, 229, 157, 0.12);
+  --color-deny: #ff5468;
+  --color-deny-soft: rgba(255, 84, 104, 0.13);
+  --color-approval: #ffb547;
+  --color-approval-soft: rgba(255, 181, 71, 0.13);
+
+  /* Injection highlight */
+  --color-inject: #ffd84d;
+  --color-inject-soft: rgba(255, 216, 77, 0.2);
 
   /* Classification */
-  --color-internal: #2c5f8a;
-  --color-internal-soft: #e4eef6;
+  --color-internal: #8fb4ff;
+  --color-internal-soft: rgba(143, 180, 255, 0.13);
 
-  /* Gateway rail (decision panel) */
-  --color-rail: #151a22;
-  --color-rail-elevated: #1c2330;
-  --color-rail-line: #2a3344;
-  --color-rail-text: #eef0f4;
-  --color-rail-muted: #9aa3b2;
-  --color-rail-faint: #6b7585;
+  /* Trace rail */
+  --color-rail: #070d1a;
+  --color-rail-elevated: #0e1729;
+  --color-rail-line: rgba(126, 162, 222, 0.12);
+  --color-rail-text: #e8eef8;
+  --color-rail-muted: #94a3bb;
+  --color-rail-faint: #5f6f88;
 }
 
 html,
 body {
   min-height: 100%;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
@@ -57,11 +74,13 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-canvas);
   background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, rgba(15, 107, 82, 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(21, 26, 34, 0.06), transparent 50%),
-    linear-gradient(rgba(18, 22, 28, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 22, 28, 0.022) 1px, transparent 1px);
-  background-size: auto, auto, 36px 36px, 36px 36px;
+    radial-gradient(ellipse 70% 50% at 15% -10%, rgba(31, 162, 240, 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(46, 229, 157, 0.05), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 50% 120%, rgba(31, 90, 200, 0.12), transparent 60%),
+    linear-gradient(rgba(126, 162, 222, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 162, 222, 0.035) 1px, transparent 1px);
+  background-size: auto, auto, auto, 40px 40px, 40px 40px;
+  background-attachment: fixed;
 }
 
 button {
@@ -73,16 +92,92 @@ button:disabled {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-teal);
+  outline: 2px solid var(--color-neon);
   outline-offset: 2px;
 }
 
-.scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-line-strong) transparent;
+::selection {
+  background: rgba(76, 194, 255, 0.3);
 }
 
+@layer components {
+  /* Glass panel: translucent navy with a hairline border and a faint top highlight. */
+  .glass {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
+      rgba(11, 18, 34, 0.72);
+    border: 1px solid var(--color-line);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 18px 50px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(14px);
+  }
+
+  .glass-soft {
+    background: rgba(16, 26, 46, 0.6);
+    border: 1px solid var(--color-line);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-neon);
+  }
+
+  .glow-allow {
+    box-shadow: 0 0 0 1px rgba(46, 229, 157, 0.3), 0 0 18px rgba(46, 229, 157, 0.22);
+  }
+  .glow-deny {
+    box-shadow: 0 0 0 1px rgba(255, 84, 104, 0.35), 0 0 22px rgba(255, 84, 104, 0.25);
+  }
+  .glow-approval {
+    box-shadow: 0 0 0 1px rgba(255, 181, 71, 0.32), 0 0 18px rgba(255, 181, 71, 0.2);
+  }
+  .glow-neon {
+    box-shadow: 0 0 0 1px rgba(76, 194, 255, 0.35), 0 0 22px rgba(76, 194, 255, 0.25);
+  }
+
+  .field {
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-line-strong);
+    background: rgba(5, 9, 19, 0.6);
+    padding: 0 0.625rem;
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field::placeholder {
+    color: var(--color-faint);
+  }
+  .field:focus {
+    border-color: rgba(76, 194, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(76, 194, 255, 0.14);
+  }
+  .field:disabled {
+    opacity: 0.55;
+  }
+
+  .mark-inject {
+    background: var(--color-inject-soft);
+    color: var(--color-inject);
+    border-bottom: 1px solid rgba(255, 216, 77, 0.7);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+}
+
+.scroll-thin,
 .scroll-rail {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-rail-line) transparent;
+  scrollbar-color: rgba(126, 162, 222, 0.22) transparent;
+}
+
+select.field option {
+  background: #0b1222;
+  color: #e8eef8;
 }

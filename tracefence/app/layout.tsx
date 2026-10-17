@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Figtree, IBM_Plex_Mono, Syne } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { AppShell } from "@/components/shell/AppShell";
 import "./globals.css";
 
-const figtree = Figtree({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-figtree",
+  variable: "--font-inter",
 });
-const syne = Syne({
+const grotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-grotesk",
 });
-const plex = IBM_Plex_Mono({
+const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-plex",
+  variable: "--font-jetbrains",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={`${figtree.variable} ${syne.variable} ${plex.variable}`}
+      className={`${inter.variable} ${grotesk.variable} ${jetbrains.variable}`}
       lang="en"
     >
       <body className="antialiased">

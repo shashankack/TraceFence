@@ -38,6 +38,8 @@ interface AppState {
   session: SessionDTO | null;
   messages: ChatMessage[];
   events: EventDTO[];
+  /** Index into `events` where the latest user turn starts (Untrusted Source panel scope). */
+  turnFrom: number;
   archive: ArchivedSession[];
   sending: boolean;
   send: (text: string) => Promise<void>;
@@ -76,6 +78,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionDTO | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [events, setEvents] = useState<EventDTO[]>([]);
+  const [turnFrom, setTurnFrom] = useState(0);
+  const eventsRef = useRef<EventDTO[]>([]);
+  useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
   const [sending, setSending] = useState(false);
   const [approval, setApproval] = useState<ApprovalDTO | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -91,6 +98,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const resetConversation = useCallback(() => {
     setMessages([]);
     setEvents([]);
+    setTurnFrom(0);
     setApproval(null);
     setDrawerOpen(false);
   }, []);
@@ -217,6 +225,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const message = text.trim();
       if (!message || sending) return;
       setMessages((prev) => [...prev, { id: msgId(), from: "user", text: message }]);
+      setTurnFrom(eventsRef.current.length);
       setSending(true);
       try {
         if (mode === "replay") {
@@ -344,6 +353,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       session,
       messages,
       events,
+      turnFrom,
       archive,
       sending,
       send,
@@ -368,6 +378,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       session,
       messages,
       events,
+      turnFrom,
       archive,
       sending,
       send,

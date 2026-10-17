@@ -20,7 +20,17 @@ export type IconName =
   | "sliders"
   | "megaphone"
   | "mail"
-  | "refresh";
+  | "refresh"
+  | "console"
+  | "building"
+  | "chart"
+  | "alert"
+  | "eye"
+  | "terminal"
+  | "activity"
+  | "globe"
+  | "fingerprint"
+  | "menu";
 
 const paths: Record<IconName, ReactNode> = {
   shield: (
@@ -100,6 +110,57 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   refresh: <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />,
+  console: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <path d="M3 9h18M9 9v11" />
+    </>
+  ),
+  building: (
+    <>
+      <path d="M4 21V5l8-3 8 3v16" />
+      <path d="M9 21v-5h6v5M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M2 21h20" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M4 20V4M4 20h16" />
+      <path d="M8 16v-4m4 4V8m4 8v-6" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M12 3 2.5 20h19L12 3Z" />
+      <path d="M12 10v4.5M12 17.5h.01" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  terminal: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <path d="m7 9 3 3-3 3M13 15h4" />
+    </>
+  ),
+  activity: <path d="M3 12h4l3-8 4 16 3-8h4" />,
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z" />
+    </>
+  ),
+  fingerprint: (
+    <>
+      <path d="M6.5 18.5c1-1.8 1.5-3.9 1.5-6.5a4 4 0 0 1 8 0c0 1.2-.1 2.4-.3 3.5" />
+      <path d="M12 12c0 3.3-.8 6.1-2.4 8.5M4 14.5c.3-.8.5-1.6.5-2.5a7.5 7.5 0 0 1 15 0c0 2.6-.4 5-1.2 7" />
+      <path d="M15 19.5c.3-.6.5-1.2.7-1.8" />
+    </>
+  ),
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
 };
 
 export function Icon({ name, size = 16, className = "" }: { name: IconName; size?: number; className?: string }) {
