@@ -1,0 +1,43 @@
+version: 1
+ignore:
+  - .adce/
+  - .git/
+  - node_modules/
+  - dist/
+  - build/
+  - coverage/
+  - .next/
+  - .turbo/
+  - .vercel/
+  - .cursor/
+  - .vscode/
+  - .idea/
+  - public/**/*.png
+  - public/**/*.jpg
+  - public/**/*.jpeg
+  - public/**/*.gif
+  - public/**/*.webp
+  - public/**/*.ico
+  - public/**/*.svg
+  - public/**/*.woff
+  - public/**/*.woff2
+  - public/**/*.ttf
+  - public/**/*.eot
+  - public/**/*.mp4
+  - public/**/*.webm
+  - public/**/*.pdf
+  - "*.png"
+  - "*.jpg"
+  - "*.jpeg"
+  - "*.gif"
+  - "*.webp"
+  - "*.ico"
+  - "*.woff"
+  - "*.woff2"
+  - "*.log"
+  - .DS_Store
+  - Thumbs.db
+scan:
+  followSymlinks: false
+analytics:
+  enabled: false

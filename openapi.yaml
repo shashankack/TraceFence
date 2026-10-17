@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: TrustFence API
+  version: 0.1.0
+  description: >
+    Sketch only. Detailed DTO notes live in docs/contracts.md.
+    Endpoints are implemented when the lead says implement.
+paths:
+  /api/tasks:
+    post:
+      summary: Create task and policy
+      responses:
+        "200":
+          description: Task created
+  /api/tasks/{id}:
+    get:
+      summary: Get task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task detail
+  /api/tasks/{id}/run:
+    post:
+      summary: Start orchestrator
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Run started
+  /api/tasks/{id}/stop:
+    post:
+      summary: Stop task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stopped
+  /api/tasks/{id}/events:
+    get:
+      summary: Timeline events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event list
+  /api/approvals:
+    get:
+      summary: List approvals
+      responses:
+        "200":
+          description: Approvals
+  /api/approvals/{id}/decision:
+    post:
+      summary: Approve or reject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Decision recorded
+  /api/audit:
+    get:
+      summary: Audit report
+      responses:
+        "200":
+          description: Audit aggregate

@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# env and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# next / build
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+
+# sqlite / local data
+data/
+*.sqlite
+*.sqlite-journal
+*.db
+
+# logs and OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# editors
+.idea/
+.vscode/
+*.swp
+
+# ADCE cache (keep config/state; ignore heavy cache if present)
+.adce/cache/
+.adce/logs/
+
+# misc
+*.pem
+.turbo/
+
+.adce/metrics/
+.adce/state.db
+
