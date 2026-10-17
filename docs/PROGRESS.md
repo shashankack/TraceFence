@@ -6,6 +6,31 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Link GitHub remote TraceFence
+
+### Done
+- Remote: `https://github.com/shashankack/TraceFence.git` as `origin`.
+- Push `main` and all five feature branches (after committing pending `.gitignore` + PROGRESS if needed).
+
+### Next
+- Teammates clone and check out their `feature/<github-username-role>` branch.
+- Paste agent prompts from `docs/AGENT_GIT_MASTER_PROMPT.md`.
+
+---
+
+## 2026-10-17 — Expand `.gitignore`
+
+### Done
+- Broadened [`.gitignore`](../.gitignore): deps (yarn/pnpm), secrets patterns, Next/Vercel/Turbo, test reports, SQLite WAL/SHM, OS/editor junk, ADCE runtime, Cursor plans, Python venvs, GGUF/model weights, `trustfence/` local build/data.
+
+### Still tracked (intentional)
+- `.cursor/rules/`, `.adce/config.yaml`, `.adce/artifacts/README.md`, all docs and ownership paths.
+
+### Next
+- Push remote when ready; no need to recommit unless `.gitignore` change should land on `main`.
+
+---
+
 ## 2026-10-17 — Scope, team, local LLM, and git finalized
 
 ### Done

@@ -1,47 +1,126 @@
-# dependencies
+# --- dependencies ---
 node_modules/
 .pnp
 .pnp.js
+.pnp.cjs
+.yarn/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+bower_components/
 
-# env and secrets
+# --- env and secrets ---
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
+!.env*.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+service-account*.json
 
-# next / build
+# --- Next.js / Node build ---
 .next/
 out/
 build/
 dist/
-coverage/
+.turbo/
+.vercel/
+.cache/
 *.tsbuildinfo
+next-env.d.ts
 
-# sqlite / local data
+# --- test / coverage ---
+coverage/
+.nyc_output/
+playwright-report/
+playwright/.cache/
+test-results/
+vitest.config.ts.timestamp-*
+
+# --- sqlite / local data ---
 data/
 *.sqlite
 *.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 *.db
+*.db-journal
 
-# logs and OS
+# --- logs ---
+logs/
 *.log
 npm-debug.log*
-.DS_Store
-Thumbs.db
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# editors
+# --- OS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# --- editors / IDEs ---
 .idea/
 .vscode/
 *.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.fleet/
+.history/
+*.code-workspace
 
-# ADCE cache (keep config/state; ignore heavy cache if present)
+# --- ADCE (keep config + artifact index; drop runtime noise) ---
 .adce/cache/
 .adce/logs/
-
-# misc
-*.pem
-.turbo/
-
 .adce/metrics/
 .adce/state.db
+.adce/*.db
 
+# --- Cursor / agent local (keep .cursor/rules tracked) ---
+.cursor/plans/
+.cursor/*.log
+*.canvas.tsx.local
+
+# --- Python / misc tooling (if teammates add scripts) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.envrc
+.direnv/
+
+# --- temp / patches ---
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tgz
+
+# --- Ollama / local model artifacts (never commit weights) ---
+*.gguf
+*.bin
+models/
+ollama/
+
+# --- TrustFence demo runtime ---
+trustfence/data/
+trustfence/.next/
+trustfence/node_modules/
