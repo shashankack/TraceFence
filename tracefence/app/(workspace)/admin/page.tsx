@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CLASSIFICATIONS, ROLES, TOOLS, type ApprovalDTO, type Decision } from "@/components/api/types";
 import { ApprovalSheet, ApprovalsQueue } from "@/components/admin/ApprovalReview";
-import { useApprovals, useAudit, useDocuments, useEvidence, usePolicy } from "@/components/admin/hooks";
+import { useApprovals, useDocuments, useEvidence, usePolicy } from "@/components/admin/hooks";
+import { countsFromEvents } from "@/components/workspace/localEvidence";
 import { RoleGate } from "@/components/auth/RoleGate";
 import { buildCases } from "@/components/domain/cases";
 import { externalSends, forbiddenExecutions } from "@/components/domain/evidence";
@@ -38,11 +39,11 @@ export default function AdminOverview() {
 
 function Overview() {
   const { user } = useAuth();
-  const audit = useAudit();
   const approvals = useApprovals();
   const policy = usePolicy();
   const docs = useDocuments();
-  const evidence = useEvidence({ page: 1, pageSize: 20 });
+  // One evidence fetch drives verdict + ALLOW/DENY/sessions so tiles always add up.
+  const evidence = useEvidence({ page: 1, pageSize: 50 });
   const [open, setOpen] = useState<ApprovalDTO | null>(null);
   const label = (r: (typeof ROLES)[number]) => roleLabelFor(r, user?.orgType, user?.roleLabels);
 
@@ -53,7 +54,9 @@ function Overview() {
   const external = externalSends(rows);
   const safe = forbidden === 0 && external === 0;
 
-  const count = (d: Decision) => audit.data?.sessionDecisions.find((x) => x.decision === d)?.count ?? 0;
+  const tallies = useMemo(() => countsFromEvents(rows), [rows]);
+  const count = (d: Decision) =>
+    tallies.sessionDecisions.find((x) => x.decision === d)?.count ?? 0;
   const pending = (approvals.data ?? []).filter((a) => a.status === "PENDING");
 
   return (
@@ -100,9 +103,9 @@ function Overview() {
               </div>
               <div>
                 <p className="m-0 text-3xl font-semibold tabular-nums">
-                  <CountUp value={cases.length} />
+                  <CountUp value={tallies.withDecision} />
                 </p>
-                <p className="kicker m-0 mt-1">audit cases</p>
+                <p className="kicker m-0 mt-1">decisions</p>
               </div>
             </div>
             <Button asChild size="sm" variant="outline">
@@ -120,14 +123,26 @@ function Overview() {
             icon={CircleCheck}
             label="Allowed"
             tone="allow"
-            value={audit.data ? <CountUp value={count("ALLOW")} /> : "–"}
+            value={
+              evidence.loading && !evidence.data ? (
+                "–"
+              ) : (
+                <CountUp value={count("ALLOW")} />
+              )
+            }
           />
           <StatTile
             hint="stopped before execution"
             icon={Ban}
             label="Blocked"
             tone="deny"
-            value={audit.data ? <CountUp value={count("DENY")} /> : "–"}
+            value={
+              evidence.loading && !evidence.data ? (
+                "–"
+              ) : (
+                <CountUp value={count("DENY")} />
+              )
+            }
           />
           <StatTile
             hint="waiting on you"
@@ -141,7 +156,13 @@ function Overview() {
             icon={Users}
             label="Sessions"
             tone="brand"
-            value={audit.data ? <CountUp value={audit.data.sessions} /> : "–"}
+            value={
+              evidence.loading && !evidence.data ? (
+                "–"
+              ) : (
+                <CountUp value={sessions.length} />
+              )
+            }
           />
         </StaggerItem>
 
@@ -330,7 +351,6 @@ function Overview() {
         onClose={() => setOpen(null)}
         onDecided={() => {
           approvals.reload();
-          audit.reload();
           evidence.reload();
         }}
       />

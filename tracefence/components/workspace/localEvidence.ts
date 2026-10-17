@@ -1,10 +1,9 @@
 import type { Decision, EventDTO, Role } from "@/components/api/types";
 
 /**
- * Browser-local mirror of gateway evidence.
- * On Vercel, SQLite is per-instance — student chat and admin audit often hit
- * different functions. This keeps flagged upload / chat events visible when
- * switching roles in the same browser for the demo.
+ * Browser-local mirror of gateway evidence for same-browser demos on Vercel
+ * (per-instance /tmp SQLite). Counts must come from unique event ids — never
+ * Math.max of unrelated server vs local aggregates.
  */
 export interface LocalEvidenceSession {
   sessionId: string;
@@ -15,7 +14,7 @@ export interface LocalEvidenceSession {
 
 const KEY = "tracefence.localEvidence";
 const MAX_SESSIONS = 40;
-const MAX_EVENTS = 80;
+const MAX_EVENTS = 120;
 
 function readRaw(): LocalEvidenceSession[] {
   try {
@@ -28,7 +27,10 @@ function readRaw(): LocalEvidenceSession[] {
 
 function writeRaw(sessions: LocalEvidenceSession[]) {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(sessions.slice(0, MAX_SESSIONS)));
+    window.localStorage.setItem(
+      KEY,
+      JSON.stringify(sessions.slice(0, MAX_SESSIONS)),
+    );
   } catch {
     /* storage full / private mode */
   }
@@ -52,7 +54,9 @@ export function rememberLocalEvents(input: {
     if (e.id) byId.set(e.id, e);
   }
   for (const e of input.events) {
-    const id = e.id ?? `${input.sessionId}:${e.ts ?? ""}:${e.tool ?? ""}:${e.reasonCode ?? ""}`;
+    const id =
+      e.id ??
+      `${input.sessionId}:${e.ts ?? ""}:${e.tool ?? ""}:${e.reasonCode ?? ""}`;
     byId.set(id, { ...e, id, sessionId: e.sessionId ?? input.sessionId });
   }
   const events = [...byId.values()]
@@ -67,18 +71,42 @@ export function rememberLocalEvents(input: {
   writeRaw([next, ...prev.filter((s) => s.sessionId !== input.sessionId)]);
 }
 
-export function localDecisionCounts(): Array<{ decision: Decision; count: number }> {
-  const counts = new Map<Decision, number>();
-  for (const s of readRaw()) {
-    for (const e of s.events) {
-      if (!e.decision) continue;
-      const d = e.decision as Decision;
-      counts.set(d, (counts.get(d) ?? 0) + 1);
-    }
+/** Decision tallies from one coherent event list (unique by id). */
+export function countsFromEvents(events: EventDTO[]): {
+  sessionDecisions: Array<{ decision: Decision; count: number }>;
+  withDecision: number;
+} {
+  const seen = new Set<string>();
+  const map = new Map<Decision, number>();
+  for (const e of events) {
+    if (!e.decision) continue;
+    const id = e.id ?? `${e.ts}:${e.tool}:${e.reasonCode}:${e.decision}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const d = e.decision as Decision;
+    map.set(d, (map.get(d) ?? 0) + 1);
   }
-  return [...counts.entries()].map(([decision, count]) => ({ decision, count }));
+  return {
+    sessionDecisions: [...map.entries()].map(([decision, count]) => ({
+      decision,
+      count,
+    })),
+    withDecision: seen.size,
+  };
 }
 
+export function countsFromSessions(sessions: LocalEvidenceSession[]) {
+  const events = sessions.flatMap((s) => s.events);
+  return {
+    sessions: sessions.length,
+    ...countsFromEvents(events),
+  };
+}
+
+/**
+ * Merge server page + local mirror by session/event id.
+ * Totals reflect the merged set — not a max of unrelated aggregates.
+ */
 export function mergeEvidencePages(
   server: {
     sessions: LocalEvidenceSession[];
@@ -90,14 +118,19 @@ export function mergeEvidencePages(
   local: LocalEvidenceSession[],
 ) {
   const byId = new Map<string, LocalEvidenceSession>();
-  for (const s of server.sessions) byId.set(s.sessionId, { ...s, events: [...s.events] });
+
+  for (const s of server.sessions) {
+    byId.set(s.sessionId, { ...s, events: [...s.events] });
+  }
   for (const s of local) {
     const cur = byId.get(s.sessionId);
     if (!cur) {
       byId.set(s.sessionId, { ...s, events: [...s.events] });
       continue;
     }
-    const seen = new Set(cur.events.map((e) => e.id).filter(Boolean));
+    const seen = new Set(
+      cur.events.map((e) => e.id).filter((id): id is string => Boolean(id)),
+    );
     for (const e of s.events) {
       if (e.id && seen.has(e.id)) continue;
       cur.events.push(e);
@@ -105,30 +138,23 @@ export function mergeEvidencePages(
     }
     cur.events.sort((a, b) => (a.ts ?? "").localeCompare(b.ts ?? ""));
   }
+
   const sessions = [...byId.values()].sort((a, b) => {
     const at = a.events[a.events.length - 1]?.ts ?? "";
     const bt = b.events[b.events.length - 1]?.ts ?? "";
     return bt.localeCompare(at);
   });
-  const totalSessions = Math.max(server.totalSessions, sessions.length);
+
+  // When local mirror is active, totals = what the UI can actually show.
+  // Pure server mode keeps server pagination totals.
+  const totalSessions =
+    local.length > 0 ? sessions.length : server.totalSessions;
+
   return {
-    ...server,
+    page: server.page,
+    pageSize: server.pageSize,
     sessions,
     totalSessions,
-    totalPages: Math.max(server.totalPages, Math.ceil(totalSessions / server.pageSize) || 1),
+    totalPages: Math.max(1, Math.ceil(totalSessions / server.pageSize) || 1),
   };
-}
-
-export function mergeAuditCounts(
-  server: Array<{ decision: Decision; count: number }> | undefined,
-  local: Array<{ decision: Decision; count: number }>,
-): Array<{ decision: Decision; count: number }> {
-  const map = new Map<Decision, number>();
-  for (const row of server ?? []) map.set(row.decision, row.count);
-  for (const row of local) {
-    // Prefer the larger of server vs local for each decision (avoid double-count
-    // when the same instance served both) by taking max.
-    map.set(row.decision, Math.max(map.get(row.decision) ?? 0, row.count));
-  }
-  return [...map.entries()].map(([decision, count]) => ({ decision, count }));
 }

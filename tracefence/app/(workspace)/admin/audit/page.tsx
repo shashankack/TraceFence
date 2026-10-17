@@ -12,7 +12,8 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import type { Decision } from "@/components/api/types";
-import { useAudit, useEvidence } from "@/components/admin/hooks";
+import { useEvidence } from "@/components/admin/hooks";
+import { countsFromEvents } from "@/components/workspace/localEvidence";
 import { RoleGate } from "@/components/auth/RoleGate";
 import { buildCases, type EvidenceCase } from "@/components/domain/cases";
 import { docTitle } from "@/components/domain/catalog";
@@ -47,7 +48,6 @@ export default function AuditPage() {
 }
 
 function Audit() {
-  const audit = useAudit();
   const [sessionPage, setSessionPage] = useState(1);
   const [casePage, setCasePage] = useState(1);
   const evidence = useEvidence({ page: sessionPage, pageSize: SESSION_PAGE_SIZE });
@@ -64,12 +64,11 @@ function Audit() {
   const forbidden = forbiddenExecutions(rows);
   const external = externalSends(rows);
   const safe = forbidden === 0 && external === 0;
+  // Decision bars count the same events that build the evidence cases.
+  const tallies = useMemo(() => countsFromEvents(rows), [rows]);
   const count = (d: Decision) =>
-    audit.data?.sessionDecisions.find((x) => x.decision === d)?.count ?? 0;
-  const total = Math.max(
-    1,
-    count("ALLOW") + count("DENY") + count("REQUIRE_APPROVAL"),
-  );
+    tallies.sessionDecisions.find((x) => x.decision === d)?.count ?? 0;
+  const total = Math.max(1, tallies.withDecision);
   const consumed = rows.filter((e) => e.reasonCode === "APPROVAL_CONSUMED").length;
 
   const filtered = useMemo(
@@ -107,7 +106,10 @@ function Audit() {
           {
             report: reportRef,
             exportedAt: new Date().toISOString(),
-            aggregate: audit.data,
+            aggregate: {
+              sessions: sessions.length,
+              sessionDecisions: tallies.sessionDecisions,
+            },
             page: sessionPage,
             cases,
           },
@@ -138,7 +140,6 @@ function Audit() {
           <div className="flex gap-2">
             <Button
               onClick={() => {
-                audit.reload();
                 evidence.reload();
               }}
               size="sm"
@@ -229,7 +230,7 @@ function Audit() {
         <BentoTile
           className="h-full"
           icon={ScrollText}
-          kicker={`${audit.data?.sessions ?? "–"} sessions · tenant aggregate`}
+          kicker={`${sessions.length} sessions · same evidence set`}
           title="Decision summary"
         >
           <div className="grid gap-3 px-5 py-4">
@@ -266,7 +267,9 @@ function Audit() {
                 </span>
               </div>
             ))}
-            <p className="m-0 text-xs text-muted-foreground">{audit.data?.note}</p>
+            <p className="m-0 text-xs text-muted-foreground">
+              Counts are tallied from the evidence events below — not a separate aggregate.
+            </p>
           </div>
         </BentoTile>
         </StaggerItem>
