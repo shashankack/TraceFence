@@ -1,9 +1,19 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ApiError, api } from "@/components/api/client";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { ApiError, api, getAuth, type AuthUser } from "@/components/api/client";
 import type { ApprovalDTO, CitationDTO, EventDTO, Role, SessionDTO } from "@/components/api/types";
 import { replayApprovalOutcome, replaySessionId, replayTurn } from "@/components/console/replay";
+import { LoginModal } from "./LoginModal";
 
 export type Mode = "live" | "replay";
 
@@ -15,6 +25,7 @@ export interface ChatMessage {
   blocked?: boolean;
   awaitingApproval?: boolean;
   retryable?: string;
+  authRequired?: boolean;
 }
 
 export interface ArchivedSession {
@@ -36,9 +47,9 @@ interface AppState {
   setMode: (mode: Mode) => void;
   fallbackReason: string | null;
   session: SessionDTO | null;
+  authUser: AuthUser | null;
   messages: ChatMessage[];
   events: EventDTO[];
-  /** Index into `events` where the latest user turn starts (Untrusted Source panel scope). */
   turnFrom: number;
   archive: ArchivedSession[];
   sending: boolean;
@@ -54,6 +65,12 @@ interface AppState {
   toast: Toast | null;
   showToast: (t: Omit<Toast, "id">) => void;
   dismissToast: () => void;
+  loginOpen: boolean;
+  openLogin: (reason?: string) => void;
+  closeLogin: () => void;
+  loginReason: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -72,10 +89,11 @@ function isGatewayDown(err: unknown) {
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>("student");
+  const [role, setRoleState] = useState<Role>("guest");
   const [mode, setModeState] = useState<Mode>("live");
   const [fallbackReason, setFallbackReason] = useState<string | null>(null);
   const [session, setSession] = useState<SessionDTO | null>(null);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [events, setEvents] = useState<EventDTO[]>([]);
   const [turnFrom, setTurnFrom] = useState(0);
@@ -90,6 +108,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [livePending, setLivePending] = useState(0);
   const [toast, setToast] = useState<Toast | null>(null);
   const [archive, setArchive] = useState<ArchivedSession[]>([]);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginReason, setLoginReason] = useState<string | null>(null);
+  const [pendingRetry, setPendingRetry] = useState<string | null>(null);
   const sessionRef = useRef<Promise<SessionDTO> | null>(null);
 
   const showToast = useCallback((t: Omit<Toast, "id">) => setToast({ ...t, id: Date.now() }), []);
@@ -107,7 +128,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const s: SessionDTO = {
       sessionId: replaySessionId(nextRole),
       tenantId: "nulltrace-institute",
-      userId: "demo-user-1",
+      userId: nextRole === "guest" ? "usr_guest_public" : "demo-user-1",
       role: nextRole,
       policyVersion: 1,
     };
@@ -125,29 +146,57 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [startReplaySession],
   );
 
+  const startGuestLive = useCallback(() => {
+    const p = api.startGuest();
+    sessionRef.current = p;
+    p.then(
+      (s) => {
+        if (sessionRef.current !== p) return;
+        setSession(s);
+        setRoleState(s.role);
+        setAuthUser(getAuth());
+      },
+      (err) => {
+        if (sessionRef.current !== p) return;
+        sessionRef.current = null;
+        if (isGatewayDown(err)) {
+          fallBack("Gateway unreachable — showing a deterministic scripted replay.", "guest");
+        }
+      },
+    );
+    return p;
+  }, [fallBack]);
+
   const startSession = useCallback(
     (nextRole: Role, nextMode: Mode) => {
       if (nextMode === "replay") return startReplaySession(nextRole);
+      if (nextRole === "guest") return startGuestLive();
       const p = api.createSession(nextRole);
       sessionRef.current = p;
       p.then(
-        (s) => sessionRef.current === p && setSession(s),
+        (s) => {
+          if (sessionRef.current !== p) return;
+          setSession(s);
+          setRoleState(s.role);
+          setAuthUser(getAuth());
+        },
         (err) => {
           if (sessionRef.current !== p) return;
           sessionRef.current = null;
-          if (isGatewayDown(err)) fallBack("Gateway unreachable — showing a deterministic scripted replay.", nextRole);
+          if (isGatewayDown(err)) {
+            fallBack("Gateway unreachable — showing a deterministic scripted replay.", nextRole);
+          }
         },
       );
       return p;
     },
-    [fallBack, startReplaySession],
+    [fallBack, startReplaySession, startGuestLive],
   );
 
   useEffect(() => {
-    if (!sessionRef.current) startSession("student", "live");
-  }, [startSession]);
+    if (!sessionRef.current) startGuestLive();
+  }, [startGuestLive]);
 
-  // Identity is bound to the session, never to chat text: a role or mode switch always starts a fresh session.
   const archiveCurrent = useCallback(() => {
     if (session && events.length) setArchive((prev) => [{ session, events }, ...prev].slice(0, 20));
   }, [session, events]);
@@ -170,6 +219,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     },
     [role, mode, switchContext],
   );
+
   const setMode = useCallback(
     (m: Mode) => {
       setFallbackReason(null);
@@ -180,9 +230,70 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [role, mode, switchContext],
   );
 
-  // Header badge: pending approvals across sessions (live only).
+  const openLogin = useCallback((reason?: string) => {
+    setLoginReason(reason ?? null);
+    setLoginOpen(true);
+  }, []);
+  const closeLogin = useCallback(() => {
+    setLoginOpen(false);
+    setLoginReason(null);
+  }, []);
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      archiveCurrent();
+      resetConversation();
+      const s = await api.login(email, password);
+      sessionRef.current = Promise.resolve(s);
+      setSession(s);
+      setRoleState(s.role);
+      setAuthUser(getAuth());
+      showToast({
+        tone: "allow",
+        title: "Signed in",
+        body: `${getAuth()?.displayName ?? email} · ${s.role}`,
+      });
+      const retry = pendingRetry;
+      setPendingRetry(null);
+      if (retry) {
+        // Retry the gated message under the new identity.
+        setMessages((prev) => [...prev, { id: msgId(), from: "user", text: retry }]);
+        setSending(true);
+        try {
+          const res = await api.sendMessage(s.sessionId, retry);
+          const timeline = await api.sessionEvents(s.sessionId).catch(() => null);
+          setEvents((prev) => timeline ?? [...prev, ...res.events]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: msgId(),
+              from: "assistant",
+              text: res.assistantMessage,
+              citations: res.citations,
+              blocked: res.events.some((e) => e.decision === "DENY"),
+              awaitingApproval: !!res.pendingApprovalId,
+            },
+          ]);
+        } finally {
+          setSending(false);
+        }
+      }
+    },
+    [archiveCurrent, resetConversation, showToast, pendingRetry],
+  );
+
+  const signOut = useCallback(async () => {
+    archiveCurrent();
+    await api.logout();
+    setAuthUser(null);
+    resetConversation();
+    setRoleState("guest");
+    startGuestLive();
+    showToast({ tone: "info", title: "Signed out", body: "Back to public guest mode." });
+  }, [archiveCurrent, resetConversation, startGuestLive, showToast]);
+
   useEffect(() => {
-    if (mode !== "live") return;
+    if (mode !== "live" || role === "guest") return;
     let alive = true;
     const tick = () =>
       api
@@ -195,7 +306,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       alive = false;
       clearInterval(t);
     };
-  }, [mode, approval]);
+  }, [mode, approval, role]);
 
   const appendAssistant = useCallback((msg: Omit<ChatMessage, "id" | "from">) => {
     setMessages((prev) => [...prev, { id: msgId(), from: "assistant", ...msg }]);
@@ -204,7 +315,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const runReplay = useCallback(
     (text: string, r: Role) => {
       const sid = replaySessionId(r);
-      const { response, approval: pending } = replayTurn(r, sid, text);
+      const { response, approval: pending } = replayTurn(r === "guest" ? "student" : r, sid, text);
       setEvents((prev) => [...prev, ...response.events]);
       appendAssistant({
         text: response.assistantMessage,
@@ -233,7 +344,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           runReplay(message, role);
           return;
         }
-        const s = await (sessionRef.current ?? startSession(role, "live"));
+        const s = await (sessionRef.current ?? startGuestLive());
         const res = await api.sendMessage(s.sessionId, message);
         const timeline = await api.sessionEvents(s.sessionId).catch(() => null);
         setEvents((prev) => timeline ?? [...prev, ...res.events]);
@@ -242,7 +353,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           citations: res.citations,
           blocked: res.events.some((e) => e.decision === "DENY"),
           awaitingApproval: !!res.pendingApprovalId,
+          authRequired: !!res.authRequired,
         });
+        if (res.authRequired) {
+          setPendingRetry(message);
+          openLogin(
+            "That question needs a campus login. Public handbook topics work without signing in.",
+          );
+        }
         if (res.pendingApprovalId) {
           const list = await api.approvals(s.sessionId).catch(() => []);
           const found = list.find((a) => a.id === res.pendingApprovalId);
@@ -265,14 +383,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setSending(false);
       }
     },
-    [sending, mode, role, runReplay, startSession, appendAssistant, fallBack],
+    [sending, mode, role, runReplay, startGuestLive, appendAssistant, fallBack, openLogin],
   );
 
   const clear = useCallback(() => {
     archiveCurrent();
     resetConversation();
-    startSession(role, mode);
-  }, [archiveCurrent, resetConversation, startSession, role, mode]);
+    if (role === "guest") startGuestLive();
+    else startSession(role, mode);
+  }, [archiveCurrent, resetConversation, startGuestLive, startSession, role, mode]);
 
   const decide = useCallback(
     async (decision: "APPROVE" | "REJECT") => {
@@ -351,6 +470,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setMode,
       fallbackReason,
       session,
+      authUser,
       messages,
       events,
       turnFrom,
@@ -368,6 +488,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       toast,
       showToast,
       dismissToast,
+      loginOpen,
+      openLogin,
+      closeLogin,
+      loginReason,
+      signIn,
+      signOut,
     }),
     [
       role,
@@ -376,6 +502,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setMode,
       fallbackReason,
       session,
+      authUser,
       messages,
       events,
       turnFrom,
@@ -393,8 +520,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       toast,
       showToast,
       dismissToast,
+      loginOpen,
+      openLogin,
+      closeLogin,
+      loginReason,
+      signIn,
+      signOut,
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      {children}
+      <LoginModal
+        open={loginOpen}
+        reason={loginReason}
+        onClose={closeLogin}
+        onSubmit={signIn}
+      />
+    </Ctx.Provider>
+  );
 }

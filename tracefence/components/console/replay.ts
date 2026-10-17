@@ -49,7 +49,8 @@ export function replayTurn(
   message: string,
 ): { response: MessageResponseDTO; approval?: ApprovalDTO } {
   const m = message.toLowerCase();
-  const allowed = SEED_POLICY.roles[role].collections;
+  const policyRole = role === "guest" ? "student" : role;
+  const allowed = SEED_POLICY.roles[policyRole].collections;
   const events: EventDTO[] = [];
   const citations: CitationDTO[] = [];
 
@@ -91,7 +92,7 @@ export function replayTurn(
 
   if (wantsExport(message)) {
     const args = { dataset: "student_emails", format: "csv" };
-    const decision = SEED_POLICY.roles[role].tools.export_records;
+    const decision = SEED_POLICY.roles[policyRole].tools.export_records;
     const reasonCode =
       decision === "ALLOW" ? "ALLOWED" : decision === "DENY" ? "DENIED_EXPORT" : "REQUIRES_APPROVAL";
     events.push({

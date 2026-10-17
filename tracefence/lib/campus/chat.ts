@@ -5,8 +5,10 @@ import { invoke } from "../security/gateway";
 import { createPendingApproval } from "../security/approvalService";
 import { getCampusExecutor } from "../tools/registry";
 import type { CampusRole, Decision } from "../security/types";
-import { llmConfig } from "../env";
+import { ReasonCode } from "../security/reasonCodes";
+import { llmConfig, ragConfig } from "../env";
 import type { RetrievalResult } from "./retrieval";
+import { guestQueryRequiresLogin, wantsExport } from "./authGate";
 
 export interface ChatEvent {
   id: string;
@@ -23,16 +25,8 @@ export interface ChatTurnResult {
   citations: Array<{ docId: string; classification: string }>;
   events: ChatEvent[];
   pendingApprovalId?: string;
-}
-
-function wantsExport(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("export") ||
-    (m.includes("email") && (m.includes("all") || m.includes("list") || m.includes("dump"))) ||
-    m.includes("directory dump") ||
-    m.includes("download student")
-  );
+  /** Guest hit a non-public intent — UI should open login. */
+  authRequired?: boolean;
 }
 
 function isGreeting(message: string): boolean {
@@ -161,6 +155,30 @@ export async function handleChatTurn(input: {
   const citations: Array<{ docId: string; classification: string }> = [];
   let pendingApprovalId: string | undefined;
   let retrieval: RetrievalResult | undefined;
+
+  // Public guest: answer public corpus freely; anything elevated → login gate.
+  if (input.role === "guest" && guestQueryRequiresLogin(input.message)) {
+    const ev: ChatEvent = {
+      id: randomUUID(),
+      tool: "search_docs",
+      decision: "DENY",
+      reasonCode: ReasonCode.AUTH_REQUIRED,
+      argsPreview: { query: input.message },
+      outcome: "Sign in required for non-public sources or privileged tools",
+      phase: "DECISION",
+    };
+    events.push(ev);
+    insertEvent(input.sessionId, ev);
+    const assistantMessage =
+      "That question needs a signed-in campus account (student / faculty / admin). Public handbook topics work without login — sign in to continue.";
+    persistMessages(input.sessionId, input.message, assistantMessage, citations);
+    return {
+      assistantMessage,
+      citations,
+      events,
+      authRequired: true,
+    };
+  }
 
   const executor = getCampusExecutor(input.tenantId, input.role);
   const baseAuth = {
@@ -304,9 +322,14 @@ export async function handleChatTurn(input: {
     }
   }
 
-  const context = (retrieval?.hits ?? [])
-    .map((h) => `### ${h.title} (${h.classification})\n${h.content}`)
-    .join("\n\n");
+  // Chunk RAG: only short excerpts enter the prompt (cap for local LLM speed).
+  const { maxContextChars } = ragConfig();
+  let context = "";
+  for (const h of retrieval?.hits ?? []) {
+    const block = `### ${h.title} (${h.classification})\n${h.content}\n\n`;
+    if (context.length + block.length > maxContextChars) break;
+    context += block;
+  }
 
   const llmAnswer = await tryOllama(input.message, context);
   const assistantMessage = llmAnswer ?? scriptedAnswer(input.message, retrieval);

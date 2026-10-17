@@ -65,22 +65,23 @@ No real PII, real SMTP, or live arbitrary web scanning in MVP.
 
 11. Ollama `qwen3:8b` + scripted fallback through the **same** filters + gateway.  
 12. SQLite audit + reason codes.  
-13. Honest non-claims in the pitch.
+13. Honest non-claims in the pitch.  
+14. **Guest** may ask public corpus questions without login; internal/confidential/exports require signed-in membership (`AUTH_REQUIRED`). Seeded demo users (`*@nulltrace.demo` / `demo1234`).
 
-**Retrieval:** ACL/keyword over configured sources (fixtures + uploads). **No vector RAG / embeddings in MVP.**
+**Retrieval:** ACL-filtered **chunk RAG** (lexical top-k excerpts into the LLM). Full docs/PDFs are chunked at ingest; unauthorized chunks never enter context. **No embedding/vector index in the demo** (keyword + whole-word scoring over chunks).
 
 ## P1 (after P0)
 
-- Richer parsers (real PDF/DOCX), URL/connector ingest  
+- Richer PDF/DOCX layout retention, URL/connector ingest  
 - Output DLP / redaction  
-- Vector RAG **behind the same ACL**  
+- Vector / embedding RAG **behind the same ACL**  
 - Multi-tenant orgs / SSO  
 - Policy diff / rollback UI  
 
 ## Out of scope (24h)
 
 - Real student PII, real outbound email  
-- **Vector RAG / embedding index**  
+- **Embedding/vector index** (chunk RAG without vectors is in scope)  
 - **Pitching TraceFence as “email security” or email-only**  
 - Dual branding as SecureRAG  
 - Claiming prompt-injection immunity or production hardening  

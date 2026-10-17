@@ -28,13 +28,20 @@ export const approvalDecisionSchema = z.object({
   decision: z.enum(["APPROVE", "REJECT"]),
 });
 
-export const createOrgDocumentSchema = z.object({
-  id: z.string().min(1).optional(),
-  title: z.string().min(1),
-  classification: z.enum(["public", "internal", "confidential"]),
-  collection: z.string().min(1),
-  content: z.string().min(1),
-});
+export const createOrgDocumentSchema = z
+  .object({
+    id: z.string().min(1).optional(),
+    title: z.string().min(1),
+    classification: z.enum(["public", "internal", "confidential"]),
+    collection: z.string().min(1),
+    /** Plain text (md/extracted). Optional if pdfBase64 is set. */
+    content: z.string().min(1).optional(),
+    /** Raw or data-URL base64 PDF — server extracts text then chunks. */
+    pdfBase64: z.string().min(1).optional(),
+  })
+  .refine((v) => Boolean(v.content || v.pdfBase64), {
+    message: "content or pdfBase64 required",
+  });
 
 export const patchOrgDocumentSchema = z.object({
   title: z.string().min(1).optional(),

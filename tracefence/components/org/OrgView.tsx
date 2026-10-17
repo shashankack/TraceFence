@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { api } from "@/components/api/client";
 import type { Classification, OrgDocumentDTO, OrgPolicyDTO } from "@/components/api/types";
 import { SEED_DOCUMENTS, SEED_POLICY } from "@/components/console/catalog";
-import { RoleTabs } from "@/components/console/RoleSelector";
 import { useAppState } from "@/components/shell/AppState";
 import { Icon } from "@/components/ui/Icon";
 import { DocumentsPanel } from "./DocumentsPanel";
@@ -14,7 +13,7 @@ import { PolicyMatrices } from "./PolicyMatrices";
 type Backend = "loading" | "live" | "local";
 
 export function OrgView() {
-  const { role, setRole, showToast } = useAppState();
+  const { role, showToast, openLogin } = useAppState();
   const [backend, setBackend] = useState<Backend>("loading");
   const [docs, setDocs] = useState<OrgDocumentDTO[]>([]);
   const [policy, setPolicy] = useState<OrgPolicyDTO>(SEED_POLICY);
@@ -169,7 +168,15 @@ export function OrgView() {
                 Org routes are gated to the <strong>admin</strong> role. You are viewing as{" "}
                 <strong>{role}</strong> — read only.
               </span>
-              <RoleTabs layoutGroup="org" onChange={setRole} value={role} />
+              <button
+                className="rounded-md border border-neon/40 bg-neon-soft px-2.5 py-1.5 text-xs font-semibold text-neon"
+                onClick={() =>
+                  openLogin("Org Admin requires an admin account. Try admin@nulltrace.demo / demo1234.")
+                }
+                type="button"
+              >
+                Sign in as admin
+              </button>
             </div>
           </motion.div>
         )}

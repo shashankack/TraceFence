@@ -6,6 +6,7 @@ import {
   type CampusPolicy,
   type Classification,
 } from "./policy";
+import { deleteDocumentChunks, reindexDocument } from "./chunkIndex";
 import type { CampusRole, Decision } from "../security/types";
 
 export interface OrgDocumentRow {
@@ -117,6 +118,7 @@ export function createOrgDocument(
 
   invalidateCampusPolicyCache(tenantId);
   bumpPolicyVersion(tenantId);
+  reindexDocument(tenantId, id, input.title, input.content);
 
   return {
     id,
@@ -182,6 +184,11 @@ export function patchOrgDocument(
 
   invalidateCampusPolicyCache(tenantId);
   bumpPolicyVersion(tenantId);
+  if (!enabled) {
+    deleteDocumentChunks(tenantId, id);
+  } else {
+    reindexDocument(tenantId, id, title, content);
+  }
 
   return {
     id,

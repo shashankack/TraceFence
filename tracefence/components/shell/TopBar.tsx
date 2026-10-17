@@ -17,7 +17,19 @@ const MODES: Array<{ id: Mode; label: string }> = [
 
 export function TopBar() {
   const pathname = usePathname();
-  const { mode, setMode, pendingCount, openApprovals, sending, deciding, role, session } = useAppState();
+  const {
+    mode,
+    setMode,
+    pendingCount,
+    openApprovals,
+    sending,
+    deciding,
+    role,
+    session,
+    authUser,
+    openLogin,
+    signOut,
+  } = useAppState();
   const current = NAV.find((n) => isActive(pathname, n.href)) ?? NAV[0];
   const busy = sending || deciding;
 
@@ -106,14 +118,35 @@ export function TopBar() {
             </AnimatePresence>
           </motion.button>
 
-          <div className="hidden items-center gap-2 rounded-lg border border-line bg-surface/60 py-1 pr-2.5 pl-1 xl:flex">
+          <div className="hidden items-center gap-2 rounded-lg border border-line bg-surface/60 py-1 pr-2 pl-1 xl:flex">
             <span className="grid size-7 place-items-center rounded-md bg-neon-soft text-neon">
               <Icon name="fingerprint" size={15} />
             </span>
-            <span className="flex flex-col leading-tight">
-              <span className="text-xs font-semibold text-ink">{ROLE_LABEL[session?.role ?? role]}</span>
-              <span className="font-mono text-[10px] text-faint">{session?.userId ?? "authenticating…"}</span>
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-xs font-semibold text-ink">
+                {ROLE_LABEL[session?.role ?? role]}
+              </span>
+              <span className="truncate font-mono text-[10px] text-faint">
+                {authUser?.email ?? session?.userId ?? "guest"}
+              </span>
             </span>
+            {role === "guest" ? (
+              <button
+                className="rounded-md border border-neon/35 px-2 py-1 text-[11px] font-semibold text-neon"
+                onClick={() => openLogin()}
+                type="button"
+              >
+                Sign in
+              </button>
+            ) : (
+              <button
+                className="rounded-md border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:text-ink"
+                onClick={() => void signOut()}
+                type="button"
+              >
+                Out
+              </button>
+            )}
           </div>
         </div>
       </div>

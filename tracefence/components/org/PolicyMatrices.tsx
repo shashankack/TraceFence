@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { CLASSIFICATIONS, ROLES, TOOLS, type Decision, type OrgPolicyDTO, type Role } from "@/components/api/types";
+import { CLASSIFICATIONS, ROLES, TOOLS, type Decision, type OrgPolicyDTO } from "@/components/api/types";
 import { ROLE_LABEL } from "@/components/console/catalog";
 import { Icon } from "@/components/ui/Icon";
 import { panelVariants } from "./motion";
+
+type PolicyRole = (typeof ROLES)[number];
 
 const CELL_TONE: Record<Decision, string> = {
   ALLOW: "text-allow bg-allow-soft border-allow/35",
@@ -23,13 +25,15 @@ export function PolicyMatrices({
   canEdit: boolean;
   onChange: (next: OrgPolicyDTO) => void;
 }) {
-  const toggleCollection = (role: Role, collection: string) => {
+  const toggleCollection = (role: PolicyRole, collection: string) => {
     const current = policy.roles[role].collections;
-    const collections = current.includes(collection) ? current.filter((c) => c !== collection) : [...current, collection];
+    const collections = current.includes(collection)
+      ? current.filter((c: string) => c !== collection)
+      : [...current, collection];
     onChange({ ...policy, roles: { ...policy.roles, [role]: { ...policy.roles[role], collections } } });
   };
 
-  const cycleTool = (role: Role, tool: string) => {
+  const cycleTool = (role: PolicyRole, tool: string) => {
     const value = policy.roles[role].tools[tool] ?? "DENY";
     onChange({
       ...policy,

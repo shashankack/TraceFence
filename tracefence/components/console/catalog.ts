@@ -21,6 +21,7 @@ export function docTitle(docId: string): string {
 }
 
 export const ROLE_LABEL: Record<Role, string> = {
+  guest: "Guest",
   student: "Student",
   faculty: "Faculty",
   admin: "Admin",

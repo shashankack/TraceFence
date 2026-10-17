@@ -71,6 +71,10 @@ function applyOrgOverlays(tenantId: string, base: CampusPolicy): CampusPolicy {
     base.policyVersion = policyRow.policyVersion;
     base.roles = JSON.parse(policyRow.rolesJson) as CampusPolicy["roles"];
   }
+  // Guest is a system role (public-only); always restore from fixture if org JSON omits it.
+  if (!base.roles.guest) {
+    base.roles.guest = loadFixturePolicy().roles.guest;
+  }
 
   const docRows = db
     .prepare(

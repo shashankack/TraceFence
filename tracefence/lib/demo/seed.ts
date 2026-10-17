@@ -1,19 +1,22 @@
 import { getDb } from "../db/client";
 import { hashPassword } from "../auth/password";
+import { ensureGuestUser } from "../auth/guest";
 import {
   seedFixtureDocumentsForTenant,
   seedPolicyForTenant,
 } from "../campus/tenantBootstrap";
+import { ensureChunksForTenant, reindexDocument } from "../campus/chunkIndex";
 import { isDemoMode } from "../env";
 
-const DEMO_PASSWORD = "demo1234";
+export const DEMO_PASSWORD = "demo1234";
 
 const TENANTS = [
   { id: "nulltrace-institute", name: "NullTrace Institute" },
   { id: "riverview-college", name: "Riverview College" },
 ] as const;
 
-const DEMO_USERS: Array<{
+/** Seeded accounts for demos — password is always DEMO_PASSWORD. */
+export const DEMO_USERS: Array<{
   id: string;
   email: string;
   displayName: string;
@@ -38,6 +41,24 @@ const DEMO_USERS: Array<{
     memberships: [{ tenantId: "nulltrace-institute", role: "admin" }],
   },
   {
+    id: "usr_alex_student",
+    email: "alex@nulltrace.demo",
+    displayName: "Alex Rivera",
+    memberships: [{ tenantId: "nulltrace-institute", role: "student" }],
+  },
+  {
+    id: "usr_jordan_faculty",
+    email: "jordan@nulltrace.demo",
+    displayName: "Jordan Lee",
+    memberships: [{ tenantId: "nulltrace-institute", role: "faculty" }],
+  },
+  {
+    id: "usr_sam_admin",
+    email: "sam@nulltrace.demo",
+    displayName: "Sam Okonkwo",
+    memberships: [{ tenantId: "nulltrace-institute", role: "admin" }],
+  },
+  {
     id: "usr_demo_river_admin",
     email: "admin@riverview.demo",
     displayName: "Riverview Admin",
@@ -51,30 +72,10 @@ const DEMO_USERS: Array<{
   },
 ];
 
-/**
- * Idempotent DEMO_MODE seed: tenants, users, memberships, policies, docs.
- */
-export function seedDemoDataIfNeeded() {
-  if (!isDemoMode()) return;
-
+function upsertDemoUsers() {
   const db = getDb();
-  const already = db
-    .prepare(`SELECT id FROM tenants WHERE id = 'nulltrace-institute'`)
-    .get();
-  const hasAdmin = db
-    .prepare(`SELECT id FROM users WHERE email = 'admin@nulltrace.demo'`)
-    .get();
-  if (already && hasAdmin) {
-    // Ensure policy/docs exist even if users were seeded earlier.
-    seedPolicyForTenant("nulltrace-institute");
-    seedFixtureDocumentsForTenant("nulltrace-institute");
-    seedPolicyForTenant("riverview-college");
-    return;
-  }
-
   const now = new Date().toISOString();
   const passwordHash = hashPassword(DEMO_PASSWORD);
-
   const insertTenant = db.prepare(
     `INSERT INTO tenants (id, name, created_at) VALUES (?, ?, ?)
      ON CONFLICT(id) DO NOTHING`,
@@ -102,13 +103,25 @@ export function seedDemoDataIfNeeded() {
     }
   });
   tx();
+  ensureGuestUser();
+}
 
-  for (const t of TENANTS) {
-    seedPolicyForTenant(t.id);
-  }
+/**
+ * Idempotent DEMO_MODE seed: tenants, users, memberships, policies, docs.
+ */
+export function seedDemoDataIfNeeded() {
+  if (!isDemoMode()) return;
+
+  const db = getDb();
+  upsertDemoUsers();
+
+  seedPolicyForTenant("nulltrace-institute");
   seedFixtureDocumentsForTenant("nulltrace-institute");
-  // Riverview gets a minimal public handbook only (isolation demo).
   seedPolicyForTenant("riverview-college");
+  ensureChunksForTenant("nulltrace-institute");
+  ensureChunksForTenant("riverview-college");
+
+  const now = new Date().toISOString();
   const riverDoc = db
     .prepare(
       `SELECT id FROM org_documents WHERE tenant_id = ? AND id = 'handbook'`,
@@ -123,6 +136,12 @@ export function seedDemoDataIfNeeded() {
       "riverview-college",
       "# Riverview Student Handbook\n\nCampus closes at 9:00 PM on weekdays.\nClassification: public\n",
       now,
+    );
+    reindexDocument(
+      "riverview-college",
+      "handbook",
+      "Riverview Student Handbook",
+      "# Riverview Student Handbook\n\nCampus closes at 9:00 PM on weekdays.\nClassification: public\n",
     );
   }
 }

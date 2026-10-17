@@ -13,9 +13,9 @@ Session identity (role, tenant=nulltrace-institute)
   ↓
 Authorization / Policy Engine     ← what collections & tools?
   ↓
-Permission-Filtered Retrieval     ← unauthorized docs NEVER retrieved
+Permission-Filtered Chunk RAG     ← ACL first, then top-k excerpts only
   ↓
-LLM (Ollama)                      ← only allowed context
+LLM (Ollama)                      ← only allowed chunks (not full PDFs)
   ↓
 Tool proposals (if any)
   ↓

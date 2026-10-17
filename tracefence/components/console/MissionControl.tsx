@@ -8,7 +8,7 @@ import { ClassBadge } from "@/components/ui/ClassBadge";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { ROLE_LABEL, docTitle } from "./catalog";
-import { DEMO_PROMPTS, RoleTabs } from "./RoleSelector";
+import { DEMO_PROMPTS } from "./RoleSelector";
 
 const PATHS: Array<{ id: keyof typeof DEMO_PROMPTS; label: string; hint: string; icon: IconName; tone: "allow" | "deny" | "inject" }> = [
   { id: "curfew", label: "Benign question", hint: "Public handbook · expect ALLOW", icon: "book", tone: "allow" },
@@ -23,7 +23,18 @@ const PATH_TONE = {
 };
 
 export function MissionControl() {
-  const { messages, sending, send, role, setRole, session, mode, clear } = useAppState();
+  const {
+    messages,
+    sending,
+    send,
+    role,
+    session,
+    mode,
+    clear,
+    authUser,
+    openLogin,
+    signOut,
+  } = useAppState();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +76,35 @@ export function MissionControl() {
             </motion.code>
           </AnimatePresence>
         </div>
-        <RoleTabs layoutGroup="console" onChange={setRole} value={role} />
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-md border border-line bg-black/25 px-2.5 py-1.5 text-xs font-semibold text-ink">
+            {ROLE_LABEL[role]}
+            {authUser && role !== "guest" ? (
+              <span className="ml-2 font-mono text-[10px] font-normal text-faint">{authUser.email}</span>
+            ) : (
+              <span className="ml-2 font-mono text-[10px] font-normal text-faint">public · no login</span>
+            )}
+          </span>
+          {role === "guest" ? (
+            <button
+              className="rounded-md border border-neon/35 bg-neon-soft px-2.5 py-1.5 text-xs font-semibold text-neon"
+              onClick={() =>
+                openLogin("Sign in for faculty/admin sources, exports, and approvals.")
+              }
+              type="button"
+            >
+              Sign in
+            </button>
+          ) : (
+            <button
+              className="rounded-md border border-line px-2.5 py-1.5 text-xs font-semibold text-muted hover:text-ink"
+              onClick={() => void signOut()}
+              type="button"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] tracking-[.12em] text-faint uppercase">Demo paths</span>

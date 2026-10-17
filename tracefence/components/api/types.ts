@@ -4,12 +4,13 @@
  */
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
-export type Role = "student" | "faculty" | "admin";
+export type Role = "guest" | "student" | "faculty" | "admin";
 export type Classification = "public" | "internal" | "confidential";
 export type Phase = "SOURCE" | "PROPOSAL" | "DECISION" | "OUTCOME";
 export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED" | "CONSUMED";
 
-export const ROLES: Role[] = ["student", "faculty", "admin"];
+/** Org policy matrix roles (guest is system-only, not editable). */
+export const ROLES: Array<Exclude<Role, "guest">> = ["student", "faculty", "admin"];
 export const CLASSIFICATIONS: Classification[] = ["public", "internal", "confidential"];
 export const TOOLS = [
   "search_docs",
@@ -51,6 +52,8 @@ export interface MessageResponseDTO {
   citations: CitationDTO[];
   events: EventDTO[];
   pendingApprovalId?: string;
+  /** Guest asked for non-public / privileged action — open login. */
+  authRequired?: boolean;
 }
 
 export interface ApprovalDTO {
@@ -86,5 +89,8 @@ export interface OrgDocumentDTO {
 
 export interface OrgPolicyDTO {
   policyVersion: number;
-  roles: Record<Role, { collections: string[]; tools: Record<string, Decision> }>;
+  roles: Record<
+    Exclude<Role, "guest">,
+    { collections: string[]; tools: Record<string, Decision> }
+  >;
 }

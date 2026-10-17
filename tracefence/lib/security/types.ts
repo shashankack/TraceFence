@@ -2,7 +2,7 @@ import type { ReasonCode } from "./reasonCodes";
 
 export type Decision = "ALLOW" | "DENY" | "REQUIRE_APPROVAL";
 
-export type CampusRole = "student" | "faculty" | "admin";
+export type CampusRole = "guest" | "student" | "faculty" | "admin";
 
 export type ApprovalStatus =
   | "PENDING"

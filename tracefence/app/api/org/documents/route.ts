@@ -3,6 +3,7 @@ import { createOrgDocumentSchema } from "@/lib/api/schemas";
 import { requireAdmin } from "@/lib/auth/requireAuth";
 import { createOrgDocument, listOrgDocuments } from "@/lib/campus/orgStore";
 import { loadCampusPolicy } from "@/lib/campus/policy";
+import { contentFromPdfBase64 } from "@/lib/campus/pdfText";
 
 export async function GET(req: Request) {
   const gate = requireAdmin(req);
@@ -41,7 +42,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const doc = createOrgDocument(gate.auth.tenantId, parsed.data);
+    let content = parsed.data.content ?? "";
+    if (parsed.data.pdfBase64) {
+      content = await contentFromPdfBase64(parsed.data.pdfBase64);
+    }
+    const doc = createOrgDocument(gate.auth.tenantId, {
+      id: parsed.data.id,
+      title: parsed.data.title,
+      classification: parsed.data.classification,
+      collection: parsed.data.collection,
+      content,
+    });
     const policy = loadCampusPolicy(gate.auth.tenantId);
     return NextResponse.json(
       { document: doc, policyVersion: policy.policyVersion },

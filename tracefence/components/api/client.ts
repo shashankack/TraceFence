@@ -21,37 +21,48 @@ export class ApiError extends Error {
   }
 }
 
-/** Demo logins seeded by DEMO_MODE — maps Console role picker → Bearer user. */
-const DEMO_USERS: Record<Role, { email: string; password: string }> = {
-  student: { email: "student@nulltrace.demo", password: "demo1234" },
-  faculty: { email: "faculty@nulltrace.demo", password: "demo1234" },
-  admin: { email: "admin@nulltrace.demo", password: "demo1234" },
-};
+/** Seeded DEMO_MODE accounts (password demo1234). */
+export const DEMO_LOGIN_HINTS: Array<{
+  email: string;
+  password: string;
+  role: Exclude<Role, "guest">;
+  label: string;
+}> = [
+  { email: "student@nulltrace.demo", password: "demo1234", role: "student", label: "Student" },
+  { email: "faculty@nulltrace.demo", password: "demo1234", role: "faculty", label: "Faculty" },
+  { email: "admin@nulltrace.demo", password: "demo1234", role: "admin", label: "Admin" },
+  { email: "alex@nulltrace.demo", password: "demo1234", role: "student", label: "Alex (student)" },
+  { email: "jordan@nulltrace.demo", password: "demo1234", role: "faculty", label: "Jordan (faculty)" },
+  { email: "sam@nulltrace.demo", password: "demo1234", role: "admin", label: "Sam (admin)" },
+];
 
-/**
- * One Bearer token per demo role. Console calls use the role that opened the chat session;
- * Org calls use the admin token without hijacking the Console identity (a shared token made
- * student sessions 403 after visiting Org).
- */
-const tokens: Partial<Record<Role, string>> = {};
-let consoleRole: Role = "student";
+export interface AuthUser {
+  token: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  tenantId: string;
+  role: Role;
+}
 
-export function getAuthToken(role: Role = consoleRole) {
-  return tokens[role] ?? null;
+let auth: AuthUser | null = null;
+
+export function getAuth(): AuthUser | null {
+  return auth;
 }
 
 export function clearAuthToken() {
-  for (const r of Object.keys(tokens) as Role[]) delete tokens[r];
+  auth = null;
 }
 
-async function request<T>(path: string, init?: RequestInit, as: Role = consoleRole): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, token?: string | null): Promise<T> {
   let res: Response;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(init?.headers as Record<string, string> | undefined),
   };
-  const token = tokens[as];
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const bearer = token === undefined ? auth?.token : token;
+  if (bearer) headers.Authorization = `Bearer ${bearer}`;
 
   try {
     res = await fetch(path, {
@@ -73,41 +84,119 @@ async function request<T>(path: string, init?: RequestInit, as: Role = consoleRo
   return body as T;
 }
 
-async function ensureAuth(role: Role, fresh = false): Promise<void> {
-  if (tokens[role] && !fresh) return;
-  const creds = DEMO_USERS[role];
-  const login = await request<{
+async function asAdmin<T>(path: string, init?: RequestInit): Promise<T> {
+  if (auth?.role === "admin" && auth.token) {
+    try {
+      return await request<T>(path, init);
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 401)) throw err;
+    }
+  }
+  // Org console needs an admin membership — login demo admin without wiping guest chat identity until caller replaces auth.
+  const adminLogin = await request<{
     token: string;
-    role: Role;
+    userId: string;
     tenantId: string;
+    role: Role;
   }>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify(creds),
-  });
-  tokens[role] = login.token;
-}
-
-/** Admin-scoped call; retries once with a fresh login if the cached token was rejected. */
-async function asAdmin<T>(path: string, init?: RequestInit): Promise<T> {
-  await ensureAuth("admin");
-  try {
-    return await request<T>(path, init, "admin");
-  } catch (err) {
-    if (!(err instanceof ApiError && err.status === 401)) throw err;
-    await ensureAuth("admin", true);
-    return request<T>(path, init, "admin");
-  }
+    body: JSON.stringify({
+      email: "admin@nulltrace.demo",
+      password: "demo1234",
+    }),
+  }, null);
+  return request<T>(path, init, adminLogin.token);
 }
 
 export const api = {
-  /** Login as demo user for role, then open a chat session (identity from Bearer). */
-  createSession: async (role: Role) => {
-    consoleRole = role;
-    await ensureAuth(role, true);
+  /** Anonymous public session (no password). */
+  startGuest: async () => {
+    const guest = await request<{
+      token: string;
+      userId: string;
+      tenantId: string;
+      role: Role;
+      displayName: string;
+      email: string;
+    }>("/api/auth/guest", { method: "POST" }, null);
+    auth = {
+      token: guest.token,
+      userId: guest.userId,
+      email: guest.email,
+      displayName: guest.displayName,
+      tenantId: guest.tenantId,
+      role: guest.role,
+    };
     return request<SessionDTO>("/api/sessions", {
       method: "POST",
       body: JSON.stringify({}),
     });
+  },
+
+  login: async (email: string, password: string) => {
+    const result = await request<{
+      token: string;
+      userId: string;
+      tenantId: string;
+      role: Role;
+      memberships?: Array<{ tenantId: string; role: Role; tenantName?: string }>;
+    }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }, null);
+
+    // Prefer display from /me when available
+    auth = {
+      token: result.token,
+      userId: result.userId,
+      email: email.trim().toLowerCase(),
+      displayName: email.split("@")[0],
+      tenantId: result.tenantId,
+      role: result.role,
+    };
+    try {
+      const me = await request<{
+        email: string;
+        displayName: string;
+        role: Role;
+        tenantId: string;
+        userId: string;
+      }>("/api/auth/me");
+      auth = {
+        token: result.token,
+        userId: me.userId,
+        email: me.email,
+        displayName: me.displayName,
+        tenantId: me.tenantId,
+        role: me.role,
+      };
+    } catch {
+      /* keep login payload */
+    }
+
+    return request<SessionDTO>("/api/sessions", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  },
+
+  logout: async () => {
+    if (auth?.token) {
+      try {
+        await request("/api/auth/logout", { method: "POST" });
+      } catch {
+        /* ignore */
+      }
+    }
+    auth = null;
+  },
+
+  /** @deprecated Prefer startGuest / login */
+  createSession: async (role: Role) => {
+    if (role === "guest") return api.startGuest();
+    const hint = DEMO_LOGIN_HINTS.find((h) => h.role === role);
+    if (!hint) throw new ApiError(400, "Unknown role");
+    return api.login(hint.email, hint.password);
   },
 
   sendMessage: (sessionId: string, message: string) =>

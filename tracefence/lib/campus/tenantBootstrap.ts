@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getDb } from "../db/client";
 import { invalidateCampusPolicyCache, loadFixturePolicy, resolveCampusRoot } from "./policy";
+import { ensureChunksForTenant } from "./chunkIndex";
 
 /** Create org_policy row from fixture template for a tenant. */
 export function seedPolicyForTenant(tenantId: string) {
@@ -43,5 +44,6 @@ export function seedFixtureDocumentsForTenant(tenantId: string) {
       now,
     );
   }
+  ensureChunksForTenant(tenantId);
   invalidateCampusPolicyCache(tenantId);
 }

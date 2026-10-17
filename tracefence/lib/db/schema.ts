@@ -163,4 +163,18 @@ CREATE TABLE IF NOT EXISTS org_policy (
   updated_at TEXT NOT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
+
+CREATE TABLE IF NOT EXISTS doc_chunks (
+  tenant_id TEXT NOT NULL,
+  doc_id TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  page INTEGER,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (tenant_id, doc_id, chunk_index),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_doc_chunks_tenant_doc
+  ON doc_chunks (tenant_id, doc_id);
 `;

@@ -2,6 +2,16 @@
   "tenantId": "nulltrace-institute",
   "policyVersion": 1,
   "roles": {
+    "guest": {
+      "collections": ["public"],
+      "tools": {
+        "search_docs": "ALLOW",
+        "read_document": "ALLOW",
+        "export_records": "DENY",
+        "post_announcement": "DENY",
+        "notify_external": "DENY"
+      }
+    },
     "student": {
       "collections": ["public"],
       "tools": {
