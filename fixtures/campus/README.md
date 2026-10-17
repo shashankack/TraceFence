@@ -29,13 +29,15 @@ fixtures/campus/
     pes-hostel-admission.md     # public
     pes-campus-facilities.md    # public
     pes-research-policy.md      # internal — hidden from students and guests
+    pes-university-act.md       # public   — The PES University Act, 2012 (gazetted English text)
   pdf/
-    pes-*.pdf                 # PDF rendering of each pes-*.md (same id)
+    pes-*.pdf                 # PDF of each pes-*.md (same id); the 7 NullTrace demo docs have no PDF yet
   policies/
     roles.json                # role → collections + tools matrix, and the document registry
   scripts/
-    register_docs.cjs         # adds docs/*.md missing from roles.json (reads "# " title + "Classification:" line)
-    md_to_pdf.py              # renders docs/*.md to classification-bannered PDFs (needs reportlab)
+    register_docs.cjs         # adds docs/*.md missing from roles.json (reads "# " title + "Classification:" line);
+                              #   with a folder argument it also converts raw PDFs (needs pdf-parse in tracefence/)
+    md_to_pdf.py              # renders docs/*.md to classification-bannered PDFs (needs reportlab; on Windows run with `py`)
 ```
 
 The `pes-*` documents are paraphrased summaries of PES University's public website, with the source URLs in each file's header. They contain no personal names, phone numbers or emails.

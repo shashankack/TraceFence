@@ -6,6 +6,22 @@ Newest entries first.
 
 ---
 
+## 2026-10-17 — Teammates' policy docs (desaitejas777 fixtures)
+
+### Done
+- Added teammates' `pes-university-act` (.md + .pdf, public): The PES University Act, 2012 — gazetted English text, signatories named by office only.
+- `incoming-pdfs/` did not exist, so `node fixtures/campus/scripts/register_docs.cjs` ran without an argument → `added 1; total 20 { public: 16, internal: 2, confidential: 2 }`; no PROBLEMS, nothing converted or DEFAULTED. `guest` role and `policyVersion: 1` unchanged.
+- Checks: every `.md` Classification matches `roles.json`; only `hostel-rules.md` mentions curfew.
+- Reset the demo DB and ran `npx tsx scripts/smoke-demos.ts`: A curfew ALLOW, B student export DENY, B2 confidential filtered, C faculty approval → CONSUMED, D tenant isolation — ALL DEMOS PASSED.
+- Retrieval (student) "Vice-Chancellor appointment Board of Governors" → `pes-university-act` (2 chunks), `pes-grievance-redressal`, `pes-admission-documents`.
+
+### Open
+- The 7 NullTrace demo docs (handbook, hostel-rules, exam-rules, it-maintenance-notice, faculty-guide, student-directory, grades-notes) have no `pdf/<id>.pdf`. Render with `scripts/md_to_pdf.py` (needs reportlab) if every document must have a PDF.
+- `pdf-parse` is not installed in `tracefence/node_modules`, so `register_docs.cjs <folder>` cannot convert raw PDFs yet.
+- `pes-university-act.md` has 3 lines with Cyrillic look-alike letters ("KARNAТАКА", "АCT") left from PDF extraction; keyword search misses "Karnataka Act" on those lines.
+
+---
+
 ## 2026-10-17 — PES University policy docs (desaitejas777 fixtures)
 
 ### Done
