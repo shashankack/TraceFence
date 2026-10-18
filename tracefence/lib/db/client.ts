@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
 import { SCHEMA_SQL } from "./schema";
+// Plain .mjs avoids tsx/turbopack rewriting worker_threads paths.
+import { getHttpBridge } from "./httpBridge.mjs";
 
 type SqlValue = string | number | bigint | Buffer | null;
 type RunResult = { changes: number; lastInsertRowid: number | bigint };
@@ -10,7 +12,7 @@ type Statement = {
   get: (...params: SqlValue[]) => Record<string, unknown> | undefined;
   all: (...params: SqlValue[]) => Array<Record<string, unknown>>;
 };
-type TfDatabase = {
+export type TfDatabase = {
   prepare: (sql: string) => Statement;
   exec: (sql: string) => unknown;
   pragma: (source: string) => unknown;
@@ -24,14 +26,6 @@ declare global {
   var __tracefenceDb: TfDatabase | undefined;
   // eslint-disable-next-line no-var
   var __tracefenceSeeded: boolean | undefined;
-  // eslint-disable-next-line no-var
-  var __tracefenceSqlRpc:
-    | ((payload: {
-        op: string;
-        sql?: string;
-        params?: SqlValue[];
-      }) => { ok?: boolean; value?: unknown; error?: string })
-    | undefined;
 }
 
 const require = createRequire(import.meta.url);
@@ -45,17 +39,7 @@ function sqlRpc(payload: {
   sql?: string;
   params?: SqlValue[];
 }): { ok?: boolean; value?: unknown; error?: string } {
-  if (!global.__tracefenceSqlRpc) {
-    // synckit must load a CJS worker path.
-    const { createSyncFn } = require("synckit") as typeof import("synckit");
-    global.__tracefenceSqlRpc = createSyncFn(
-      require.resolve("./sqlHttpWorker.cjs"),
-      {
-        timeout: Number(process.env.DATABASE_HTTP_TIMEOUT_MS ?? "20000"),
-      },
-    ) as typeof global.__tracefenceSqlRpc;
-  }
-  return global.__tracefenceSqlRpc!(payload);
+  return getHttpBridge().rpc(payload);
 }
 
 function createHttpDatabase(): TfDatabase {
@@ -104,7 +88,6 @@ function createHttpDatabase(): TfDatabase {
 }
 
 function resolveLocalDbPath(): string {
-  // Legacy Vercel path when shared HTTP DB is not configured (ephemeral).
   if (process.env.VERCEL || process.env.TRACEFENCE_DB_TMP === "1") {
     return process.env.DATABASE_PATH && path.isAbsolute(process.env.DATABASE_PATH)
       ? process.env.DATABASE_PATH
@@ -142,10 +125,10 @@ export function getDb(): TfDatabase {
     return global.__tracefenceDb;
   }
 
-  const db = useHttpDb() ? createHttpDatabase() : createLocalDatabase();
+  const http = useHttpDb();
+  const db = http ? createHttpDatabase() : createLocalDatabase();
 
-  if (useHttpDb()) {
-    // Shared server already has WAL/FKs; still apply schema + migrations.
+  if (http) {
     try {
       sqlRpc({ op: "ping" });
     } catch (e) {
