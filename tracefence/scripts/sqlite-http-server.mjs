@@ -27,6 +27,31 @@ const DB_PATH =
   path.join(__dirname, "..", "data", "tracefence.shared.sqlite");
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+
+// Apply TraceFence schema + DEMO_MODE seed once against the shared file
+// (local better-sqlite3, not via HTTP) so Vercel cold starts stay light.
+try {
+  const { execFileSync } = await import("child_process");
+  const seedScript = path.join(__dirname, "seed-shared-db.mjs");
+  execFileSync(process.execPath, ["--import", "tsx/esm", seedScript], {
+    cwd: path.join(__dirname, ".."),
+    env: {
+      ...process.env,
+      DATABASE_PATH: DB_PATH,
+      DEMO_MODE: "true",
+      DATABASE_HTTP_URL: "",
+      VERCEL: "",
+      TRACEFENCE_DB_TMP: "",
+    },
+    stdio: "inherit",
+  });
+} catch (e) {
+  console.warn(
+    "Warning: could not auto-seed shared DB (will still serve SQL):",
+    e instanceof Error ? e.message : e,
+  );
+}
+
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");

@@ -1,9 +1,9 @@
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
+import { fileURLToPath } from "url";
 import { SCHEMA_SQL } from "./schema";
-// Plain .mjs avoids tsx/turbopack rewriting worker_threads paths.
-import { getHttpBridge } from "./httpBridge.mjs";
 
 type SqlValue = string | number | bigint | Buffer | null;
 type RunResult = { changes: number; lastInsertRowid: number | bigint };
@@ -30,6 +30,19 @@ declare global {
 
 const require = createRequire(import.meta.url);
 
+function resolveRpcCli(): string {
+  const candidates = [
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "sqlRpcCli.mjs"),
+    path.join(process.cwd(), "lib", "db", "sqlRpcCli.mjs"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  throw new Error(
+    `sqlRpcCli.mjs not found (cwd=${process.cwd()}). Tried: ${candidates.join(" | ")}`,
+  );
+}
+
 function useHttpDb(): boolean {
   return Boolean(process.env.DATABASE_HTTP_URL?.trim());
 }
@@ -39,7 +52,21 @@ function sqlRpc(payload: {
   sql?: string;
   params?: SqlValue[];
 }): { ok?: boolean; value?: unknown; error?: string } {
-  return getHttpBridge().rpc(payload);
+  const out = execFileSync(process.execPath, [resolveRpcCli()], {
+    input: JSON.stringify(payload),
+    env: process.env,
+    encoding: "utf8",
+    maxBuffer: 20 * 1024 * 1024,
+    timeout: Number(process.env.DATABASE_HTTP_TIMEOUT_MS ?? "20000"),
+    windowsHide: true,
+  });
+  const data = JSON.parse(out) as {
+    ok?: boolean;
+    value?: unknown;
+    error?: string;
+  };
+  if (data.ok === false) throw new Error(data.error || "DB HTTP error");
+  return data;
 }
 
 function createHttpDatabase(): TfDatabase {
@@ -138,6 +165,11 @@ export function getDb(): TfDatabase {
           `(${e instanceof Error ? e.message : e})`,
       );
     }
+    // Schema + demo seed run on the shared HTTP server process so Vercel
+    // cold starts stay light (each SQL call is one HTTP round-trip).
+    global.__tracefenceDb = db;
+    global.__tracefenceSeeded = true;
+    return db;
   }
 
   db.exec(SCHEMA_SQL);

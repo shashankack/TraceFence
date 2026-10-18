@@ -8,8 +8,7 @@ const nextConfig: NextConfig = {
     "/**": [
       "./fixtures/campus/**/*",
       "./node_modules/better-sqlite3/**/*",
-      "./lib/db/sqlHttpWorker.mjs",
-      "./lib/db/httpBridge.mjs",
+      "./lib/db/sqlRpcCli.mjs",
     ],
   },
   turbopack: {
