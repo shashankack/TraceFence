@@ -108,7 +108,7 @@ export function useEvidence(
 ) {
   const page = opts.page ?? 1;
   const pageSize = opts.pageSize ?? 10;
-  const pollMs = opts.pollMs === undefined ? 8000 : opts.pollMs;
+  const pollMs = opts.pollMs === undefined ? 2500 : opts.pollMs;
 
   return usePolled<EvidencePage>(
     () =>
@@ -159,7 +159,7 @@ export function useAudit() {
         note: server.note,
       };
     },
-    8000,
+    2500,
     [],
     (prev, next) => {
       const prevDecisions =
@@ -183,7 +183,7 @@ export function useAudit() {
 export const useApprovals = () =>
   usePolled<ApprovalDTO[]>(
     () => api.approvals(),
-    5000,
+    2500,
     [],
     (prev, next) => {
       if (prev && prev.length > 0 && next.length === 0) return prev;

@@ -1,17 +1,110 @@
-import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { createRequire } from "module";
 import { SCHEMA_SQL } from "./schema";
+
+type SqlValue = string | number | bigint | Buffer | null;
+type RunResult = { changes: number; lastInsertRowid: number | bigint };
+type Statement = {
+  run: (...params: SqlValue[]) => RunResult;
+  get: (...params: SqlValue[]) => Record<string, unknown> | undefined;
+  all: (...params: SqlValue[]) => Array<Record<string, unknown>>;
+};
+type TfDatabase = {
+  prepare: (sql: string) => Statement;
+  exec: (sql: string) => unknown;
+  pragma: (source: string) => unknown;
+  transaction: <T extends unknown[]>(
+    fn: (...args: T) => unknown,
+  ) => (...args: T) => unknown;
+};
 
 declare global {
   // eslint-disable-next-line no-var
-  var __tracefenceDb: Database.Database | undefined;
+  var __tracefenceDb: TfDatabase | undefined;
   // eslint-disable-next-line no-var
   var __tracefenceSeeded: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __tracefenceSqlRpc:
+    | ((payload: {
+        op: string;
+        sql?: string;
+        params?: SqlValue[];
+      }) => { ok?: boolean; value?: unknown; error?: string })
+    | undefined;
 }
 
-function resolveDbPath(): string {
-  // Vercel / serverless: only /tmp is writable (ephemeral; DEMO_MODE reseeds).
+const require = createRequire(import.meta.url);
+
+function useHttpDb(): boolean {
+  return Boolean(process.env.DATABASE_HTTP_URL?.trim());
+}
+
+function sqlRpc(payload: {
+  op: string;
+  sql?: string;
+  params?: SqlValue[];
+}): { ok?: boolean; value?: unknown; error?: string } {
+  if (!global.__tracefenceSqlRpc) {
+    // synckit must load a CJS worker path.
+    const { createSyncFn } = require("synckit") as typeof import("synckit");
+    global.__tracefenceSqlRpc = createSyncFn(
+      require.resolve("./sqlHttpWorker.cjs"),
+      {
+        timeout: Number(process.env.DATABASE_HTTP_TIMEOUT_MS ?? "20000"),
+      },
+    ) as typeof global.__tracefenceSqlRpc;
+  }
+  return global.__tracefenceSqlRpc!(payload);
+}
+
+function createHttpDatabase(): TfDatabase {
+  const prepare = (sql: string): Statement => ({
+    run: (...params) => {
+      const res = sqlRpc({ op: "run", sql, params });
+      return (res.value as RunResult) ?? { changes: 0, lastInsertRowid: 0 };
+    },
+    get: (...params) => {
+      const res = sqlRpc({ op: "get", sql, params });
+      return (res.value as Record<string, unknown> | null) ?? undefined;
+    },
+    all: (...params) => {
+      const res = sqlRpc({ op: "all", sql, params });
+      return (res.value as Array<Record<string, unknown>>) ?? [];
+    },
+  });
+
+  return {
+    prepare,
+    exec: (sql: string) => {
+      sqlRpc({ op: "exec", sql });
+    },
+    pragma: (source: string) => {
+      const res = sqlRpc({ op: "pragma", sql: source });
+      return res.value;
+    },
+    transaction:
+      <T extends unknown[]>(fn: (...args: T) => unknown) =>
+      (...args: T) => {
+        sqlRpc({ op: "begin" });
+        try {
+          const out = fn(...args);
+          sqlRpc({ op: "commit" });
+          return out;
+        } catch (e) {
+          try {
+            sqlRpc({ op: "rollback" });
+          } catch {
+            /* ignore */
+          }
+          throw e;
+        }
+      },
+  };
+}
+
+function resolveLocalDbPath(): string {
+  // Legacy Vercel path when shared HTTP DB is not configured (ephemeral).
   if (process.env.VERCEL || process.env.TRACEFENCE_DB_TMP === "1") {
     return process.env.DATABASE_PATH && path.isAbsolute(process.env.DATABASE_PATH)
       ? process.env.DATABASE_PATH
@@ -27,26 +120,43 @@ function resolveDbPath(): string {
       );
 }
 
-export function getDb(): Database.Database {
-  if (global.__tracefenceDb) {
-    // Hot-reload can keep an open handle opened before new migrations landed.
-    migrateTenantProfiles(global.__tracefenceDb);
-    migrateMockEmailOutbox(global.__tracefenceDb);
-    migrateSessionMessageAttachments(global.__tracefenceDb);
-    return global.__tracefenceDb;
-  }
-
-  const dbPath = resolveDbPath();
+function createLocalDatabase(): TfDatabase {
+  const Database = require("better-sqlite3") as typeof import("better-sqlite3");
+  const dbPath = resolveLocalDbPath();
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
   const db = new Database(dbPath);
-  // WAL is awkward on ephemeral /tmp serverless disks.
   db.pragma(
     process.env.VERCEL || process.env.TRACEFENCE_DB_TMP === "1"
       ? "journal_mode = DELETE"
       : "journal_mode = WAL",
   );
   db.pragma("foreign_keys = ON");
+  return db as unknown as TfDatabase;
+}
+
+export function getDb(): TfDatabase {
+  if (global.__tracefenceDb) {
+    migrateTenantProfiles(global.__tracefenceDb);
+    migrateMockEmailOutbox(global.__tracefenceDb);
+    migrateSessionMessageAttachments(global.__tracefenceDb);
+    return global.__tracefenceDb;
+  }
+
+  const db = useHttpDb() ? createHttpDatabase() : createLocalDatabase();
+
+  if (useHttpDb()) {
+    // Shared server already has WAL/FKs; still apply schema + migrations.
+    try {
+      sqlRpc({ op: "ping" });
+    } catch (e) {
+      throw new Error(
+        `Shared DATABASE_HTTP_URL unreachable (${process.env.DATABASE_HTTP_URL}). ` +
+          `Start scripts/sqlite-http-server.mjs + cloudflared, then retry. ` +
+          `(${e instanceof Error ? e.message : e})`,
+      );
+    }
+  }
+
   db.exec(SCHEMA_SQL);
   migrateApprovalsForSessions(db);
   migrateOrgTablesToMultiTenant(db);
@@ -57,7 +167,6 @@ export function getDb(): Database.Database {
   global.__tracefenceDb = db;
 
   if (!global.__tracefenceSeeded) {
-    // Lazy require avoids circular init with seed → getDb.
     const { seedDemoDataIfNeeded } = require("../demo/seed") as typeof import("../demo/seed");
     seedDemoDataIfNeeded();
     global.__tracefenceSeeded = true;
@@ -66,8 +175,7 @@ export function getDb(): Database.Database {
   return db;
 }
 
-/** Legacy approvals FK'd to tasks; campus binds task_id to session ids. */
-function migrateApprovalsForSessions(db: Database.Database) {
+function migrateApprovalsForSessions(db: TfDatabase) {
   const row = db
     .prepare(
       `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'approvals'`,
@@ -96,8 +204,7 @@ function migrateApprovalsForSessions(db: Database.Database) {
   `);
 }
 
-/** Rebuild legacy single-tenant org_* tables into tenant-scoped shape. */
-function migrateOrgTablesToMultiTenant(db: Database.Database) {
+function migrateOrgTablesToMultiTenant(db: TfDatabase) {
   const policySql = (
     db
       .prepare(
@@ -154,15 +261,14 @@ function migrateOrgTablesToMultiTenant(db: Database.Database) {
   }
 }
 
-function tableColumns(db: Database.Database, table: string): Set<string> {
+function tableColumns(db: TfDatabase, table: string): Set<string> {
   const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{
     name: string;
   }>;
   return new Set(rows.map((r) => r.name));
 }
 
-/** Org type + notify profile columns on tenants. */
-function migrateTenantProfiles(db: Database.Database) {
+function migrateTenantProfiles(db: TfDatabase) {
   const cols = tableColumns(db, "tenants");
   if (!cols.has("org_type")) {
     db.exec(
@@ -177,8 +283,7 @@ function migrateTenantProfiles(db: Database.Database) {
   }
 }
 
-/** Tenant-scoped notification outbox for approval alerts. */
-function migrateMockEmailOutbox(db: Database.Database) {
+function migrateMockEmailOutbox(db: TfDatabase) {
   const cols = tableColumns(db, "mock_email_outbox");
   if (!cols.has("tenant_id")) {
     db.exec(`ALTER TABLE mock_email_outbox ADD COLUMN tenant_id TEXT`);
@@ -188,8 +293,7 @@ function migrateMockEmailOutbox(db: Database.Database) {
   }
 }
 
-/** Chat bubbles can show which uploads rode with a user turn. */
-function migrateSessionMessageAttachments(db: Database.Database) {
+function migrateSessionMessageAttachments(db: TfDatabase) {
   const cols = tableColumns(db, "session_messages");
   if (!cols.has("attachments_json")) {
     db.exec(`ALTER TABLE session_messages ADD COLUMN attachments_json TEXT`);
